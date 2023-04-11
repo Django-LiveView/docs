@@ -1,6 +1,7 @@
 {
   "devDependencies": {
       "parcel": "^v2.8.3",
+      "markdown-it": "^13.0.1",
       "parcel-plugin-markdown-it": "^1.0.0",
       "@parcel/transformer-pug": "^2.8.3",
       "@parcel/transformer-sass": "^2.8.3",
