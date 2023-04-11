@@ -20,7 +20,6 @@ jobs:
     - name: Install
       run: |     
           npm i
-          #npm install parcel-bundler
       
     - name: Build
       run: |
