@@ -25,7 +25,7 @@ jobs:
     - name: Build
       run: |
         rm -rf docs
-        parcel build index.pug --out-dir docs
+        parcel build index.pug --dist-dir docs
         echo "www.tadam-framework.dev" > docs/CNAME
       
     - name: Deploy
