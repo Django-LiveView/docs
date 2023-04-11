@@ -33,4 +33,4 @@ jobs:
         git config --local user.name "GitHub Action"
         git add -f docs
         git commit -m "Deploy CI"
-        git push origin master
+        git push origin main
