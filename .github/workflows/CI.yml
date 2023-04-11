@@ -20,7 +20,7 @@ jobs:
     - name: Install
       run: |     
           npm i
-          sudo npm install -g parcel-bundler
+          npm install parcel-bundler
       
     - name: Build
       run: |
