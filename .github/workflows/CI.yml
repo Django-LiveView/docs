@@ -1,0 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install
+      run: |
+          sudo npm install -g parcel-bundler
+          npm i
+      
+    - name: Build
+      run: |
+        rm -rf docs
+        parcel build index.pug --out-dir docs
+        echo "www.tadam-framework.dev" > docs/CNAME
+      
+    - name: Deploy
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -f docs
+        git commit -m "Deploy CI"
+        git push origin master

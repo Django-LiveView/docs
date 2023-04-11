@@ -1,0 +1,44 @@
+.aside
+  grid-column: 1 / 2
+  grid-row: 1 / 2
+  background-color: $color-darkgreen
+  padding-left: 1.5rem
+  &__content
+    position: sticky
+    top: 0
+  &__logo
+    top: 2rem
+    margin: 2rem 0
+    margin-bottom: 0
+    width: 4rem
+  &__title
+    color: $color-white
+    text-transform: uppercase
+    font-size: .8rem
+    margin-top: 3rem
+    margin-bottom: 1rem
+    &--first
+      margin-top: 2rem
+  &__ul
+    @include ulReset()
+  &__link
+    display: block
+    position: relative
+    color: transparentize($color-white, .5)
+    margin-bottom: .8rem
+    transition: .5s
+    &.mark
+      color: $color-white
+      margin-left: 1rem
+    &:hover
+      color: $color-white
+      text-decoration: initial
+    &--soon
+      &::after
+        position: absolute
+        top: -.5rem
+        margin-left: .5rem
+        content: 'soon'
+        color: transparentize($color-white, .6)
+        font-size: .8rem
+

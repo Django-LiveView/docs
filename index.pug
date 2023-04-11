@@ -1,0 +1,240 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Tadam Web Framework
+    link(rel='icon', type='image/png', href='img/favicon.png')
+    meta(name='theme-color', content='#838383')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no')
+    meta(name='author', content='Andros Fenollosa')
+    meta(name='generator', content='Tadam')
+    meta(name='keywords', content='Clojure, Web, Framework, template')
+    meta(name='description', content='Tadam is a minimalistic framework for creating dynamic function-oriented websites. All the potential of Clojure simplified for fast development. It could be in someway equivalent to Flask, but a little more modern.')
+    meta(property='og:image', content='img/tadam-opengraph.png')
+    meta(property='og:title', content='Tadam Web Framework')
+    meta(property='og:type', content='website')
+    meta(property='og:url', content='img/tadam-opengraph.png')
+    meta(name='twitter:card', content='summary')
+    meta(name='twitter:creator', content='@androsfenollosa')
+    meta(property='og:image:type', content='image/png')
+    meta(property='og:image:width', content='400')
+    meta(property='og:image:height', content='300')
+    meta(property='og:image:alt', content='Logo Tadam')
+    link(href='sass/mobile.sass', rel='stylesheet', media='all and (max-width: 600px)')
+    link(href='sass/desktop.sass', rel='stylesheet', media='all and (min-width: 600px)')
+  body
+    header.header
+      nav
+        button.nav-menu#nav-menu
+          img.nav-menu__img(src="img/button-nav-mobile.svg")
+    button.nav-close#nav-close
+      img.nav-close__img(src="img/close.svg")
+    .landing.landing__background
+      .container.landing__grid
+        .landing__logo
+          img.landing__logo-img(src='img/tadam-logo.svg', alt="Brand")
+        .landing__titles
+          h2.landing__subtitle No rabbits, just Clojure
+          h1.landing__title Tadam Web Framework
+          a.landing__start(href="#main") Start
+    .main__grid
+      aside.aside(role="Sidebar")
+        .aside__content
+          img.aside__logo(src="img/tadam-logo.svg", aria-hidden="true")
+          nav.aside__nav(role="nav")
+            h2.aside__title.aside__title--first Basics
+            ul.aside__ul
+              li
+                a.aside__link(href="#installation") Installation
+              li
+                a.aside__link(href="#directory") Directory Structure
+              li
+                a.aside__link(href="#configuration") Configuration
+              li
+                a.aside__link(href="#routing") Routing
+              li
+                a.aside__link(href="#views") Views
+              li
+                a.aside__link(href="#templates") Templates
+              li
+                a.aside__link(href="#requests") Requests
+              li
+                a.aside__link(href="#responses") Responses
+            h2.aside__title Advances
+            ul.aside__ul
+              li
+                a.aside__link(href="#email") Email
+              li
+                a.aside__link.aside__link--soon(href="#sessions") Sessions
+            h2.aside__title Deployment
+            ul.aside__ul
+              li
+                a.aside__link(href="#compile") Compile
+              li
+                a.aside__link(href="#service") Service
+              li
+                a.aside__link(href="#reverse") Reverse proxy
+            h2.aside__title Community
+            ul.aside__ul
+              li
+                a.aside__link(href="#donation") Donation
+              li
+                a.aside__link(href="#talks") Talks
+              li
+                a.aside__link(href="#success") Success stories
+              li
+                a.aside__link(href="#thanks") Thanks
+      main.main#main(role="article")
+        .container
+          aside.secondary
+            .twitter
+              a.twitter__link(href='https://twitter.com/TadamWeb' target='_blank')
+                img.twitter__icon(src="img/twitter.svg" alt="Twitter")
+            .github
+              a.github__link(href='https://github.com/tadam-framework/tadam-core' target='_blank')
+                img.github__icon(src="img/github.svg" alt="Github")
+              // Place this tag where you want the button to render.
+              span.github__button
+                a.github-button(href='https://github.com/tadam-framework/tadam-core' data-icon='octicon-star' data-size='large' data-show-count='true' aria-label='Star tadam Framework on GitHub') Star
+          // Introduction
+          section.introduction
+            p Tadam is a minimalistic framework for creating dynamic #[strong function-oriented websites]. All the #[strong potential of  Clojure simplified] for fast development. It could be in someway #[strong equivalent to Flask], but a little more modern.
+            p The rest of the magic will come from you.
+            .introduction__grid
+              .introduction__content-image
+                img.introduction__image(src="img/list.svg" alt="Order list")
+              .introduction__text-1
+                h2.introduction__title urls.clj
+                pre
+                  code.clojure.
+                    (defroutes public
+                      (GET "/" [] view-public/index))
+              .introduction__text-2.introduction__text--tab
+                h2.introduction__title views.clj
+                pre
+                  code.clojure.
+                    (defn index
+                      [req]
+                      (render-HTML req "welcome.html"
+                        { :name "Tadam"
+                          :time (System/currentTimeMillis) }))
+              .introduction__text-3
+                h2.introduction__title welcome.html
+                pre
+                  code.django.
+                    #{'<h1>Welcome to {{ name }} Framework</h1>'}
+                    #{'<p>No bugs since: {{ time }}</p>'}
+              .introduction__text-4.introduction__text--tab
+                h2.introduction__title 🎉 TADAM!!! 🎉
+                pre
+                  code.django.
+                    #{'<h1>Welcome to Tadam Framework</h1>'}
+                    #{'<p>No bugs since: 1590773922089</p>'}
+          // Pages
+          //// Installation
+          section
+            .mark#installation
+            h1.main__title Installation
+            include:markdown-it(html) markdown/basics/installation.md
+          //// Directory
+          section
+            .mark#directory
+            h1.main__title Directory Structure
+            include:markdown-it(html) markdown/basics/directory.md
+          //// Configuration
+          section
+            .mark#configuration
+            h1.main__title Configuration
+            include:markdown-it(html) markdown/basics/configuration.md
+          //// Routing
+          section
+            .mark#routing
+            h1.main__title Routing
+            include:markdown-it(html) markdown/basics/routing.md
+          //// Views
+          section
+            .mark#views
+            h1.main__title Views
+            include:markdown-it(html) markdown/basics/views.md
+          //// Templates
+          section
+            .mark#templates
+            h1.main__title Templates
+            include:markdown-it(html) markdown/basics/templates.md
+          //// Requests
+          section
+            .mark#requests
+            h1.main__title Requests
+            include:markdown-it(html) markdown/basics/requests.md
+          //// Requests
+          section
+            .mark#responses
+            h1.main__title Responses
+            include:markdown-it(html) markdown/basics/responses.md
+          //// Email
+          section
+            .mark#email
+            h1.main__title Email
+            include:markdown-it(html) markdown/advances/email.md
+          //// Compile
+          section
+            .mark#compile
+            h1.main__title Compile
+            include:markdown-it(html) markdown/deployment/compile.md
+          //// Service
+          section
+            .mark#service
+            h1.main__title Service
+            include:markdown-it(html) markdown/deployment/service.md
+          //// Reverse Proxy
+          section
+            .mark#reverse
+            h1.main__title Reverse Proxy
+            include:markdown-it(html) markdown/deployment/reverse.md
+          //// Donation
+          section.donation
+            .mark#donation
+            h1.main__title Donation
+            include:markdown-it(html) markdown/community/donation.md
+          //// Interviews
+          section.talks
+            .mark#talks
+            h1.main__title Talks
+            div.talks__content
+              include:markdown-it(html) markdown/community/talks.md
+          //// Success stories
+          section.success__stories
+            .mark#success
+            h1.main__title Success stories
+            include:markdown-it(html) markdown/community/success-stories.md
+          //// Thanks
+          section.success__stories
+            .mark#thanks
+            h1.main__title Thanks
+            include:markdown-it(html) markdown/community/thanks.md
+
+          // End pages
+
+          footer.footer
+            p 2021 Tadam Framework | Author: #[a(href="https://programadorwebvalencia.com/" target="_blank") Andros Fenollosa]
+
+    // Matomo
+    script.
+      var _paq = window._paq = window._paq || [];
+      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+      var u="//matomo.andros.dev/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '4']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    // End Matomo Code
+
+    // My JavaScript
+    script(defer, src='js/main.js')
+    // End My JavaScript
+
+

@@ -1,0 +1,7 @@
+.cache/
+docs/
+dist/
+node_modules/
+!docs/CNAME
+.DS_Store
+
