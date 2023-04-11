@@ -26,7 +26,7 @@ jobs:
       run: |
         rm -rf docs
         parcel build index.pug --dist-dir docs
-        echo "www.tadam-framework.dev" > docs/CNAME
+        echo "django-liveview.andros.dev" > docs/CNAME
       
     - name: Deploy
       run: |
