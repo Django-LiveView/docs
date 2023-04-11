@@ -26,7 +26,7 @@ jobs:
         rm -rf docs
         parcel build index.pug --dist-dir docs
         echo "django-liveview.andros.dev" > docs/CNAME
-	cp robots.txt docs/
+        cp robots.txt docs/
 
     - name: Deploy
       run: |
