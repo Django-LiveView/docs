@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "highlight.js": "^10.4.1",
-    "parcel": "^2.0.0"
+    "parcel": "^1.10.3"
   }
 }
