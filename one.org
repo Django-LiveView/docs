@@ -1,11 +1,30 @@
 * Home
 :PROPERTIES:
-:ONE: one-custom-default
+:ONE: one-custom-default-home
 :CUSTOM_ID: /
+:TITLE:
+:DESCRIPTION: Framework for creating Realtime SPAs using HTML over the Wire technology.
 :END:
 
-Soy un ejemplo de web.
+* Get started
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/get-started/
+:END:
 
-#+BEGIN_SRC emacs-lisp
-(message "foo bar baz")
-#+END_SRC
+** What is Django LiveView?
+
+
+Django LiveView is a framework for creating Realtime SPAs using HTML over the Wire technology. It is inspired by Phoenix LiveView and it is built on top of Django Channels.
+
+It allows you to create interactive web applications using only HTML, CSS and Python. JavaScript ONLY is used to capture events, send and receive strings over a WebSockets channel.
+
+** What are your superpowers?
+
+- Create SPAs without using APIs.
+- Uses Django's template system to render the frontend (Without JavaScript).
+- The logic is not split between the backend and the frontend, it all stays in Python.
+- You can still use all of Django's native tools, such as its ORM, forms, plugins, etc.
+- Everything is asynchronous by default.
+- Don't learn anything new. If you know Python, you know how to use Django LiveView.
+- All in real time.
