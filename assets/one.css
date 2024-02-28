@@ -1,0 +1,87 @@
+/* ------- '.one' classes used by 'one-ox' org backend ------- */
+
+.one-hl {
+	font-family: 'Fira Mono', monospace;
+  font-size: 80%;
+  border-radius: 6px;
+}
+
+.one-hl-inline {
+	background: #31424a;
+  padding: 0.2em 0.4em;
+  margin: 0;
+  white-space: break-spaces;
+}
+
+.one-hl-block {
+  background: #161f22;
+  color: #c5c5c5;
+  display: block;
+  overflow: auto;
+  padding: 16px;
+  line-height: 1.45;
+}
+
+.one-blockquote {
+  background: #202d31;
+  border-left: 0.3em solid #31424a;
+  margin: 0px auto 16px;
+  padding: 1em 1em;
+  width: 90%;
+}
+
+.one-blockquote > p:last-child {
+  margin-bottom: 0;
+}
+
+.one-hl-results {
+  background: #202d31 ;
+  border-left: 2px solid #c5c5c5;
+  display: block;
+  margin: auto;
+  padding: 0.5em 1em;
+  overflow: auto;
+  width: 98%;
+}
+
+.one-hl-negation-char { color: #ff6c60}              /* font-lock-negation-char-face */
+.one-hl-warning { color: #fd971f}                    /* font-lock-warning-face */
+.one-hl-variable-name { color: #fd971f}              /* font-lock-variable-name-face */
+.one-hl-doc { color: #d3b2a1}                        /* font-lock-doc-face */
+.one-hl-doc-string { color: #d3b2a1}                 /* font-lock-doc-string-face */
+.one-hl-string { color: #d3b2a1}                     /* font-lock-string-face */
+.one-hl-function-name { color: #02d2da}              /* font-lock-function-name-face */
+.one-hl-builtin { color: #b2a1d3}                    /* font-lock-builtin-face */
+.one-hl-type { color: #457f8b}                       /* font-lock-type-face */
+.one-hl-keyword { color: #f92672}                    /* font-lock-keyword-face */
+.one-hl-preprocessor { color: #f92672}               /* font-lock-preprocessor-face */
+.one-hl-comment-delimiter { color: #8c8c8c}          /* font-lock-comment-delimiter-face */
+.one-hl-comment { color: #8c8c8c}                    /* font-lock-comment-face */
+.one-hl-constant { color: #f5ebb6}                   /* font-lock-constant-face */
+.one-hl-reference { color: #f5ebb6}                  /* font-lock-reference-face */
+.one-hl-regexp-grouping-backslash { color: #966046}  /* font-lock-regexp-grouping-backslash */
+.one-hl-regexp-grouping-construct { color: #aa86ee}  /* font-lock-regexp-grouping-construct */
+.one-hl-number { color: #eedc82}                     /* font-lock-number-face */
+
+.one-hl-sh-quoted-exec { color: #62bd9c}             /* sh-quoted-exec */
+
+.one-hl-ta-colon-keyword {color: #62b5e0;}           /* ta-colon-keyword-face */
+
+
+.one-hl-org-code  { color: #dedede; background: #31424a; }
+.one-hl-org-block  { color: #c5c5c5 ; background: #31424a; }
+.one-hl-org-block-begin-line  { color: #c3957e; }
+.one-hl-org-block-end-line  { color: #c3957e; }
+.one-hl-org-meta-line { color: #8c8c8c;}
+.one-hl-org-quote  { color:  #c5c5c5}
+.one-hl-org-drawer { color: #d3b2a1;  font-size: 0.9em; }
+.one-hl-org-special-keyword { color: #c3957e;  font-size: 0.9em; }
+.one-hl-org-property-value { color: #d2934a;  font-size: 0.9em; }
+.one-hl-org-level-1 { font-size: 1.7em; text-decoration: underline; }
+.one-hl-org-level-2 { font-size: 1.4em; text-decoration: underline; }
+.one-hl-org-level-3 { font-size: 1.2em; text-decoration: underline; }
+.one-hl-org-level-4 { font-size: 1.1em; text-decoration: underline; }
+.one-hl-org-level-5 { font-size: 1.0em; text-decoration: underline; }
+.one-hl-org-level-6 { font-size: 1.0em; text-decoration: underline; }
+.one-hl-org-level-8 { font-size: 1.0em; text-decoration: underline; }
+.one-hl-org-level-8 { font-size: 1.0em; text-decoration: underline; }

@@ -1,0 +1,11 @@
+* Home
+:PROPERTIES:
+:ONE: one-custom-default
+:CUSTOM_ID: /
+:END:
+
+Soy un ejemplo de web.
+
+#+BEGIN_SRC emacs-lisp
+(message "foo bar baz")
+#+END_SRC
