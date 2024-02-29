@@ -34,6 +34,291 @@ Are you ready to create your first Realtime SPA? Let's go to the [[#/docs/quicks
 :DESCRIPTION: Get started with Django LiveView the easy way.
 :END:
 
+All the steps are applied in a [[https://github.com/Django-LiveView/minimal-template][minimalist template]].
+
+** 1. Install Django
+
+Install Django, create a project and an app.
+
+** 2. Install LiveView
+
+Install django-liveview with ~pip~.
+
+#+BEGIN_SRC sh
+pip install django-liveview
+#+END_SRC
+
+** 3. Modify the configuration
+
+Add ~liveview~ to your installed ~INSTALLED_APPS~.
+
+#+BEGIN_SRC python
+INSTALLED_APPS = [
+    "daphne",
+    "channels",
+    "liveview",
+]
+#+END_SRC
+
+Then indicate in which previously created App you want to implement LiveView.
+
+#+BEGIN_SRC python
+LIVEVIEW_APPS = ["website"]
+#+END_SRC
+
+** 4. Migration
+
+Execute the migrations so that the LiveView tables are generated.
+
+#+BEGIN_SRC python
+python manage.py migrate
+#+END_SRC
+
+** 5. ASGI
+
+Modify the ASGI file, ~asgi.py~ to add the LiveView routing. In this example it is assumed that settings.py is inside core, in your case it may be different.
+
+#+BEGIN_SRC python
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+django.setup()
+
+from channels.auth import AuthMiddlewareStack
+from django.core.asgi import get_asgi_application
+from channels.security.websocket import AllowedHostsOriginValidator
+from channels.routing import ProtocolTypeRouter, URLRouter
+from django.urls import re_path
+from liveview.consumers import LiveViewConsumer
+
+
+application = ProtocolTypeRouter(
+    {
+        # Django's ASGI application to handle traditional HTTP requests
+        "http": get_asgi_application(),
+        # WebSocket handler
+        "websocket": AuthMiddlewareStack(
+            AllowedHostsOriginValidator(
+                URLRouter([re_path(r"^ws/liveview/$", LiveViewConsumer.as_asgi())])
+            )
+        ),
+    }
+)
+#+END_SRC
+
+** 6. Create your first Action
+
+Place where the functions and logic of the business logic are stored. We will start by creating an action to generate a random number and print it.
+
+Create inside your App a folder called ~actions~, here will go all the actions for each page. Now we will create inside the folder a file named ~home.py~.
+
+#+BEGIN_SRC python
+# my-app/actions/home.py
+from liveview.context_processors import get_global_context
+from core import settings
+from liveview.utils import (
+    get_html,
+    update_active_nav,
+    enable_lang,
+    loading,
+)
+from channels.db import database_sync_to_async
+from django.templatetags.static import static
+from django.urls import reverse
+from django.utils.translation import gettext as _
+from random import randint
+
+template = "pages/home.html"
+
+# Database
+
+# Functions
+
+async def get_context(consumer=None):
+    context = get_global_context(consumer=consumer)
+    # Update context
+    context.update(
+        {
+            "url": settings.DOMAIN_URL + reverse("home"),
+            "title": _("Home") + " | Home",
+            "meta": {
+                "description": _("Home page of the website"),
+                "image": f"{settings.DOMAIN_URL}{static('img/seo/og-image.jpg')}",
+            },
+            "active_nav": "home",
+            "page": template,
+        }
+    )
+    return context
+
+
+@enable_lang
+@loading
+async def send_page(consumer, client_data, lang=None):
+    # Nav
+    await update_active_nav(consumer, "home")
+    # Main
+    my_context = await get_context(consumer=consumer)
+    html = await get_html(template, my_context)
+    data = {
+        "action": client_data["action"],
+        "selector": "#main",
+        "html": html,
+    }
+    data.update(my_context)
+    await consumer.send_html(data)
+
+async def random_number(consumer, client_data, lang=None):
+    my_context = await get_context(consumer=consumer)
+    data = {
+        "action": client_data["action"],
+        "selector": "#output-random-number",
+        "html": randint(0, 10),
+    }
+    data.update(my_context)
+    await consumer.send_html(data)
+#+END_SRC
+
+There are several points in the above code to keep in mind.
+
+- ~template~ is the name of the template that will be rendered.
+- ~get_context()~ is a function that returns a dictionary with the context of the page.
+- ~send_page()~ is the function that will be executed when the page is loaded.
+- ~random_number()~ is the function that will be executed when the button is clicked.
+
+** 7. Create the base template
+
+Now we will create the base template, which will be the one that will be rendered when the page is loaded.
+
+Create a folder called ~templates~, or use your template folder, inside your App and inside it create another folder called ~layouts~. Now create a file called ~base.html~.
+
+#+BEGIN_SRC html
+{# my-app/templates/layouts/base.html #}
+{% load static i18n %}
+<!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
+<html lang="{{ CURRENT_LANGUAGE }}">
+    <head>
+        <meta charset="utf-8">
+        <title>{{ title }}</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+        >
+        <meta
+            name="description"
+            content="{{ meta.description }}"
+        >
+        <meta
+            property="og:image"
+            content="{{ meta.image }}"
+        >
+	<script type="module" src="{% static 'js/main.js' %}" defer></script>
+    </head>
+    <body
+		data-host="{{ request.get_host }}"
+		data-debug="{{ DEBUG }}"
+	>
+            <section id="loading"></section>
+	    <section id="notifications" class="notifications"></section>
+	    <section id="no_connection"></section>
+	    <div class="container">
+		<header id="content-header">
+		    {% include 'components/header.html' %}
+		</header>
+		<main id="main" class="main-container">{% include page %}</main>
+		<footer id="content-footer">
+		    {% include 'components/footer.html' %}
+		</footer>
+	    </div>
+    </body>
+</html>
+#+END_SRC
+
+In the future we will define ~main.js~, a minimal JavaScript to connect the events and the WebSockets client.
+
+** 8. Create the page template
+
+We will create the home page template, which will be the one that will be rendered when the page is loaded.
+
+Create a folder called ~pages~ in your template folder and inside it create a file called ~home.html~.
+
+#+BEGIN_SRC html
+{# my-app/templates/pages/home.html #}
+{% load static %}
+
+<main data-controller="home">
+    <p>
+	<button data-action="click->home#randomNumber">Random number</button>
+    </p>
+    <h2 id="output-random-number"></h2>
+</main>
+#+END_SRC
+
+As you can see, we have defined a button to launch the action of generating the random number (~button~) and the place where we will print the result (~output-random-number~).
+
+** 9. Create frontend
+
+Now we are going to create the frontend, the part where we will manage the JavaScript events and invoke the actions.
+
+Download [[https://github.com/Django-LiveView/assets/archive/refs/heads/main.zip][assets]] and unzip it in your static folder. You will be left with the following route: ~/static/js/~.
+
+** 10. Create View
+
+We will create the view that will render the page for the first time (like Server Side Rendering). The rest of the times will be rendered dynamically (like Single Page Application).
+
+In a normal Django application we would create a view, ~views.py~, similar to the following:
+
+#+BEGIN_SRC python
+# my-app/views.py
+from django.shortcuts import render
+
+# Create your views here.
+def home(request):
+    return render(request, "pages/home.html")
+#+END_SRC
+
+With LiveView, on the other hand, you will have the following structure.
+
+#+BEGIN_SRC python
+# my-app/views.py
+from django.shortcuts import render
+from .actions.home import get_context as get_home_context
+
+from liveview.utils import get_html
+
+async def home(request):
+    return render(request, "layouts/base.html", await get_home_context())
+#+END_SRC
+
+** 11. Create URL
+
+Finally, we will create the URL that will render the page.
+
+#+BEGIN_SRC python
+# my-app/urls.py
+from django.urls import path
+
+from .views import home
+
+urlpatterns = [
+    path("", home, name="home"),
+]
+#+END_SRC
+
+** 12. Run the server
+
+Run the server.
+
+#+BEGIN_SRC sh
+python manage.py runserver
+#+END_SRC
+
+And open the browser at ~http://localhost:8000/~. You should see the home page with a button that generates a random number.
+
+#+ATTR_HTML: :class block-center
+[[#/img/quickstart/minimal-template.webp][Random number]]
+
 * Source code
 :PROPERTIES:
 :ONE: one-custom-default-doc

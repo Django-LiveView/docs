@@ -24,6 +24,18 @@
 		    (:link (@ :rel "stylesheet" :type "text/css" :href "https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"))
 		    (:link (@ :rel "stylesheet" :type "text/css" :href "/css/main.css")))
 		   (:body
+		    (:header.header
+		     (:div.container
+		      (:nav.nav-main
+		       (:ul.nav__list.nav-main__list
+			(:li.nav-main__item
+			 (:a.button.nav-main__link (@ :href "/docs/quickstart/") "Docs"))
+			(:li.nav-main__item
+			 (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
+			(:li.nav-main__item
+			 (:a.button.nav-main__link (@ :href "https://github.com/Django-LiveView/" :target "_blank") "Source code"))
+			(:li.nav-main__item
+			 (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))))))
 		    ,tree-content
 		    (:footer.footer
 		     (:p "Created with ❤️ by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa"))
@@ -49,15 +61,6 @@
 		    (:h1.hero__title "Django LiveView")
 		    (:h2.hero__subtitle "Framework for creating Realtime SPAs using HTML over the Wire technology")
 		    (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
-		 (:nav.nav-home
-		  (:div.container
-		   (:ul.nav__list.nav-home__list
-		    (:li.nav-home__item
-		     (:a.button.nav-home__link (@ :href "/docs/quickstart/") "Docs"))
-		    (:li.nav-home__item
-		     (:a.button.nav-home__link (@ :href "/school/make-a-blog/") "Tutorials"))
-		    (:li.nav-home__item
-		     (:a.button.nav-home__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo")))))
 		 (:section
 		  (:div.container ,content)))))))
 
@@ -71,7 +74,7 @@
                    'one-ox nil))
          (website-name (one-default-website-name pages))
          (nav (one-default-nav path pages)))
-(render-layout-html
+    (render-layout-html
      title
      description
      (jack-html `(:main.main
