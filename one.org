@@ -6,14 +6,7 @@
 :DESCRIPTION: Framework for creating Realtime SPAs using HTML over the Wire technology.
 :END:
 
-* Get started
-:PROPERTIES:
-:ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/get-started/
-:END:
-
 ** What is Django LiveView?
-
 
 Django LiveView is a framework for creating Realtime SPAs using HTML over the Wire technology. It is inspired by Phoenix LiveView and it is built on top of Django Channels.
 
@@ -28,3 +21,32 @@ It allows you to create interactive web applications using only HTML, CSS and Py
 - Everything is asynchronous by default.
 - Don't learn anything new. If you know Python, you know how to use Django LiveView.
 - All in real time.
+
+Now you can create SPAs without using APIs, without JavaScript, and without learning anything new. If you know Python, you know how to use Django LiveView.
+
+Are you ready to create your first Realtime SPA? Let's go to the [[#/docs/quickstart/][Quickstart]].
+
+* Quickstart
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/quickstart/
+:TITLE: Quickstart
+:DESCRIPTION: Get started with Django LiveView the easy way.
+:END:
+
+* Source code
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/source-code/
+:TITLE: Source code
+:DESCRIPTION: List of all related source code.
+:END:
+
+- [[https://github.com/Django-LiveView/liveview][LiveView]]: Source code of the Django framework and app published in pip.
+- [[https://github.com/Django-LiveView/docs][Website and Docs]]: All documentation, including this same page.
+- Templates
+    - [[https://github.com/Django-LiveView/starter-template][Starter]]
+    - [[https://github.com/Django-LiveView/minimal-template][Minimal]]
+    - [[https://github.com/Django-LiveView/assets][Assets]]
+- Demos
+    - [[https://github.com/Django-LiveView/demo-snake][Snake]]

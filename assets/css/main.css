@@ -35,7 +35,7 @@ body {
     text-align: center;
 }
 
-.link {
+a, .link {
     display: inline-block;
     color: var(--color-brown);
     text-decoration: none;
