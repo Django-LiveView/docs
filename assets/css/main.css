@@ -91,12 +91,7 @@ a:hover,
     padding-bottom: 0;
     position: absolute;
     bottom: 0;
-}
-
-@media (width < 600px) {
-    .nav-main__link--logo {
-	display: none;
-    }
+    z-index: -1;
 }
 
 .image {
@@ -118,6 +113,7 @@ a:hover,
     padding: .5rem .8rem;
     border: 2px solid var(--color-brown);
     color: var(--color-gray);
+    background-color: var(--color-black);
     text-decoration: none;
     border-radius: .6rem;
 }
@@ -272,6 +268,9 @@ a:hover,
 }
 
 @media (width < 600px) {
+    .main--docs {
+	padding-inline: var(--gap-m);
+    }
     .docs {
 	display: initial;
 	grid-template-columns: initial;
