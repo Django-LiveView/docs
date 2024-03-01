@@ -6,7 +6,7 @@ It is a static website generated with [one.el](https://one.tonyaldon.com/).
 
 ## Do you want to contribute?
 
-Edit `one.el`. It is a org file that contains the documentation and text of the website.
+Edit `one.org`. It is a org file that contains the documentation and text of the website.
 
 ## Do you want to build the website?
 
