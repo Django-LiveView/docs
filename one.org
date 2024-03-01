@@ -34,6 +34,8 @@ Are you ready to create your first Realtime SPA? Let's go to the [[#/docs/quicks
 :DESCRIPTION: Get started with Django LiveView the easy way.
 :END:
 
+Welcome to the Quickstart guide. Here you will learn how to create your first Realtime SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
+
 All the steps are applied in a [[https://github.com/Django-LiveView/minimal-template][minimalist template]].
 
 ** 1. Install Django
@@ -319,19 +321,31 @@ And open the browser at ~http://localhost:8000/~. You should see the home page w
 #+ATTR_HTML: :class block-center
 [[#/img/quickstart/minimal-template.webp][Random number]]
 
+* Tutorials
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /tutorials/
+:TITLE: Tutorials
+:DESCRIPTION: List of all tutorials.
+:END:
+
+In progress
+
 * Source code
 :PROPERTIES:
-:ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/source-code/
+:ONE: one-custom-default-page
+:CUSTOM_ID: /source-code/
 :TITLE: Source code
 :DESCRIPTION: List of all related source code.
 :END:
 
+You can find all the source code in the following repositories:
+
 - [[https://github.com/Django-LiveView/liveview][LiveView]]: Source code of the Django framework and app published in pip.
 - [[https://github.com/Django-LiveView/docs][Website and Docs]]: All documentation, including this same page.
 - Templates
-    - [[https://github.com/Django-LiveView/starter-template][Starter]]
-    - [[https://github.com/Django-LiveView/minimal-template][Minimal]]
-    - [[https://github.com/Django-LiveView/assets][Assets]]
+    - [[https://github.com/Django-LiveView/starter-template][Starter]]: Check all the features of Django LiveView.
+    - [[https://github.com/Django-LiveView/minimal-template][Minimal]]: The minimal template to get started.
+    - [[https://github.com/Django-LiveView/assets][Assets]]: Frontend assets.
 - Demos
-    - [[https://github.com/Django-LiveView/demo-snake][Snake]]
+    - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake.

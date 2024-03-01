@@ -38,7 +38,7 @@
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "https://github.com/Django-LiveView/" :target "_blank") "Source code"))
+		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))))))
 	      ,tree-content
@@ -46,30 +46,7 @@
 	       (:p "Created with ❤️ by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa"))
 	       (:p "🐍 " ,(format-time-string "%Y"))))))))
 
-(defun one-custom-default-home (page-tree pages _global)
-  "Default render function by home page."
-  (let* ((title (org-element-property :TITLE page-tree))
-	 (path (org-element-property :CUSTOM_ID page-tree))
-	 (description (org-element-property :DESCRIPTION page-tree))
-         (content (org-export-data-with-backend
-                   (org-element-contents page-tree)
-                   'one-ox nil))
-         (website-name (one-default-website-name pages))
-         (nav (one-default-nav path pages)))
-    (render-layout-html
-     title
-     description
-     (jack-html `(:main.main
-		 (:section.hero
-		  (:div.container
-		   (:hgroup.hero__hgroup
-		    (:h1.hero__title "Django LiveView")
-		    (:h2.hero__subtitle "Framework for creating Realtime SPAs using HTML over the Wire technology")
-		    (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
-		 (:section
-		  (:div.container ,content)))))))
-
-(defun one-custom-default-doc (page-tree pages _global)
+(defun one-custom-default-page (page-tree pages _global)
   "Default render function by home page."
   (let* ((title (org-element-property :raw-value page-tree))
 	 (description (org-element-property :DESCRIPTION page-tree))
@@ -85,3 +62,56 @@
      (jack-html `(:main.main
 		  (:section
 		   (:div.container ,content)))))))
+
+(defun one-custom-default-home (page-tree pages _global)
+  "Default render function by home page."
+  (let* ((title (org-element-property :TITLE page-tree))
+	 (path (org-element-property :CUSTOM_ID page-tree))
+	 (description (org-element-property :DESCRIPTION page-tree))
+         (content (org-export-data-with-backend
+                   (org-element-contents page-tree)
+                   'one-ox nil))
+         (website-name (one-default-website-name pages))
+         (nav (one-default-nav path pages)))
+    (render-layout-html
+     title
+     description
+     (jack-html `(:main.main
+		  (:section.hero
+		   (:div.container
+		    (:hgroup.hero__hgroup
+		     (:h1.hero__title "Django LiveView")
+		     (:h2.hero__subtitle "Framework for creating Realtime SPAs using HTML over the Wire technology")
+		     (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
+		  (:section
+		   (:div.container ,content)))))))
+
+(defun one-custom-default-doc (page-tree pages _global)
+  "Default render function by home page."
+  (let* ((title (org-element-property :raw-value page-tree))
+	 (description (org-element-property :DESCRIPTION page-tree))
+	 (path (org-element-property :CUSTOM_ID page-tree))
+         (content (org-export-data-with-backend
+                   (org-element-contents page-tree)
+                   'one-ox nil))
+         (website-name (one-default-website-name pages))
+         (nav (one-default-nav path pages)))
+    (render-layout-html
+     title
+     description
+     (jack-html `(:div.container.docs
+		  (:aside.aside-docs
+		   (:nav.nav-docs
+		    (:ul.nav__list.nav__list--docs.nav-docs__list
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/quickstart/") "Quickstart"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/installation/") "Installation"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/usage/") "Usage"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/api/") "API")))))
+		  (:main.main
+		    ,content))))))
