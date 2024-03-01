@@ -106,12 +106,7 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/quickstart/") "Quickstart"))
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/installation/") "Installation"))
-		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/usage/") "Usage"))
-		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
-		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/api/") "API")))))
+		     )))
 		  (:main.main.main--docs
 		    ,content))))))

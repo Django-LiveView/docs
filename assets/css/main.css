@@ -91,7 +91,12 @@ a:hover,
     padding-bottom: 0;
     position: absolute;
     bottom: 0;
-    z-index: -1;
+}
+
+@media (width < 600px) {
+    .nav-main__link--logo {
+	z-index: -1;
+    }
 }
 
 .image {
