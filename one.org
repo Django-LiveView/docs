@@ -321,6 +321,52 @@ And open the browser at ~http://localhost:8000/~. You should see the home page w
 #+ATTR_HTML: :class block-center
 [[#/img/quickstart/minimal-template.webp][Random number]]
 
+* Deploy
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/deploy/
+:TITLE: Deploy
+:DESCRIPTION: Deploy Django LiveView to production.
+:END:
+
+You can deploy Django LiveView using any web server like reverse proxy.
+
+** Nginx
+
+ I recommend using Nginx. Here is an example of how to configure. Replace ~example.com~ with your domain and ~my-project~ with your folder name.
+
+#+BEGIN_SRC nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_redirect off;
+    }
+
+    location /static {
+        root /var/www/my-project;
+    }
+
+    location /media {
+        root /var/www/my-project;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+}
+#+END_SRC
+
+It is important to note that the ~proxy_set_header~ lines are necessary for the WebSocket to work. You can see more about it in [[https://channels.readthedocs.io/en/latest/deploying.html][Channels]].
+
 * FAQ
 :PROPERTIES:
 :ONE: one-custom-default-doc
