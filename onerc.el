@@ -83,7 +83,7 @@
 		     (:h1.hero__title "Django LiveView")
 		     (:h2.hero__subtitle "Framework for creating Realtime SPAs using HTML over the Wire technology")
 		     (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
-		  (:section
+		  (:section.home
 		   (:div.container ,content)))))))
 
 (defun one-custom-default-doc (page-tree pages _global)

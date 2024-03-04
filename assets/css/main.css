@@ -261,6 +261,15 @@ a:hover,
 }
 
 /* Home */
+
+.home img {
+    display: block;
+    width: 100%;
+    max-width: 40rem;
+    padding-block: var(--gap-l);
+    margin-inline: auto;
+}
+
 .nav-home__list {
     justify-content: center;
     gap: var(--gap-l);
