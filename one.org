@@ -339,6 +339,50 @@ And open the browser at ~http://localhost:8000/~. You should see the home page w
 #+ATTR_HTML: :class block-center
 [[#/img/quickstart/minimal-template.webp][Random number]]
 
+* Views
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/views/
+:TITLE: Views
+:DESCRIPTION: Views of Django LiveView.
+:END:
+
+Django LiveView uses the same views as Django, but the main difference is that the views are asynchronous by default.
+
+To make a view renderable by SSR (Server Side Rendering) and by SPA (Single Page Application), you need to create a function with the following structure:
+
+#+BEGIN_SRC python
+  from .actions.home import get_context as get_home_context
+
+  async def home(request):
+      return render(request, settings.TEMPLATE_BASE, await get_home_context())
+#+END_SRC
+
+The ~get_home_context()~ function returns a dictionary with the context of the page present in the action. The ~settings.TEMPLATE_BASE~ is the base template that will be rendered, por example ~layouts/base.html~.
+
+If you want to render data from a database on the template, for example:
+
+#+BEGIN_SRC html
+{% for article in articles %}
+    {{ article.title }}
+    {{ article.content }}
+{% endfor %}
+#+END_SRC
+
+You will see an error: ~You cannot call this from an async context - use a thread or sync_to_async.~.
+
+You can use the ~sync_to_async~ function from ~asgiref~.
+
+#+BEGIN_SRC python
+  from asgiref.sync import sync_to_async
+  from .actions.blog_list import get_context as get_list_context
+
+  async def blog_list(request):
+      return await sync_to_async(render)(request, settings.TEMPLATE_BASE, await get_list_context())
+#+END_SRC
+
+Or transform ~articles~ to a list. But you lose the benefits of ORM.
+
 * Deploy
 :PROPERTIES:
 :ONE: one-custom-default-doc
