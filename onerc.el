@@ -35,8 +35,8 @@
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/docs/quickstart/") "Docs"))
-		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
+		  ;; (:li.nav-main__item
+		  ;;  (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))
 		  (:li.nav-main__item
