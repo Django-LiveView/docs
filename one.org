@@ -10,10 +10,12 @@
 
 HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating real-time SPAs by creating a WebSockets connection between a client and a server. It allows JavaScript to request actions, its only responsibility is to handle events, and the backend handles the business logic as well as rendering HTML. This means you can create pages without reloading the page, without AJAX, APIs or requests. One technology provides a secure, stable and low-delay connection for real-time web applications.
 
+#+ATTR_HTML: :class center-block image image--home
 [[#/img/example-scheme.png][Architecture]]
 
 Let's illustrate with an example. I want to render article number 2.
 
+#+ATTR_HTML: :class center-block image image--home
 [[#/img/example-blog.png][Blog example]]
 
 1. A WebSockets connection, a channel, is established between the client and the server.
@@ -336,7 +338,7 @@ python manage.py runserver
 
 And open the browser at ~http://localhost:8000/~. You should see the home page with a button that generates a random number.
 
-#+ATTR_HTML: :class block-center
+#+ATTR_HTML: :class center-block image image--responsive
 [[#/img/quickstart/minimal-template.webp][Random number]]
 
 * Views

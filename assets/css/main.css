@@ -99,12 +99,28 @@ a:hover,
     }
 }
 
+.center-block {
+    display: block;
+    margin-inline: auto;
+}
+
 .image {
     display: block;
     width: 100%;
     object-fit: cover;
     object-position: center;
 }
+
+.image--responsive {
+    max-width: 100%;
+    width: initial;
+}
+
+.image--home {
+    max-width: 40rem;
+    padding-block: var(--gap-l);
+}
+
 
 .block-center {
     margin-inline: auto;
@@ -261,14 +277,6 @@ a:hover,
 }
 
 /* Home */
-
-.home img {
-    display: block;
-    width: 100%;
-    max-width: 40rem;
-    padding-block: var(--gap-l);
-    margin-inline: auto;
-}
 
 .nav-home__list {
     justify-content: center;

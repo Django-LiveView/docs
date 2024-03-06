@@ -1,6 +1,51 @@
+;; Utils
 (defun make-title (title)
   "If title is empty, return the website name. Otherwise, return the title with the website name."
   (concat (when (not (string-empty-p title)) (concat title " | ")) "Django LiveView"))
+
+(defun one-ox-link (link desc info)
+      "Transcode a LINK object from Org to HTML.
+    DESC is the description part of the link, or the empty string.
+    INFO is a plist holding contextual information."
+      (let* ((type (org-element-property :type link))
+             (path (org-element-property :path link))
+             (raw-link (org-element-property :raw-link link))
+             (custom-type-link
+              (let ((export-func (org-link-get-parameter type :export)))
+                (and (functionp export-func)
+                     (funcall export-func path desc 'one-ox info))))
+             (href (cond
+                    ((string= type "custom-id") path)
+                    ((string= type "fuzzy")
+                     (let ((beg (org-element-property :begin link)))
+                       (signal 'one-link-broken
+                               `(,raw-link
+                                 "fuzzy links not supported"
+                                 ,(format "goto-char: %s" beg)))))
+                    ((string= type "file")
+                     (or
+                      ;; ./assets/images/image-1.png --> /images/image-1.png
+                      ;; ./public/blog/page-1.md     --> /blog/page-1.md
+                      (and (string-match "\\`\\./\\(assets\\|public\\)" path)
+                           (replace-match "" nil nil path))
+                      (let ((beg (org-element-property :begin link)))
+                        (signal 'one-link-broken
+                                `(,raw-link ,(format "goto-char: %s" beg))))))
+                    (t raw-link)))
+             (class (if-let ((parent (org-export-get-parent-element link))
+                             (class (plist-get (org-export-read-attribute :attr_html parent)
+                                               :class)))
+                        (concat " class=\"" class "\" ")
+                      " ")))
+        (or custom-type-link
+            (and
+             (string-match one-ox-link-image-extensions path)
+             (format "<p><img%ssrc=\"%s\" alt=\"%s\" /></p>"
+                     class href (or (org-string-nw-p desc) href)) )
+            (format "<a%shref=\"%s\">%s</a>"
+                    class href (or (org-string-nw-p desc) href)))))
+
+;; Layouts
 
 (defun render-layout-html (title description tree-content)
   "Render the HTML layout with the given title, description and content."
