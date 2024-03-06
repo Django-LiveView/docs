@@ -88,7 +88,7 @@
 		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))))))
 	      ,tree-content
 	      (:footer.footer
-	       (:p "Created with ❤️ by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa"))
+	       (:p "Created with ❤️ by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
 	       (:p "🐍 " ,(format-time-string "%Y"))))))))
 
 (defun one-custom-default-page (page-tree pages _global)
