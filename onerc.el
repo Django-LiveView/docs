@@ -1,3 +1,6 @@
+;; Variables
+(defvar domain "django-liveview.andros.dev")
+
 ;; Utils
 (defun make-title (title)
   "If title is empty, return the website name. Otherwise, return the title with the website name."
@@ -161,3 +164,19 @@
 		     )))
 		  (:main.main.main--docs
 		    ,content))))))
+
+;; Sitemap
+
+(defun make-sitemap (pages tree global)
+  "Produce file ./public/sitemap.txt"
+  (with-temp-file "./public/sitemap.txt"
+    (insert
+     (mapconcat 'identity (mapcar
+			   (lambda (page)
+			     (let* ((path (plist-get page :one-path))
+				    (link (concat "https://" domain path)))
+			       link
+			       ))
+			   pages) "\n"))))
+
+(add-hook 'one-hook 'make-sitemap)
