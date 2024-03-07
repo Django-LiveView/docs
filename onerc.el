@@ -153,6 +153,8 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/views/") "Views"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/routing/") "Routing"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/deploy/") "Deploy"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
