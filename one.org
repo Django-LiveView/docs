@@ -11,12 +11,18 @@
 HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating real-time SPAs by creating a WebSockets connection between a client and a server. It allows JavaScript to request actions, its only responsibility is to handle events, and the backend handles the business logic as well as rendering HTML. This means you can create pages without reloading the page, without AJAX, APIs or requests. One technology provides a secure, stable and low-delay connection for real-time web applications.
 
 #+ATTR_HTML: :class center-block image image--home
-[[#/img/example-scheme.png][Architecture]]
+[[#/img/step-1.png][Architecture send]]
+
+#+ATTR_HTML: :class center-block image image--home
+[[#/img/step-2.png][Architecture receive]]
 
 Let's illustrate with an example. I want to render article number 2.
 
 #+ATTR_HTML: :class center-block image image--home
-[[#/img/example-blog.png][Blog example]]
+[[#/img/step-3.png][Send string]]
+
+#+ATTR_HTML: :class center-block image image--home
+[[#/img/step-4.png][Send JSON]]
 
 1. A WebSockets connection, a channel, is established between the client and the server.
 2. JavaScript sends a text, not a request, via WebSockets to the Server (in our case Django).
@@ -416,6 +422,7 @@ async def random_number(consumer, client_data, lang=None):
     data.update(my_context)
     await consumer.send_html(data)
 #+END_SRC
+
 
 * Views
 :PROPERTIES:
