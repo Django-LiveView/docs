@@ -91,7 +91,8 @@
 		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))))))
 	      ,tree-content
 	      (:footer.footer
-	       (:p "Created with ❤️ by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
+	       (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
+	       (:p (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "I have seen a " (:i (@ :aria-label "bug") "🪲") " in the documentation"))
 	       (:p "🐍 " ,(format-time-string "%Y"))))))))
 
 (defun one-custom-default-page (page-tree pages _global)
@@ -154,9 +155,13 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/quickstart/") "Quickstart"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/actions/") "Actions"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/views/") "Views"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/routing/") "Routing"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/history/") "History"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/deploy/") "Deploy"))
 		     (:li.nav-docs__item

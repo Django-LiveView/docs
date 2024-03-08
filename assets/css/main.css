@@ -37,6 +37,10 @@ h6 {
     font-weight: normal;
 }
 
+i {
+    font-style: normal;
+}
+
 /* Components */
 
 .container {

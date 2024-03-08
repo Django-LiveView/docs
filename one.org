@@ -341,6 +341,82 @@ And open the browser at ~http://localhost:8000/~. You should see the home page w
 #+ATTR_HTML: :class center-block image image--responsive
 [[#/img/quickstart/minimal-template.webp][Random number]]
 
+* Actions
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/actions/
+:TITLE: Actions
+:DESCRIPTION: Actions of Django LiveView.
+:END:
+
+Actions are where business logic is stored. The place where you write the functions in Python instead of JavaScript. They are the ones that will be executed when the page is loaded, when a button is clicked, when a form is submitted, etc. They will render the HTML and send it to the client. They are the ones that will receive the data from the client and process it. They are the heart of Django LiveView.
+
+In every app you can create a folder called ~actions~ and inside it a file for each page. For example, ~home.py~ for the home page. The file will have the following structure:
+
+#+BEGIN_SRC python
+# my-app/actions/home.py
+from liveview.context_processors import get_global_context
+from core import settings
+from liveview.utils import (
+    get_html,
+    update_active_nav,
+    enable_lang,
+    loading,
+)
+from channels.db import database_sync_to_async
+from django.templatetags.static import static
+
+template = "pages/home.html"
+
+# Database
+
+# Functions
+
+async def get_context(consumer=None):
+    context = get_global_context(consumer=consumer)
+    # Update context
+    context.update(
+	{
+	    "url": settings.DOMAIN_URL + reverse("home"),
+	    "title": _("Home") + " | Home",
+	    "meta": {
+		"description": _("Home page of the website"),
+		"image": f"{settings.DOMAIN_URL}{static('img/seo/og-image.jpg')}",
+	    },
+	    "active_nav": "home",
+	    "page": template,
+	}
+    )
+    return context
+
+
+@enable_lang
+@loading
+async def send_page(consumer, client_data, lang=None):
+    # Nav
+    await update_active_nav(consumer, "home")
+    # Main
+    my_context = await get_context(consumer=consumer)
+    html = await get_html(template, my_context)
+    data = {
+	"action": client_data["action"],
+	"selector": "#main",
+	"html": html,
+    }
+    data.update(my_context)
+    await consumer.send_html(data)
+
+async def random_number(consumer, client_data, lang=None):
+    my_context = await get_context(consumer=consumer)
+    data = {
+	"action": client_data["action"],
+	"selector": "#output-random-number",
+	"html": randint(0, 10),
+    }
+    data.update(my_context)
+    await consumer.send_html(data)
+#+END_SRC
+
 * Views
 :PROPERTIES:
 :ONE: one-custom-default-doc
@@ -460,6 +536,23 @@ Here you can see a typical example of a single page of a blog.
       await consumer.send_html(data)
 #+END_SRC
 
+* History
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/history/
+:TITLE: History
+:DESCRIPTION: History management of Django LiveView.
+:END:
+
+If you make a SPA you will have a problem with the history management system. When you go back in history, you will lose the data and the HTML of the previous page. This is because the data is removed from the DOM. It is not a problem with Django LiveView.
+
+Django LiveView has a history management system that allows you go back in history without receive any data from the server. Every time you change the page, the data and HTML are stored in the Session Storage. You don't need to do anything, it is automatic! 😸
+
+The only limitation is forward navigation. If you want to go forward, you need to receive the data from the server because the data is remove from the Session Storage when you go back.
+
+You can customize the history management system by editing the ~history~ controller in ~assets/js/mixins/history.js~.
+
+If you want to disable it, remove `startHistory();` from ~assets/js/main.js~.
 
 * Deploy
 :PROPERTIES:
