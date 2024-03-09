@@ -16,6 +16,12 @@ HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating rea
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-2.png][Architecture receive]]
 
+** What is Django LiveView?
+
+Django LiveView is a framework for creating Realtime SPAs using HTML over the Wire technology. It is inspired by Phoenix LiveView and it is built on top of Django Channels.
+
+It allows you to create interactive web applications using only HTML, CSS and Python. JavaScript ONLY is used to capture events, send and receive strings over a WebSockets channel.
+
 Let's illustrate with an example. I want to render article number 2.
 
 #+ATTR_HTML: :class center-block image image--home
@@ -31,12 +37,6 @@ Let's illustrate with an example. I want to render article number 2.
 5. JavaScript draws the received HTML in the indicated selector.
 
 The same process is repeated for each action, such as clicking a button, submitting a form, etc.
-
-** What is Django LiveView?
-
-Django LiveView is a framework for creating Realtime SPAs using HTML over the Wire technology. It is inspired by Phoenix LiveView and it is built on top of Django Channels.
-
-It allows you to create interactive web applications using only HTML, CSS and Python. JavaScript ONLY is used to capture events, send and receive strings over a WebSockets channel.
 
 ** What are your superpowers?
 
