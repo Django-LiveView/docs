@@ -287,6 +287,30 @@ a:hover,
     gap: var(--gap-l);
 }
 
+/* Animate Background Image */
+@keyframes aniTitle {
+    0% {
+	background-position: 0% 0;
+    }
+    100% {
+	background-position: 100% 0;
+    }
+}
+
+.hero__title {
+    background: url(/img/title-background.png) repeat-x;
+    font-size: 3rem;
+    background-clip: text;
+    background-size: cover;
+    font-weight: bold;
+    /* Animate Background Image */
+    -webkit-text-fill-color: transparent;
+    animation: aniTitle 8s linear infinite;
+    /* Activate hardware acceleration for smoother animations */
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+}
+
 /* Docs */
 .docs {
     display: grid;
