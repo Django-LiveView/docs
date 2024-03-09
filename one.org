@@ -40,15 +40,14 @@ The same process is repeated for each action, such as clicking a button, submitt
 
 ** What are your superpowers?
 
-- Create SPAs without using APIs.
-- Uses Django's template system to render the frontend (Without JavaScript).
+- All in real time. The data is sent and received instantly.
+- Single connection. You don't need to open and close connections like calls to an API.
+- Create SPAs without using APIs o JavaScript frameworks.
+- Uses Django's template system to render the frontend (The use of JavaScript is anecdotal).
 - The logic is not split between the backend and the frontend, it all stays in Python.
 - You can still use all of Django's native tools, such as its ORM, forms, plugins, etc.
 - Everything is asynchronous by default.
 - Don't learn anything new. If you know Python, you know how to use Django LiveView.
-- All in real time.
-
-Now you can create SPAs without using APIs, without JavaScript, and without learning anything new. If you know Python, you know how to use Django LiveView.
 
 Are you ready to create your first Realtime SPA? Let's go to the [[#/docs/quickstart/][Quickstart]].
 
