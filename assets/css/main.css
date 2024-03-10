@@ -120,6 +120,10 @@ a:hover,
     width: initial;
 }
 
+.image--cover-book {
+    max-width: 18rem;
+}
+
 .image--home {
     max-width: 40rem;
     padding-block: var(--gap-l);
@@ -298,14 +302,14 @@ a:hover,
 }
 
 .hero__title {
-    background: url(/img/title-background.png) repeat-x;
+    background: url(/img/title-background.avif) repeat-x;
     font-size: 3rem;
     background-clip: text;
     background-size: cover;
     font-weight: bold;
     /* Animate Background Image */
     -webkit-text-fill-color: transparent;
-    animation: aniTitle 8s linear infinite;
+    animation: aniTitle 10s linear infinite;
     /* Activate hardware acceleration for smoother animations */
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;

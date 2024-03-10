@@ -83,12 +83,12 @@
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/docs/quickstart/") "Docs"))
-		  ;; (:li.nav-main__item
-		  ;;  (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))))))
+		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))
+		  (:li.nav-main__item
+		   (:a.button.nav-main__link (@ :href "/books/") "Books"))))))
 	      ,tree-content
 	      (:footer.footer
 	       (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))

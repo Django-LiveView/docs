@@ -8,13 +8,13 @@
 
 ** What is HTML over the Wire?
 
-HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating real-time SPAs by creating a WebSockets connection between a client and a server. It allows JavaScript to request actions, its only responsibility is to handle events, and the backend handles the business logic as well as rendering HTML. This means you can create pages without reloading the page, without AJAX, APIs or requests. One technology provides a secure, stable and low-delay connection for real-time web applications.
+HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating real-time SPAs by creating a WebSockets connection between a client and a server. It allows JavaScript to request actions, its only responsibility is to handle events, and the backend handles the business logic as well as rendering HTML. This means you can create pages without reloading the page, without AJAX or APIs. One technology provides a secure, stable and low-delay connection for real-time web applications.
 
 #+ATTR_HTML: :class center-block image image--home
-[[#/img/step-1.png][Architecture send]]
+[[#/img/step-1.avif][Architecture send]]
 
 #+ATTR_HTML: :class center-block image image--home
-[[#/img/step-2.png][Architecture receive]]
+[[#/img/step-2.avif][Architecture receive]]
 
 ** What is Django LiveView?
 
@@ -24,17 +24,24 @@ It allows you to create interactive web applications using only HTML, CSS and Py
 
 Let's illustrate with an example. I want to render article number 2.
 
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-3.png][Send string]]
+1- A WebSockets connection, a channel, is established between the client and the server.
+
+2- JavaScript sends a text, not a request, via WebSockets to the Server (in our case Django).
 
 #+ATTR_HTML: :class center-block image image--home
-[[#/img/step-4.png][Send JSON]]
+[[#/img/step-3.avif][Send string]]
 
-1. A WebSockets connection, a channel, is established between the client and the server.
-2. JavaScript sends a text, not a request, via WebSockets to the Server (in our case Django).
-3. Django interprets the text and renders the HTML of the article through the template system and the database.
-4. Django sends the HTML to JavaScript via the channel and tells it which selector to embed it in.
-5. JavaScript draws the received HTML in the indicated selector.
+3- Django interprets the text and renders the HTML of the article through the template system and the database.
+
+4- Django sends the HTML to JavaScript via the channel and tells it which selector to embed it in.
+
+#+ATTR_HTML: :class center-block image image--home
+[[#/img/step-4.avif][Send JSON]]
+
+5- JavaScript draws the received HTML in the indicated selector.
+
+#+ATTR_HTML: :class center-block image image--home
+[[#/img/step-5.avif][Place HTML]]
 
 The same process is repeated for each action, such as clicking a button, submitting a form, etc.
 
@@ -638,73 +645,6 @@ Yes, you can.
 
 Only me and my free time.
 
-* Tutorials
-:PROPERTIES:
-:ONE: one-custom-default-page
-:CUSTOM_ID: /tutorials/
-:TITLE: Tutorials
-:DESCRIPTION: List of all tutorials.
-:END:
-
-- [[#/tutorials/make-a-blog/][Make a blog]]
-- [[#/tutorials/add-a-commentary-system/][Add a commentary system]]
-
-* Make a blog
-:PROPERTIES:
-:ONE: one-custom-default-page
-:CUSTOM_ID: /tutorials/make-a-blog/
-:TITLE: Make a blog
-:DESCRIPTION: Create a blog using Django LiveView.
-:END:
-
-Below we will make a simple blog with classic features:
-
-- A list with posts
-- Single page post
-- Controls to navegate between list posts and singles
-- Pagination
-- Search
-
-If you want to include a system commentary, read the next tutorial.
-
-** Creating models
-
-Before starting, we will create the models that we will use in the blog.
-
-** Adding fake data
-
-** Preparing views (SSR)
-
-** Making templates
-
-** Including actions
-
-** Adding the feature: infinite scroll
-
-** Adding the feature: search
-
-* Add a commentary system
-:PROPERTIES:
-:ONE: one-custom-default-page
-:CUSTOM_ID: /tutorials/add-a-commentary-system/
-:TITLE: Make a blog
-:DESCRIPTION: Create a commentary system using Django LiveView.
-:END:
-
-** Creating models
-
-** Adding fake data
-
-** Preparing views (SSR)
-
-** Making templates
-
-** Including actions
-
-** Getting data
-
-** Showing
-
 * Source code
 :PROPERTIES:
 :ONE: one-custom-default-page
@@ -723,3 +663,25 @@ You can find all the source code in the following repositories:
     - [[https://github.com/Django-LiveView/assets][Assets]]: Frontend assets.
 - Demos
     - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake.
+
+* Books
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /books/
+:TITLE:
+:DESCRIPTION: Books about Django LiveView.
+:END:
+
+There are no books about Django LiveView yet. But you can find book about Django working with HTML over the Wire technology.
+
+
+** Building SPAs with Django and HTML Over the Wire: Learn to build real-time single page applications with Python (English Edition)
+
+#+ATTR_HTML: :class center-block image image--cover-book
+[[#/img/books/building-spas.avif][Building SPAs with Django and HTML Over the Wire]]
+
+Buy:
+
+- [[https://www.packtpub.com/product/building-spas-with-django-and-html-over-the-wire/9781803240190][Packt]]
+- [[https://www.amazon.com/Real-time-Django-over-Wire-Channels-ebook/dp/B0B3DV54ZT/][Amazon.com]]
+- [[https://www.amazon.es/Real-time-Django-over-Wire-Channels-ebook/dp/B0B3DV54ZT/][Amazon.es]]
