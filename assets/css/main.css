@@ -20,6 +20,10 @@ body {
     margin-top: 6rem;
 }
 
+li > p {
+	margin: 0;
+}
+
 @media (width < 600px) {
     body {
 	margin-top: 0;
