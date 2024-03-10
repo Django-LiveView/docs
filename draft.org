@@ -1,0 +1,66 @@
+* Tutorials
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /tutorials/
+:TITLE: Tutorials
+:DESCRIPTION: List of all tutorials.
+:END:
+
+- [[#/tutorials/make-a-blog/][Make a blog]]
+- [[#/tutorials/add-a-commentary-system/][Add a commentary system]]
+
+* Make a blog
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /tutorials/make-a-blog/
+:TITLE: Make a blog
+:DESCRIPTION: Create a blog using Django LiveView.
+:END:
+
+Below we will make a simple blog with classic features:
+
+- A list with posts
+- Single page post
+- Controls to navegate between list posts and singles
+- Pagination
+- Search
+
+If you want to include a system commentary, read the next tutorial.
+
+** Creating models
+
+Before starting, we will create the models that we will use in the blog.
+
+** Adding fake data
+
+** Preparing views (SSR)
+
+** Making templates
+
+** Including actions
+
+** Adding the feature: infinite scroll
+
+** Adding the feature: search
+
+* Add a commentary system
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /tutorials/add-a-commentary-system/
+:TITLE: Make a blog
+:DESCRIPTION: Create a commentary system using Django LiveView.
+:END:
+
+** Creating models
+
+** Adding fake data
+
+** Preparing views (SSR)
+
+** Making templates
+
+** Including actions
+
+** Getting data
+
+** Showing
