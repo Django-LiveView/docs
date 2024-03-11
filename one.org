@@ -366,7 +366,7 @@ Actions are where business logic is stored. The place where you write the functi
 In every app you can create a folder called ~actions~ and inside it a file for each page. For example, ~home.py~ for the home page. The file will have the following structure:
 
 #+BEGIN_SRC python
-# my-app/actions/home.py
+# my_app/actions/home.py
 from liveview.context_processors import get_global_context
 from core import settings
 from liveview.utils import (
@@ -375,7 +375,6 @@ from liveview.utils import (
     enable_lang,
     loading,
 )
-from channels.db import database_sync_to_async
 from django.templatetags.static import static
 
 template = "pages/home.html"
@@ -417,17 +416,82 @@ async def send_page(consumer, client_data, lang=None):
     }
     data.update(my_context)
     await consumer.send_html(data)
+#+END_SRC
 
-async def random_number(consumer, client_data, lang=None):
+Let's explain each part.
+
+- ~template~ is the name of the template that will be rendered.
+- ~get_context()~ is a function that returns a dictionary with the context of the page.
+  - ~url~: The URL of the page. It will be used to change the direction of the browser and the user perceives a page change, even if it is not real.
+  - ~title~: The title of the page.
+  - ~meta~: They are the SEO and Open Graph meta tags.
+- ~active_nav~: It is used to highlight the active page in the navigation menu.
+- ~page~: Name of the template that will be rendered. it is the same as ~template~.
+
+The function ~send_page()~ is responsible for rendering the page and sending it.
+
+#+BEGIN_SRC python
+
+from liveview.utils import (
+    get_html,
+    update_active_nav,
+    enable_lang,
+    loading,
+)
+
+@enable_lang
+@loading
+async def send_page(consumer, client_data, lang=None):
+    # Nav
+    await update_active_nav(consumer, "home")
+    # Main
     my_context = await get_context(consumer=consumer)
+    html = await get_html(template, my_context)
     data = {
 	"action": client_data["action"],
-	"selector": "#output-random-number",
-	"html": randint(0, 10),
+	"selector": "#main",
+	"html": html,
     }
     data.update(my_context)
     await consumer.send_html(data)
 #+END_SRC
+
+~update_active_nav()~ updates the class that marks the page where we are in the menu. You need update the context with the data that you want to send to the client. ~get_html()~ is a function that renders the template with the context. ~send_html()~ is a function that sends the HTML to the client.
+
+Whenever you want to send a new HTML to the frontend, you will use the ~send_html()~ function with the following structure.
+
+#+BEGIN_SRC python
+data = {
+    "action": "home->send_page",
+    "selector": "#main",
+    "html": "<h1>My home</h1><p>Welcome to my home</p>",
+}
+await consumer.send_html(data)
+#+END_SRC
+
+- ~action~: The name of the action that will be executed on the client side. It is used for cache management and to know which action to execute. It will almost always be the same action that the client sent us.
+- ~selector~: The selector where the HTML will be placed.
+- ~html~: The HTML that will be placed in the selector.
+
+Optionally we can include others.
+
+- ~append~: Default: false. If true, the HTML will be added, not replaced.
+- ~scroll~: Default: false. If true, the page will be scrolled to the selector
+- ~scrollTop~: Default: false. If true, the page will be scrolled to the top.
+
+When you update via context, you add the following. They are all optional.
+
+- ~title~: The title of the page.
+- ~meta~: They are the SEO and Open Graph meta tags.
+- ~active_nav~: It is used to highlight the active page in the navigation menu.
+- ~page~: Name of the template that will be rendered.
+
+** Decorators
+
+You can use the following decorators to make your actions more readable and maintainable.
+
+- ~@enable_lang~: It is used to enable the language. It is necessary to use the ~gettext~ function. If you site only has one language, you can remove it.
+- ~@loading~: It is used to show a loading animation while the page is being rendered. If there is no loading delay, for example the database access is very fast or you don't access anything external like an API, you can remove it.
 
 
 * Views
