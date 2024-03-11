@@ -493,6 +493,64 @@ You can use the following decorators to make your actions more readable and main
 - ~@enable_lang~: It is used to enable the language. It is necessary to use the ~gettext~ function. If you site only has one language, you can remove it.
 - ~@loading~: It is used to show a loading animation while the page is being rendered. If there is no loading delay, for example the database access is very fast or you don't access anything external like an API, you can remove it.
 
+** Database access (ORM)
+
+If you want to access the database, you can use the Django ORM as you would in a normal view. The only difference is that the views are asynchronous by default. You can use the ~database_sync_to_async~ function from ~channels.db~.
+
+#+BEGIN_SRC python
+  from channels.db import database_sync_to_async
+  from .models import Article
+
+  template = "pages/articles.html"
+
+  # Database
+  @database_sync_to_async
+  def get_articles(): # New
+      return Article.objects.all()
+
+  # Functions
+
+  async def get_context(consumer=None):
+      articles = await get_articles()
+      context = get_global_context(consumer=consumer)
+      # Update context
+      context.update(
+	  {
+	      ...
+	      "articles": await get_articles(), # New
+	  }
+      )
+      return context
+
+#+END_SRC
+
+Now you can use the ~articles~ variable in the template.
+
+#+BEGIN_SRC html
+{% for article in articles %}
+    <h2>{{ article.title }}</h2>
+    <p>{{ article.content }}</p>
+{% endfor %}
+#+END_SRC
+
+If you want the SSR (Server Side Rendering) to continue working, you need to modify the view function so that it is asynchronous.
+
+From:
+
+#+BEGIN_SRC python
+  async def articles(request):
+      return render(request, settings.TEMPLATE_BASE, await get_context())
+#+END_SRC
+
+To:
+
+#+BEGIN_SRC python
+  from asgiref.sync import sync_to_async
+
+  async def articles(request):
+      return await sync_to_async(render)(request, settings.TEMPLATE_BASE, await get_context())
+#+END_SRC
+
 
 * Views
 :PROPERTIES:
