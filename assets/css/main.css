@@ -313,12 +313,22 @@ a:hover,
     font-weight: bold;
     /* Animate Background Image */
     -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+    -webkit-text-stroke: 1px;
+    text-stroke: 1px;
     animation: aniTitle 10s linear infinite;
     /* Activate hardware acceleration for smoother animations */
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     z-index: -1;
 }
+
+@media (width < 600px) {
+    .hero__title {
+	text-align: center;
+    }
+}
+
 
 /* Docs */
 .docs {

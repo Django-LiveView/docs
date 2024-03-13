@@ -22,7 +22,7 @@ Django LiveView is a framework for creating Realtime SPAs using HTML over the Wi
 
 It allows you to create interactive web applications using only HTML, CSS and Python. JavaScript ONLY is used to capture events, send and receive strings over a WebSockets channel.
 
-Let's illustrate with an example. I want to render article number 2.
+Let's illustrate with an example. I want to print article number 2.
 
 1- A WebSockets connection, a channel, is established between the client and the server.
 
