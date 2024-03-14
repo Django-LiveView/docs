@@ -558,8 +558,7 @@ Yes, you can.
 
 ** Who finances the project?
 
-Only me and my free time.
-
+Only me and my free time. If you want to support the project, you can be my [[https://liberapay.com/androsfenollosa/][patron]].
 
 
 * Tutorials

@@ -364,6 +364,8 @@ a:hover,
 /* Footer */
 .footer {
     text-align: center;
+    padding-block: var(--gap-l);
+    border-top: 2px solid var(--color-brown);
 }
 
 /* ------- '.one' classes used by 'one-ox' org backend ------- */

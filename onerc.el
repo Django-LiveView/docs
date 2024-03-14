@@ -110,6 +110,7 @@
 	      (:footer.footer
 	       (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
 	       (:p (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "I have seen a " (:i (@ :aria-label "bug") "🪲") " in the documentation"))
+	       (:p (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") (:span (@ :aria-hidden "true") "💰 ") "Support") " the project")
 	       (:p "🐍 " ,(format-time-string "%Y"))))))))
 
 (defun one-custom-default-page (page-tree pages _global)
