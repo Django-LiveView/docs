@@ -97,13 +97,15 @@
 		  (:li.nav-main__item
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/docs/quickstart/") "Docs"))
+		   (:a.button.nav-main__link (@ :href "/docs/install/") "Docs"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))
+		   (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/books/") "Books"))))))
+		   (:a.button.nav-main__link (@ :href "/books/") "Books"))
+		  (:li.nav-main__item
+		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))))))
 	      ,tree-content
 	      (:footer.footer
 	       (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
@@ -168,7 +170,7 @@
 		   (:nav.nav-docs
 		    (:ul.nav__list.nav__list--docs.nav-docs__list
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/quickstart/") "Quickstart"))
+		      (:a.nav-docs__link (@ :href "/docs/install/") "Install"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/actions/") "Actions"))
 		     (:li.nav-docs__item
@@ -178,6 +180,8 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/history/") "History"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/internationalization/") "Internationalization"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/deploy/") "Deploy"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
@@ -185,6 +189,22 @@
 		  (:main.main.main--docs
 		    ,content))))))
 
+(defun one-custom-default-tutorials (page-tree pages _global)
+  "Default render function by tutorials page."
+  (let* ((title (org-element-property :raw-value page-tree))
+	 (description (org-element-property :DESCRIPTION page-tree))
+	 (path (org-element-property :CUSTOM_ID page-tree))
+         (content (org-export-data-with-backend
+                   (org-element-contents page-tree)
+                   'one-ox nil))
+         (website-name (one-default-website-name pages))
+         (nav (one-default-nav path pages)))
+    (render-layout-html
+     title
+     description
+     (jack-html `(:main.main
+		  (:section.tutorials
+		   (:div.container ,content)))))))
 ;; Sitemap
 
 (defun make-sitemap (pages tree global)

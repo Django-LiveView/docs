@@ -90,6 +90,12 @@ a:hover,
     grid-gap: 1rem;
 }
 
+@media (width < 600px) {
+    .nav-main__list > li:first-child {
+	margin-right: 6rem;
+    }
+}
+
 .nav-main__logo {
     width: 80px;
     margin-bottom: calc(var(--gap-m) * -1);
@@ -99,12 +105,6 @@ a:hover,
     padding-bottom: 0;
     position: absolute;
     bottom: 0;
-}
-
-@media (width < 600px) {
-    .nav-main__link--logo {
-	z-index: -1;
-    }
 }
 
 .center-block {
@@ -152,9 +152,11 @@ a:hover,
 }
 
 .button:hover {
+    --translate: 3px;
     border-color: var(--color-brown);
-    box-shadow: 0 5px 0 var(--color-brown);
+    box-shadow: var(--translate) var(--translate) 0 var(--color-brown);
     text-decoration: none;
+    transform: translate(calc(-1 * var(--translate)), calc(-1 * var(--translate)));
 }
 
 .header {
@@ -178,7 +180,7 @@ a:hover,
 
 .header .nav__list {
     display: grid;
-    grid-template-columns: 1fr repeat(4, auto);
+    grid-template-columns: 1fr repeat(5, auto);
 }
 
 @media (width < 600px) {
@@ -288,6 +290,11 @@ a:hover,
     }
 }
 
+.nav-docs__list {
+    list-style: "➔ ";
+    list-style-position: inside;
+}
+
 /* Home */
 
 .nav-home__list {
@@ -333,7 +340,7 @@ a:hover,
 /* Docs */
 .docs {
     display: grid;
-    grid-template-columns: 8rem auto;
+    grid-template-columns: 10rem auto;
     gap: var(--gap-l);
 }
 
@@ -346,6 +353,12 @@ a:hover,
 	grid-template-columns: initial;
 	gap: 0;
     }
+}
+
+/* Tutorials */
+.tutorials ul {
+    list-style: "📚 ";
+    list-position: inside;
 }
 
 /* Footer */
