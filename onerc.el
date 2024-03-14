@@ -88,7 +88,7 @@
 	      (:link (@ :rel "stylesheet" :href "https://fonts.googleapis.com/css2?family=Fira+Code&family=Open+Sans:wght@400;700&display=swap"))
 	      ;; CSS
 	      (:link (@ :rel "stylesheet" :type "text/css" :href "https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"))
-	      (:link (@ :rel "stylesheet" :type "text/css" :href "/css/main.css")))
+	      (:link (@ :rel "stylesheet" :type "text/css" :href ,(concat "/css/main.css?cache=" (format-time-string "%s")))))
 	     (:body
 	      (:header.header
 	       (:div.container
