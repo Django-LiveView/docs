@@ -999,7 +999,7 @@ For titles and descriptions, you can use the ~meta~ dictionary in the action wit
 
 #+BEGIN_SRC python
   from liveview.context_processors import get_global_context
-  from core import settings
+  from django.conf import settings
   from liveview.utils import (
       get_html,
       update_active_nav,
