@@ -405,19 +405,26 @@ For example, you can create a link to the ~about me~ page.
 
 #+BEGIN_SRC html
   <a
-      data-controller="page"
       data-action="click->page#changePage"
       data-page="about_me"
       href="{% url "about me" %}" <!-- Optional -->
       role="button" <!-- Optional -->
-     >Ver completo</a>
+     >Go to about me page</a>
 #+END_SRC
 
-- ~data-controller~: Indicates that the element is a controller. ~page~ with functions to switch between pages.
 - ~data-action~: Indicates that the element is an action. ~click~ to capture the click event. ~page#changePage~ to call the ~changePage~ function of the ~page~ controller.
 - ~data-page~: Indicates the name of the page to which you want to move. The name is the same as the name of the action file. For example, ~actions/about_me.py~.
 - ~href~: Optional. It is recommended to use the ~href~ attribute to improve SEO or if JavaScript is disabled.
 - ~role~: Optional. It is recommended to use the ~role~ attribute to improve accessibility or if JavaScript is disabled.
+
+Or use a button for it.
+
+#+BEGIN_SRC html
+  <button
+      data-action="click->page#changePage"
+      data-page="about_me"
+     >Go to about me page</button>
+#+END_SRC
 
 ** Send data
 
@@ -432,7 +439,7 @@ For example, you can create a link to the ~blog single~ page with the ~slug~ of 
       data-slug="{{ article.slug }}"
       href="{% url "blog single" slug=article.slug %}" <!-- Optional -->
       role="button" <!-- Optional -->
-     >Ver completo</a>
+     >See article</a>
 #+END_SRC
 
 To receive the data in action ~blog_single.py~ you can use the ~client_data~ parameter with the ~data~ key.
@@ -855,7 +862,7 @@ Create a folder called ~pages~ in your template folder and inside it create a fi
 	      data-action="click->page#run"
 	      data-liveview-action="home"
 	      data-liveview-function="random_number"
-	  >Generate random number</button>
+	  >Random number</button>
       </p>
       <h2 id="output-random-number"></h2>
   </main>
