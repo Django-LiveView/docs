@@ -828,18 +828,7 @@ Create a folder called ~templates~, or use your template folder, inside your App
 		  data-debug="{{ DEBUG }}"
 		  data-controller="page"
 	  >
-	      <section id="loading"></section>
-	      <section id="notifications" class="notifications"></section>
-	      <section id="no_connection"></section>
-	      <div class="container">
-		  <header id="content-header">
-		      {% include 'components/header.html' %}
-		  </header>
-		  <main id="main" class="main-container">{% include page %}</main>
-		  <footer id="content-footer">
-		      {% include 'components/footer.html' %}
-		  </footer>
-	      </div>
+	  <main id="main" class="main-container">{% include page %}</main>
       </body>
   </html>
 #+END_SRC
