@@ -106,7 +106,9 @@ We strongly recommend that you follow the [[#/tutorials/quickstart/][Quickstart]
 :DESCRIPTION: Actions of Django LiveView.
 :END:
 
-Actions are where business logic is stored. The place where you write the functions in Python instead of JavaScript. They are the ones that will be executed when the page is loaded, when a button is clicked, when a form is submitted, etc. They will render the HTML and send it to the client. They are the ones that will receive the data from the client and process it. They are the heart of Django LiveView.
+Actions are where business logic is stored. The place where you write the functions in Python instead of JavaScript. They are the ones that will be executed when the page is loaded, when a button is clicked, when a form is submitted, etc. The can be launched by the backend or by the frontend. For example, when a button is clicked, the frontend sends a request to the backend to execute an action. But the backend can send a request to the frontend at any time, for example when a new commentary is added to an article then all clients will receive the new commentary. In other words, the actions can be executed by the backend or by the frontend.  The more common actions will be render HTML and send it to the client, but you can do anything you want. They are the heart of Django LiveView.
+
+** Backend side
 
 In every app you can create a folder called ~actions~ and inside it a file for each page. For example, ~home.py~ for the home page. The file will have the following structure:
 
@@ -233,14 +235,14 @@ When you update via context, you add the following. They are all optional.
 - ~active_nav~: It is used to highlight the active page in the navigation menu.
 - ~page~: Name of the template that will be rendered.
 
-** Decorators
+*** Decorators
 
 You can use the following decorators to make your actions more readable and maintainable.
 
 - ~@enable_lang~: It is used to enable the language. It is necessary to use the ~gettext~ function. If you site only has one language, you can remove it.
 - ~@loading~: It is used to show a loading animation while the page is being rendered. If there is no loading delay, for example the database access is very fast or you don't access anything external like an API, you can remove it.
 
-** Database access (ORM)
+*** Database access (ORM)
 
 If you want to access the database, you can use the Django ORM as you would in a normal view. The only difference is that the views are asynchronous by default. You can use the ~database_sync_to_async~ function from ~channels.db~.
 
@@ -298,6 +300,52 @@ To:
       return await sync_to_async(render)(request, settings.TEMPLATE_BASE, await get_context())
 #+END_SRC
 
+** Frontend side
+
+The frontend is responsible for capturing events and sending and receiving strings. No logic, rendering or state is in the frontend. It is the backend that does all the work.
+
+Since DOM trees are constantly being created, updated and deleted, a small framework is used to manage events and avoid collisions: [[https://stimulus.hotwired.dev/][Stimulus]]. It is very simple and easy to use. In addition, some custom functions have been created to simplify more processes such as WebSockets connection, data sending, painting, history, etc. When you cloned the [[https://github.com/Django-LiveView/assets][assets]] repository you included all of that. You do not have to do anything.
+
+*** Run actions
+
+In the following example, we will create a button that when clicked will call the ~sent_articles_next_page~ function of the ~blog_list~ action (~actions/blog_list.py~).
+
+#+BEGIN_SRC html
+<button type="button"
+    data-action="click->page#run"
+    data-liveview-action="blog_list"
+    data-liveview-function="send_articles_next_page"
+    data-next-page="2"
+>Cargar mas</button>
+#+END_SRC
+
+- ~data-action~: Required. Indicate the event (~click~), the controller (~page~ is the default controller in Django LiveView) and function in Stimulus (~run~). You will never change it.
+- ~data-liveview-action~: Required. The name of the action file (~blog_list.py~).
+- ~data-liveview-function~: Required. The name of the function in the action file (~send_articles_next_page~).
+- ~data-next-page~: Optional. You can send data to the backend. In this case, the page number.
+
+*** Change page
+
+All actions have a mandatory function ~send_page~. It is used to move from one page to another. There is a quick function called ~changePage~ to do this.
+
+For example, if you want to go to the About Me page, you can use the following code.
+
+#+BEGIN_SRC html
+<button
+    data-action="click->page#changePage"
+    data-page="about_me"
+   >Go to about me page</button>
+#+END_SRC
+
+It would be equivalent to doing:
+
+#+BEGIN_SRC html
+<button
+    data-action="click->page#run"
+    data-liveview-action="about_me"
+    data-liveview-function="send_page"
+   >Go to about me page</button>
+#+END_SRC
 
 * Views
 :PROPERTIES:
