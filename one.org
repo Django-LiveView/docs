@@ -427,7 +427,6 @@ For example, you can create a link to the ~blog single~ page with the ~slug~ of 
 
 #+BEGIN_SRC html
   <a
-      data-controller="page"
       data-action="click->page#changePage"
       data-page="blog_single"
       data-slug="{{ article.slug }}"
@@ -796,45 +795,46 @@ Now we will create the base template, which will be the one that will be rendere
 Create a folder called ~templates~, or use your template folder, inside your App and inside it create another folder called ~layouts~. Now create a file called ~base.html~.
 
 #+BEGIN_SRC html
-{# my-app/templates/layouts/base.html #}
-{% load static i18n %}
-<!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
-<html lang="{{ CURRENT_LANGUAGE }}">
-    <head>
-        <meta charset="utf-8">
-        <title>{{ title }}</title>
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-        >
-        <meta
-            name="description"
-            content="{{ meta.description }}"
-        >
-        <meta
-            property="og:image"
-            content="{{ meta.image }}"
-        >
-	<script type="module" src="{% static 'js/main.js' %}" defer></script>
-    </head>
-    <body
-		data-host="{{ request.get_host }}"
-		data-debug="{{ DEBUG }}"
-	>
-            <section id="loading"></section>
-	    <section id="notifications" class="notifications"></section>
-	    <section id="no_connection"></section>
-	    <div class="container">
-		<header id="content-header">
-		    {% include 'components/header.html' %}
-		</header>
-		<main id="main" class="main-container">{% include page %}</main>
-		<footer id="content-footer">
-		    {% include 'components/footer.html' %}
-		</footer>
-	    </div>
-    </body>
-</html>
+  {# my-app/templates/layouts/base.html #}
+  {% load static i18n %}
+  <!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
+  <html lang="{{ CURRENT_LANGUAGE }}">
+      <head>
+	  <meta charset="utf-8">
+	  <title>{{ title }}</title>
+	  <meta
+	      name="viewport"
+	      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+	  >
+	  <meta
+	      name="description"
+	      content="{{ meta.description }}"
+	  >
+	  <meta
+	      property="og:image"
+	      content="{{ meta.image }}"
+	  >
+	  <script type="module" src="{% static 'js/main.js' %}" defer></script>
+      </head>
+      <body
+		  data-host="{{ request.get_host }}"
+		  data-debug="{{ DEBUG }}"
+		  data-controller="page"
+	  >
+	      <section id="loading"></section>
+	      <section id="notifications" class="notifications"></section>
+	      <section id="no_connection"></section>
+	      <div class="container">
+		  <header id="content-header">
+		      {% include 'components/header.html' %}
+		  </header>
+		  <main id="main" class="main-container">{% include page %}</main>
+		  <footer id="content-footer">
+		      {% include 'components/footer.html' %}
+		  </footer>
+	      </div>
+      </body>
+  </html>
 #+END_SRC
 
 In the future we will define ~main.js~, a minimal JavaScript to connect the events and the WebSockets client.
@@ -846,15 +846,19 @@ We will create the home page template, which will be the one that will be render
 Create a folder called ~pages~ in your template folder and inside it create a file called ~home.html~.
 
 #+BEGIN_SRC html
-{# my-app/templates/pages/home.html #}
-{% load static %}
+  {# my-app/templates/pages/home.html #}
+  {% load static %}
 
-<main data-controller="home">
-    <p>
-	<button data-action="click->home#randomNumber">Random number</button>
-    </p>
-    <h2 id="output-random-number"></h2>
-</main>
+  <main>
+      <p>
+	  <button
+	      data-action="click->page#run"
+	      data-liveview-action="home"
+	      data-liveview-function="random_number"
+	  >Generate random number</button>
+      </p>
+      <h2 id="output-random-number"></h2>
+  </main>
 #+END_SRC
 
 As you can see, we have defined a button to launch the action of generating the random number (~button~) and the place where we will print the result (~output-random-number~).
