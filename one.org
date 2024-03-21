@@ -631,21 +631,19 @@ This will render the loading HTML in ~#loading~ before running the action and cl
 
 It may be the case that the connection is lost, when user has lost the internet connection or the server has been restarted, and it's a problem because Django LiveView depends on a constant connection. In these cases, the client automatically will try to reconnect to the server. But while this happens, the user will have to be informed and any type of interaction blocked. If you do not block user interactions, actions will accumulate in the browser until communication is reestablished. Where they will all be sent at once. If, for example, the user impatiently presses the next page button 10 times, the user will skip 10 pages. It is a problem for him and for the server that will process many instructions at once.
 
-To solve this problem, you can create a tag with the ~#modal-no-connection~ id in your main layout, or HTML fragment that all templates share.
+To solve this problem, you can create a tag with the ~#no-connection~ id in your main layout, or HTML fragment that all templates share.
 
 #+BEGIN_SRC html
-  <section id="modal-no-connection" class="hide">
-    <div>
+  <section id="no-connection" class="no-connection no-connection--hide">
       <h2>Lost connection</h2>
       <p>Trying to reconnect...</p>
-    </div>
   </section>
 #+END_SRC
 
 Add add the followind styles.
 
 #+BEGIN_SRC css
-  #modal-no-connection {
+  .no-connection {
       position: fixed;
       inset: 0;
       z-index: 9999;
@@ -655,13 +653,14 @@ Add add the followind styles.
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      .hide {
-        display: none;
-      }
+  }
+
+  .no-connection--hide {
+      display: flex;
   }
 #+END_SRC
 
-If there is no connection, the ~#modal-no-connection~ will be displayed with ~.show~ class. Otherwise, it will be hidden with the ~.hide~ class.
+If there is no connection, the ~#no-connection~ will be displayed with ~.no-connection--show~ class. Otherwise, it will be hidden with the ~.no-connection--hide~ class.
 
 * Deploy
 :PROPERTIES:
