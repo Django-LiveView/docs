@@ -538,6 +538,83 @@ Or you could read it with the ~lang~ key of the ~client_data~ parameter.
 
 You can read the tutorial [[#/tutorials/internationalize-with-subdomains/][Internationalize with subdomains]] to see how to create a multilingual website with subdomains.
 
+* Loading
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/loading/
+:TITLE: Loading
+:DESCRIPTION: Loading management of Django LiveView.
+:END:
+
+It is very useful when the database access is slow or you access external services like APIs. You can make a loading animation while the page is being rendered.
+
+For example, first create a template called ~loading.html~.
+
+#+BEGIN_SRC html
+  <div
+    style="
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    backdrop-filter: blur(3px);
+    "
+></div>
+#+END_SRC
+
+This code will blur the entire page. You can customize it as you like.
+
+Now you can make ~tools_template.py~ in the app or root folder with the following content.
+
+#+BEGIN_SRC python
+from django.template.loader import render_to_string
+from liveview.context_processors import get_global_context
+
+async def toggle_loading(consumer, show=False):
+    """Toogle Loading template."""
+    data = {
+        "action": ("Show" if show else "Hide") + " loading",
+        "selector": "#loading",
+        "html": render_to_string(
+            "loading.html", get_global_context(consumer=consumer)
+        )
+        if show
+        else "",
+    }
+    await consumer.send_html(data)
+
+
+def loading(func):
+    """Decorator: Show loading."""
+
+    async def wrapper(*args, **kwargs):
+        await toggle_loading(args[0], True)
+        result = await func(*args, **kwargs)
+        await toggle_loading(args[0], False)
+        return result
+
+    return wrapper
+#+END_SRC
+
+And in the action file, you can use the ~@loading~ decorator.
+
+#+BEGIN_SRC python
+  from app.tools_template import loading
+
+  @loading
+  async def send_page(consumer, client_data, lang=None):
+      my_context = await get_context(consumer=consumer)
+      html = await get_html(template, my_context)
+      data = {
+	  "action": client_data["action"],
+	  "selector": "#main",
+	  "html": html,
+      }
+      data.update(my_context)
+      await consumer.send_html(data)
+#+END_SRC
+
+This will show the loading before executing the action and remove it when finished.
+
 * Deploy
 :PROPERTIES:
 :ONE: one-custom-default-doc
