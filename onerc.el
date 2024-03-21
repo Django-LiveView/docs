@@ -185,6 +185,8 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/loading/") "Loading"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/lost-connection/") "Lost connection"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/deploy/") "Deploy"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))

@@ -563,36 +563,42 @@ For example, first create a template called ~loading.html~.
 
 This code will blur the entire page. You can customize it as you like.
 
-Now you can make ~tools_template.py~ in the app or root folder with the following content.
+Add a tag with ~#loading~ to your main layout, or HTML fragment that all templates share.
 
-#+BEGIN_SRC python
-from django.template.loader import render_to_string
-from liveview.context_processors import get_global_context
+#+BEGIN_SRC html
+    <section id="loading"></section>
+#+END_SRC
 
-async def toggle_loading(consumer, show=False):
-    """Toogle Loading template."""
-    data = {
-        "action": ("Show" if show else "Hide") + " loading",
-        "selector": "#loading",
-        "html": render_to_string(
-            "loading.html", get_global_context(consumer=consumer)
-        )
-        if show
-        else "",
-    }
-    await consumer.send_html(data)
+  Now you can make ~tools_template.py~ in the app or root folder with the following content.
+
+  #+BEGIN_SRC python
+    from django.template.loader import render_to_string
+    from liveview.context_processors import get_global_context
+
+    async def toggle_loading(consumer, show=False):
+	"""Toogle Loading template."""
+	data = {
+	    "action": ("Show" if show else "Hide") + " loading",
+	    "selector": "#loading",
+	    "html": render_to_string(
+		"loading.html", get_global_context(consumer=consumer)
+	    )
+	    if show
+	    else "",
+	}
+	await consumer.send_html(data)
 
 
-def loading(func):
-    """Decorator: Show loading."""
+    def loading(func):
+	"""Decorator: Show loading."""
 
-    async def wrapper(*args, **kwargs):
-        await toggle_loading(args[0], True)
-        result = await func(*args, **kwargs)
-        await toggle_loading(args[0], False)
-        return result
+	async def wrapper(*args, **kwargs):
+	    await toggle_loading(args[0], True)
+	    result = await func(*args, **kwargs)
+	    await toggle_loading(args[0], False)
+	    return result
 
-    return wrapper
+	return wrapper
 #+END_SRC
 
 And in the action file, you can use the ~@loading~ decorator.
@@ -613,7 +619,49 @@ And in the action file, you can use the ~@loading~ decorator.
       await consumer.send_html(data)
 #+END_SRC
 
-This will show the loading before executing the action and remove it when finished.
+This will render the loading HTML in ~#loading~ before running the action and clear all the HTML when finished.
+
+* Lost connection
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/lost-connection/
+:TITLE: Lost connection
+:DESCRIPTION: Lost connection management of Django LiveView.
+:END:
+
+It may be the case that the connection is lost, when user has lost the internet connection or the server has been restarted, and it's a problem because Django LiveView depends on a constant connection. In these cases, the client automatically will try to reconnect to the server. But while this happens, the user will have to be informed and any type of interaction blocked. If you do not block user interactions, actions will accumulate in the browser until communication is reestablished. Where they will all be sent at once. If, for example, the user impatiently presses the next page button 10 times, the user will skip 10 pages. It is a problem for him and for the server that will process many instructions at once.
+
+To solve this problem, you can create a tag with the ~#modal-no-connection~ id in your main layout, or HTML fragment that all templates share.
+
+#+BEGIN_SRC html
+  <section id="modal-no-connection" class="hide">
+    <div>
+      <h2>Lost connection</h2>
+      <p>Trying to reconnect...</p>
+    </div>
+  </section>
+#+END_SRC
+
+Add add the followind styles.
+
+#+BEGIN_SRC css
+  #modal-no-connection {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background-color: black;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      .hide {
+        display: none;
+      }
+  }
+#+END_SRC
+
+If there is no connection, the ~#modal-no-connection~ will be displayed with ~.show~ class. Otherwise, it will be hidden with the ~.hide~ class.
 
 * Deploy
 :PROPERTIES:
