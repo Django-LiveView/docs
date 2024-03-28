@@ -368,6 +368,19 @@ a:hover,
     border-top: 2px solid var(--color-brown);
 }
 
+.footer_nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    list-style: none;
+    padding: 0;
+}
+
+@media (width < 600px) {
+    .footer_nav {
+	grid-template-columns: 1fr;
+    }
+}
+
 /* ------- '.one' classes used by 'one-ox' org backend ------- */
 
 .one-hl {
