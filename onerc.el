@@ -108,9 +108,11 @@
 		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))))))
 	      ,tree-content
 	      (:footer.footer
+	       (:p (:i (@ :aria-label "bug") "🪲") " Bugs: " (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "Documentation"))
+	       (:p (:i (@ :aria-label "chat") "💬") " Get help: "(:a.link (@ :href "xmpp://django-liveview@conference.im.andros.dev?join" :target "_blank") "Jabber/XMPP group "))
+	       (:p (:i (@ :aria-label "chat") "🐘") " Follow me: " (:a.link (@ :href "https://hostux.social/@andros" :target "_blank") "ActivityPub/Fediverse "))
+	       (:p (:span (@ :aria-hidden "true") "💰 ") " Support the project: " (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") "Libeapay"))
 	       (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
-	       (:p (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "I have seen a " (:i (@ :aria-label "bug") "🪲") " in the documentation"))
-	       (:p (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") (:span (@ :aria-hidden "true") "💰 ") "Support") " the project")
 	       (:p "🐍 " ,(format-time-string "%Y"))))))))
 
 (defun one-custom-default-page (page-tree pages _global)
