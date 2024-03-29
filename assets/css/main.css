@@ -285,8 +285,8 @@ a:hover,
 }
 
 @media (width < 600px) {
-    .aside-docs {
-	display: none;
+    .nav-docs {
+	position: initial;
     }
 }
 
@@ -349,9 +349,10 @@ a:hover,
 	padding-inline: var(--gap-m);
     }
     .docs {
-	display: initial;
+	display: flex;
 	grid-template-columns: initial;
-	gap: 0;
+	gap: var(--gap-l);
+	flex-direction: column-reverse;
     }
 }
 

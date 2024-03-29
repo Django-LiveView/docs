@@ -607,8 +607,6 @@ Los datos se recogen de la misma forma que en el caso anterior.
 
 Para validar un formulario puedes hacerlo de la misma forma que en Django. Pero si quieres mostrar los errores en tiempo real, debes redibujar el formulario en cada ocasión.
 
-
-
 * History
 :PROPERTIES:
 :ONE: one-custom-default-doc
