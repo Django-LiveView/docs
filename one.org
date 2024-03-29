@@ -4,6 +4,7 @@
 :CUSTOM_ID: /
 :TITLE:
 :DESCRIPTION: Framework for creating Realtime SPAs using HTML over the Wire technology.
+:NAVIGATOR-ACTIVE: home
 :END:
 
 ** What is HTML over the Wire?
@@ -64,6 +65,7 @@ Are you ready to create your first Realtime SPA? Let's go to the [[#/tutorials/q
 :CUSTOM_ID: /docs/install/
 :TITLE: Install
 :DESCRIPTION: Install Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 You can install Django LiveView with ~pip~.
@@ -104,6 +106,7 @@ We strongly recommend that you follow the [[#/tutorials/quickstart/][Quickstart]
 :CUSTOM_ID: /docs/actions/
 :TITLE: Actions
 :DESCRIPTION: Actions of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 Actions are where business logic is stored. The place where you write the functions in Python instead of JavaScript. They are the ones that will be executed when the page is loaded, when a button is clicked, when a form is submitted, etc. The can be launched by the backend or by the frontend. For example, when a button is clicked, the frontend sends a request to the backend to execute an action. But the backend can send a request to the frontend at any time, for example when a new commentary is added to an article then all clients will receive the new commentary. In other words, the actions can be executed by the backend or by the frontend.  The more common actions will be render HTML and send it to the client, but you can do anything you want. They are the heart of Django LiveView.
@@ -353,6 +356,7 @@ It would be equivalent to doing:
 :CUSTOM_ID: /docs/views/
 :TITLE: Views
 :DESCRIPTION: Views of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 Django LiveView uses the same views as Django, but the main difference is that the views are asynchronous by default.
@@ -397,6 +401,7 @@ Or transform ~articles~ to a list. But you lose the benefits of ORM.
 :CUSTOM_ID: /docs/routing/
 :TITLE: Routing
 :DESCRIPTION: Routing of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 If you want to move from one page to another, you can use the ~page~ controller and the ~changePage~ action.
@@ -478,6 +483,7 @@ Here you can see a typical example of a single page of a blog.
 :CUSTOM_ID: /docs/forms/
 :TITLE: Forms
 :DESCRIPTION: Forms of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 Los formularios en Django LiveView son nativos de Django. Puedes usar los formularios de modelo, los formularios de clase, los formularios de funciones, etc. O crearlos directamente en HTML. La única diferencia es que los datos se envían a través de WebSockets en lugar de HTTP.
@@ -613,6 +619,7 @@ Para validar un formulario puedes hacerlo de la misma forma que en Django. Pero 
 :CUSTOM_ID: /docs/history/
 :TITLE: History
 :DESCRIPTION: History management of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 If you make a SPA you will have a problem with the history management system. When you go back in history, you will lose the data and the HTML of the previous page. This is because the data is removed from the DOM. It is not a problem with Django LiveView.
@@ -631,6 +638,7 @@ If you want to disable it, remove `startHistory();` from ~assets/js/main.js~.
 :CUSTOM_ID: /docs/internationalization/
 :TITLE: Internationalization
 :DESCRIPTION: Internationalization of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 Django LiveView uses the same internationalization system as Django. You can read more about it in the [[https://docs.djangoproject.com/en/dev/topics/i18n/][Django documentation]]. However, let's go deeper.
@@ -679,6 +687,7 @@ You can read the tutorial [[#/tutorials/internationalize-with-subdomains/][Inter
 :CUSTOM_ID: /docs/loading/
 :TITLE: Loading
 :DESCRIPTION: Loading management of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 It is very useful when the database access is slow or you access external services like APIs. You can make a loading animation while the page is being rendered.
@@ -762,6 +771,7 @@ This will render the loading HTML in ~#loading~ before running the action and cl
 :CUSTOM_ID: /docs/lost-connection/
 :TITLE: Lost connection
 :DESCRIPTION: Lost connection management of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 It may be the case that the connection is lost, when user has lost the internet connection or the server has been restarted, and it's a problem because Django LiveView depends on a constant connection. In these cases, the client automatically will try to reconnect to the server. But while this happens, the user will have to be informed and any type of interaction blocked. If you do not block user interactions, actions will accumulate in the browser until communication is reestablished. Where they will all be sent at once. If, for example, the user impatiently presses the next page button 10 times, the user will skip 10 pages. It is a problem for him and for the server that will process many instructions at once.
@@ -803,6 +813,7 @@ If there is no connection, the ~#no-connection~ will be displayed with ~.no-conn
 :CUSTOM_ID: /docs/deploy/
 :TITLE: Deploy
 :DESCRIPTION: Deploy Django LiveView to production.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 You can deploy Django LiveView using any web server like reverse proxy.
@@ -849,6 +860,7 @@ It is important to note that the ~proxy_set_header~ lines are necessary for the 
 :CUSTOM_ID: /docs/faq/
 :TITLE: FAQ (Frequently Asked Questions)
 :DESCRIPTION: Frequently asked questions about Django LiveView.
+:NAVIGATOR-ACTIVE: docs
 :END:
 
 ** Do I need to know JavaScript to use Django LiveView?
@@ -882,6 +894,7 @@ Only me and my free time. If you want to support the project, you can be my [[ht
 :CUSTOM_ID: /tutorials/
 :TITLE: Tutorials
 :DESCRIPTION: Tutorials about Django LiveView.
+:NAVIGATOR-ACTIVE: tutorials
 :END:
 
 ** Tutorials
@@ -897,6 +910,7 @@ Learn how to create a Django LiveView application step by step.
 :CUSTOM_ID: /tutorials/quickstart/
 :TITLE: Quickstart
 :DESCRIPTION: Get started with Django LiveView the easy way.
+:NAVIGATOR-ACTIVE: tutorials
 :END:
 
 Welcome to the Quickstart guide. Here you will learn how to create your first Realtime SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
@@ -1190,6 +1204,7 @@ The next step is to create a more complex application. You can read other [[#/tu
 :CUSTOM_ID: /tutorials/internationalize-with-subdomains/
 :TITLE: Internationalize with subdomains
 :DESCRIPTION: Create a multilingual website with subdomains.
+:NAVIGATOR-ACTIVE: tutorials
 :END:
 
 Here you will learn how to create a multilingual website using Django LiveView.
@@ -1411,6 +1426,7 @@ Or also simple links with the subdomain.
 :CUSTOM_ID: /source-code/
 :TITLE: Source code
 :DESCRIPTION: List of all related source code.
+:NAVIGATOR-ACTIVE: source code
 :END:
 
 You can find all the source code in the following repositories:
@@ -1430,6 +1446,7 @@ You can find all the source code in the following repositories:
 :CUSTOM_ID: /books/
 :TITLE:
 :DESCRIPTION: Books about Django LiveView.
+:NAVIGATOR-ACTIVE: books
 :END:
 
 There are no books about Django LiveView yet. But you can find book about Django working with HTML over the Wire technology.

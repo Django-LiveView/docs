@@ -50,9 +50,10 @@
 
 ;; Layouts
 
-(defun render-layout-html (title description tree-content)
+(defun render-layout-html (title description navigator-active tree-content)
   "Render the HTML layout with the given title, description and content."
-  (let ((full-title (make-title title)))
+  (let ((full-title (make-title title))
+	(class-name-navigator-active "nav-main--active"))
     (jack-html
      "<!DOCTYPE html>"
      `(:html (@ :lang "en")
@@ -97,15 +98,15 @@
 		  (:li.nav-main__item
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/docs/install/") "Docs"))
+		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "Docs"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/tutorials/") "Tutorials"))
+		   (:a.button.nav-main__link (@ :href "/tutorials/" :class ,(when (string= "tutorials" navigator-active) class-name-navigator-active)) "Tutorials"))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/books/") "Books"))
+		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "Books"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/source-code/") "Source code"))))))
+		   (:a.button.nav-main__link (@ :href "/source-code/" :class ,(when (string= "source code" navigator-active) class-name-navigator-active)) "Source code"))))))
 	      ,tree-content
 	      (:footer.footer
 	       (:div.container
@@ -121,6 +122,7 @@
   "Default render function by home page."
   (let* ((title (org-element-property :raw-value page-tree))
 	 (description (org-element-property :DESCRIPTION page-tree))
+	 (navigator-active (org-element-property :NAVIGATOR-ACTIVE page-tree))
 	 (path (org-element-property :CUSTOM_ID page-tree))
          (content (org-export-data-with-backend
                    (org-element-contents page-tree)
@@ -130,6 +132,7 @@
     (render-layout-html
      title
      description
+     navigator-active
      (jack-html `(:main.main
 		  (:section
 		   (:div.container ,content)))))))
@@ -139,6 +142,7 @@
   (let* ((title (org-element-property :TITLE page-tree))
 	 (path (org-element-property :CUSTOM_ID page-tree))
 	 (description (org-element-property :DESCRIPTION page-tree))
+	 (navigator-active (org-element-property :NAVIGATOR-ACTIVE page-tree))
          (content (org-export-data-with-backend
                    (org-element-contents page-tree)
                    'one-ox nil))
@@ -147,6 +151,7 @@
     (render-layout-html
      title
      description
+     navigator-active
      (jack-html `(:main.main
 		  (:section.hero
 		   (:div.container
@@ -161,6 +166,7 @@
   "Default render function by home page."
   (let* ((title (org-element-property :raw-value page-tree))
 	 (description (org-element-property :DESCRIPTION page-tree))
+	 (navigator-active (org-element-property :NAVIGATOR-ACTIVE page-tree))
 	 (path (org-element-property :CUSTOM_ID page-tree))
          (content (org-export-data-with-backend
                    (org-element-contents page-tree)
@@ -170,6 +176,7 @@
     (render-layout-html
      title
      description
+     navigator-active
      (jack-html `(:div.container.docs
 		  (:aside.aside-docs
 		   (:nav.nav-docs
@@ -198,12 +205,13 @@
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
 		     )))
 		  (:main.main.main--docs
-		    ,content))))))
+		   ,content))))))
 
 (defun one-custom-default-tutorials (page-tree pages _global)
   "Default render function by tutorials page."
   (let* ((title (org-element-property :raw-value page-tree))
 	 (description (org-element-property :DESCRIPTION page-tree))
+	 (navigator-active (org-element-property :NAVIGATOR-ACTIVE page-tree))
 	 (path (org-element-property :CUSTOM_ID page-tree))
          (content (org-export-data-with-backend
                    (org-element-contents page-tree)
@@ -213,6 +221,7 @@
     (render-layout-html
      title
      description
+     navigator-active
      (jack-html `(:main.main
 		  (:section.tutorials
 		   (:div.container ,content)))))))
