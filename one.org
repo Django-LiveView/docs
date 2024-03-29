@@ -472,6 +472,143 @@ Here you can see a typical example of a single page of a blog.
       await consumer.send_html(data)
 #+END_SRC
 
+* Forms
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/forms/
+:TITLE: Forms
+:DESCRIPTION: Forms of Django LiveView.
+:END:
+
+Los formularios en Django LiveView son nativos de Django. Puedes usar los formularios de modelo, los formularios de clase, los formularios de funciones, etc. O crearlos directamente en HTML. La única diferencia es que los datos se envían a través de WebSockets en lugar de HTTP.
+
+** Recoger un campo
+
+A continución puedes ver un ejemplo de un formulario de búsqueda donde se crea un campo de texto.
+
+#+BEGIN_SRC python
+from django import forms
+
+class SearchForm(forms.Form):
+    search = forms.CharField(
+        label="Search",
+        max_length=255,
+        widget=forms.TextInput(
+            attrs={
+                "data-action": "keyup.enter->page#run",
+                "data-liveview-action": "blog_list",
+                "data-liveview-function": "send_search_results",
+            },
+        ),
+    )
+#+END_SRC
+
+Cuando se pulse la tecla ~Enter~ se ejecutará la función ~send_search_results~ del archivo de acción ~blog_list.py~.
+
+Incluyelo en el contexto.
+
+#+BEGIN_SRC python
+  async def get_context(consumer=None):
+      context = get_global_context(consumer=consumer)
+      # Update context
+      context.update(
+	  {
+	      ...
+	      "search_form": SearchForm(),
+	      ...
+	  }
+      )
+      return context
+#+END_SRC
+
+E imprimirlo en el template puedes hacerlo mediante el objeto.
+
+  #+BEGIN_SRC html
+  <form id="search" class="search">
+      {{ search_form.as_p }}
+  </form>
+#+END_SRC
+
+Para recoger los datos en la función ~send_search_results~ puedes hacerlo mediante el objeto ~client_data~.
+
+#+BEGIN_SRC python
+  @enable_lang
+  @loading
+  async def send_search_results(consumer, client_data, lang=None):
+      search = client_data["form"]["search"]
+      # ...
+#+END_SRC
+
+** Recoger un formulario completo
+
+Recibir un campo o todo un formulario es similar. La diferencia es que ~action~, ~data-liveview-action~ y ~data-liveview-function~ se encuentran en el formulario, o botón de envío, y no en un campo concreto.
+
+Veamos un ejemplo de un formulario de contacto.
+
+#+BEGIN_SRC python
+  class ContactForm(forms.Form):
+      name = forms.CharField(
+	  label="Name",
+	  max_length=255,
+      )
+      email = forms.EmailField(
+	  label="Email",
+	  max_length=255,
+      )
+      message = forms.CharField(
+	  label="Message",
+      )
+
+#+END_SRC
+
+Lo incluimos en el contexto.
+
+#+BEGIN_SRC python
+  async def get_context(consumer=None):
+      context = get_global_context(consumer=consumer)
+      # Update context
+      context.update(
+	  {
+	      ...
+	      "contact_form": ContactForm(),
+	      ...
+	  }
+      )
+      return context
+#+END_SRC
+
+Y lo imprimimos en el template con el botón de envío personalizado.
+
+#+BEGIN_SRC html
+  <form id="contact" class="contact">
+      {{ contact_form.as_p }}
+      <button
+	  type="button"
+	  data-action="click->page#run"
+	  data-liveview-action="contact"
+	  data-liveview-function="send_contact"
+      >Send</button>
+  </form>
+#+END_SRC
+
+Los datos se recogen de la misma forma que en el caso anterior.
+
+#+BEGIN_SRC python
+  @enable_lang
+  @loading
+  async def send_contact(consumer, client_data, lang=None):
+      name = client_data["form"]["name"]
+      email = client_data["form"]["email"]
+      message = client_data["form"]["message"]
+      # ...
+#+END_SRC
+
+** Validaciones y errores
+
+Para validar un formulario puedes hacerlo de la misma forma que en Django. Pero si quieres mostrar los errores en tiempo real, debes redibujar el formulario en cada ocasión.
+
+
+
 * History
 :PROPERTIES:
 :ONE: one-custom-default-doc
