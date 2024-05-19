@@ -1194,6 +1194,8 @@ And open the browser at ~http://localhost:8000/~. You should see the home page w
 #+ATTR_HTML: :class center-block image image--responsive
 [[#/img/quickstart/minimal-template.webp][Random number]]
 
+You can also interact with [[https://django-liveview-demo-minimal-template.andros.dev/][the online demo]].
+
 Congratulations! You have created your first Realtime SPA using Django LiveView.
 
 The next step is to create a more complex application. You can read other [[#/tutorials/][tutorials]] or go to the [[#/docs/install/][documentation]].
