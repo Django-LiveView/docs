@@ -841,12 +841,12 @@ server {
     }
 
     location /static {
-        include  /etc/nginx/mime.types;
+        include /etc/nginx/mime.types;
         root /var/www/my-project;
     }
 
     location /media {
-        include  /etc/nginx/mime.types;
+        include /etc/nginx/mime.types;
         root /var/www/my-project;
     }
 
