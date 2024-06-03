@@ -307,7 +307,7 @@ To:
 
 The frontend is responsible for capturing events and sending and receiving strings. No logic, rendering or state is in the frontend. It is the backend that does all the work.
 
-Since DOM trees are constantly being created, updated and deleted, a small framework is used to manage events and avoid collisions: [[https://stimulus.hotwired.dev/][Stimulus]]. It is very simple and easy to use. In addition, some custom functions have been created to simplify more processes such as WebSockets connection, data sending, painting, history, etc. When you cloned the [[https://github.com/Django-LiveView/assets][assets]] repository you included all of that. You do not have to do anything.
+Since DOM trees are constantly being created, updated and deleted, a small framework is used to manage events and avoid collisions: [[https://stimulus.hotwired.dev/][Stimulus]]. It is very simple and easy to use. In addition, some custom functions have been created to simplify more processes such as WebSockets connection, data sending, painting, history, etc. When you cloned the [[https://github.com/Django-LiveView/frontend][frontend]] repository you included all of that. You do not have to do anything.
 
 *** Run actions
 
@@ -1138,7 +1138,7 @@ As you can see, we have defined a button to launch the action of generating the 
 
 Now we are going to create the frontend, the part where we will manage the JavaScript events and invoke the actions.
 
-Download [[https://github.com/Django-LiveView/assets/archive/refs/heads/main.zip][assets]] and unzip it in your static folder. You will be left with the following route: ~/static/js/~.
+Download [[https://github.com/Django-LiveView/frontend/archive/refs/heads/main.zip][frontend]] and unzip it in your static folder. You will be left with the following route: ~/static/js/~.
 
 ** 10. Create View
 
@@ -1440,7 +1440,7 @@ You can find all the source code in the following repositories:
 - Templates
     - [[https://github.com/Django-LiveView/starter-template][Starter]]: Check all the features of Django LiveView.
     - [[https://github.com/Django-LiveView/minimal-template][Minimal]]: The minimal template to get started.
-    - [[https://github.com/Django-LiveView/assets][Assets]]: Frontend assets.
+    - [[https://github.com/Django-LiveView/frontend][Frontend]]: Frontend assets.
 - Demos
     - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake.
 
