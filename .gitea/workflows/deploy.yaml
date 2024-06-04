@@ -2,11 +2,16 @@ name: Gitea Actions Deploy
 run-name: ${{ gitea.actor }} is testing out Gitea Actions 🚀
 on: [push]
 
+defaults:
+  run:
+    shell: bash
+    working-directory: /home/debian
+
+
 jobs:
   Explore-Gitea-Actions:
-    runs-on: ubuntu-latest:host
     steps:
       - name: List files in the repository
         run: |
           pwd
-          ls /home/debian
+          ls
