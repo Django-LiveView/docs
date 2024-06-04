@@ -2,10 +2,6 @@ name: Gitea Actions Deploy
 run-name: ${{ gitea.actor }} is testing out Gitea Actions 🚀
 on: [push]
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   Explore-Gitea-Actions:
     steps:
