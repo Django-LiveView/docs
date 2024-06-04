@@ -14,4 +14,4 @@ jobs:
       - name: List files in the repository
         run: |
           pwd
-          ls
+          ls /
