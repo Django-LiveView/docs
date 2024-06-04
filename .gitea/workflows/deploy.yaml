@@ -4,7 +4,9 @@ on: [push]
 
 jobs:
   Explore-Gitea-Actions:
+    runs-on: ubuntu-latest:host
     steps:
       - name: List files in the repository
         run: |
-          ls
+          pwd
+          ls /home/debian
