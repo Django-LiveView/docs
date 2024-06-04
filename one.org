@@ -228,6 +228,7 @@ await consumer.send_html(data)
 Optionally we can include others.
 
 - ~append~: Default: false. If true, the HTML will be added, not replaced.
+- ~delete~: Default: false. If true, the HTML will be deleted. `html` and `append` will be ignored. Only the selector will be used.
 - ~scroll~: Default: false. If true, the page will be scrolled to the selector
 - ~scrollTop~: Default: false. If true, the page will be scrolled to the top.
 
