@@ -5,7 +5,7 @@ on: [push]
 defaults:
   run:
     shell: bash
-    working-directory: /home/debian
+    #working-directory: /home/debian
 
 
 jobs:
