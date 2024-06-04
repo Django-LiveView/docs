@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: List files in the repository
         run: |
-          ls /home/debian
+          ls
