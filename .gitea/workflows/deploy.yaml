@@ -5,13 +5,11 @@ on: [push]
 defaults:
   run:
     shell: bash
-    #working-directory: /home/debian
-
 
 jobs:
   Explore-Gitea-Actions:
     steps:
       - name: List files in the repository
         run: |
-          cd /home
-          ls /home
+          cd /www
+          ls 
