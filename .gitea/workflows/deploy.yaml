@@ -7,9 +7,10 @@ defaults:
     shell: bash
 
 jobs:
-  Explore-Gitea-Actions:
+  deploy:
+    runs-on: ubuntu-latest
     steps:
       - name: List files in the repository
         run: |
-          cd /www
-          ls 
+          ls /
+          ls /home
