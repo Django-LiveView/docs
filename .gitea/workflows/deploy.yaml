@@ -12,6 +12,4 @@ jobs:
     steps:
       - name: List files in the repository
         run: |
-          ls /
-          ls /home
-          ls /mnt
+          ls /workspace
