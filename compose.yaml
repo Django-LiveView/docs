@@ -14,4 +14,4 @@ services:
       - 9100:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./public:/usr/share/nginx/html
+      - ./public:/usr/share/nginx/html:ro
