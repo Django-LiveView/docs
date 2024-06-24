@@ -5,4 +5,5 @@
   (package-initialize)
   (package-refresh-contents)
   (package-install 'one)
+  (find-file "/usr/src/app/one.org")
   (one-build))
