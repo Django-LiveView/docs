@@ -11,8 +11,5 @@ RUN apt update
 RUN apt install -y emacs-nox
 
 # Build
-COPY build.el .
-COPY one.org .
-COPY onerc.el .
-COPY assets assets
+COPY . .
 ENTRYPOINT emacs --batch --script build.el
