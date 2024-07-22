@@ -112,7 +112,7 @@
 	       (:div.container
 		(:ul.footer_nav
 		 (:li (:i (@ :aria-label "bug") "🪲") " Bugs: " (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "Documentation"))
-		 (:li (:i (@ :aria-label "chat") "💬") " Get help: "(:a.link (@ :href "xmpp://django-liveview@conference.im.andros.dev?join" :target "_blank") "Jabber/XMPP group "))
+		 (:li (:i (@ :aria-label "chat") "💬") " Get help: "(:a.link (@ :href "xmpp:django-liveview@groups.im.andros.dev?join" :target "_blank") "Jabber/XMPP group "))
 		 (:li (:i (@ :aria-label "chat") "🐘") " Follow me: " (:a.link (@ :href "https://hostux.social/@andros" :target "_blank") "ActivityPub/Fediverse "))
 		 (:li (:span (@ :aria-hidden "true") "💰 ") " Support the project: " (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") "Liberapay")))
 		(:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
