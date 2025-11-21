@@ -631,6 +631,45 @@ Execute functions when elements are first rendered:
 </div>
 #+END_SRC
 
+** Debounce
+
+Reduce server calls by adding a delay before sending requests. Perfect for search inputs and real-time validation:
+
+#+BEGIN_SRC html
+<input
+    type="search"
+    name="search"
+    data-liveview-function="search_articles"
+    data-liveview-debounce="500"
+    data-action="input->page#run"
+    placeholder="Search articles...">
+#+END_SRC
+
+The ~data-liveview-debounce="500"~ attribute waits 500ms after the user stops typing before sending the request. This dramatically reduces server load and provides a better user experience.
+
+**Example: Real-time search with debounce**
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("search_articles")
+def search_articles(consumer, content):
+    query = content["form"]["search"]
+    articles = Article.objects.filter(title__icontains=query)
+
+    html = render_to_string("search_results.html", {
+        "articles": articles
+    })
+
+    send(consumer, {
+        "target": "#search-results",
+        "html": html
+    })
+#+END_SRC
+
+Without debounce, typing "python" would send 6 requests (one per letter). With ~data-liveview-debounce="500"~, it sends only 1 request after the user stops typing for 500ms.
+
 ** Middleware System
 
 Add middleware to run before handlers for authentication, logging, or rate limiting:
