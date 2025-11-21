@@ -98,21 +98,18 @@
 		  (:li.nav-main__item
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "Docs"))
+		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "📚 Docs"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/tutorials/" :class ,(when (string= "tutorials" navigator-active) class-name-navigator-active)) "Tutorials"))
+		   (:a.button.nav-main__link (@ :href "/tutorial/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "🎓 Tutorial"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "https://django-liveview-demo.andros.dev/" :target "_blank") "Demo"))
+		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "📖 Books"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "Books"))
-		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/source-code/" :class ,(when (string= "source code" navigator-active) class-name-navigator-active)) "Source code"))))))
+		   (:a.button.nav-main__link (@ :href "https://github.com/Django-LiveView/liveview" :target "_blank") "💻 Source code"))))))
 	      ,tree-content
 	      (:footer.footer
 	       (:div.container
 		(:ul.footer_nav
 		 (:li (:i (@ :aria-label "bug") "🪲") " Bugs: " (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "Documentation"))
-		 (:li (:i (@ :aria-label "chat") "💬") " Get help: "(:a.link (@ :href "xmpp:django-liveview@groups.im.andros.dev?join" :target "_blank") "Jabber/XMPP group "))
 		 (:li (:i (@ :aria-label "chat") "🐘") " Follow me: " (:a.link (@ :href "https://activity.andros.dev/@andros" :target "_blank") "ActivityPub/Fediverse "))
 		 (:li (:span (@ :aria-hidden "true") "💰 ") " Support the project: " (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") "Liberapay")))
 		(:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
@@ -157,7 +154,7 @@
 		   (:div.container
 		    (:hgroup.hero__hgroup
 		     (:h1.hero__title "Django LiveView")
-		     (:h2.hero__subtitle "Framework for creating Realtime SPAs using HTML over the Wire technology")
+		     (:h2.hero__subtitle "Build real-time, reactive interfaces with Django using WebSockets — write Python, not JavaScript")
 		     (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
 		  (:section.home
 		   (:div.container ,content)))))))
@@ -184,23 +181,17 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/install/") "Install"))
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/actions/") "Actions"))
+		      (:a.nav-docs__link (@ :href "/docs/handlers/") "Handlers"))
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/views/") "Views"))
-		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/routing/") "Routing"))
+		      (:a.nav-docs__link (@ :href "/docs/frontend/") "Frontend Integration"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/forms/") "Forms"))
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/history/") "History"))
+		      (:a.nav-docs__link (@ :href "/docs/broadcasting/") "Broadcasting"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/advanced/") "Advanced Features"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/internationalization/") "Internationalization"))
-		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/loading/") "Loading"))
-		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/lost-connection/") "Lost connection"))
-		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/deploy/") "Deploy"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
 		     )))

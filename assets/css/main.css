@@ -381,12 +381,13 @@ a:hover,
 
 .footer_nav {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     list-style: none;
     padding: 0;
+    gap: var(--gap-m);
 }
 
-@media (width < 600px) {
+@media (width < 768px) {
     .footer_nav {
 	grid-template-columns: 1fr;
     }
