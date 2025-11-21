@@ -3,13 +3,13 @@
 :ONE: one-custom-default-home
 :CUSTOM_ID: /
 :TITLE:
-:DESCRIPTION: Framework for creating Realtime SPAs using HTML over the Wire technology.
+:DESCRIPTION: Build real-time, reactive interfaces with Django using WebSockets — write Python, not JavaScript.
 :NAVIGATOR-ACTIVE: home
 :END:
 
 ** What is HTML over the Wire?
 
-HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating real-time SPAs by creating a WebSockets connection between a client and a server. It allows JavaScript to request actions, its only responsibility is to handle events, and the backend handles the business logic as well as rendering HTML. This means you can create pages without reloading the page, without AJAX or APIs. One technology provides a secure, stable and low-delay connection for real-time web applications.
+HTML over the Wire, or HTML over WebSockets, is a strategy for creating real-time SPAs by establishing a WebSocket connection between a client and server. It allows JavaScript to request actions—its only responsibility is to handle events—while the backend handles the business logic and renders HTML. This means you can create dynamic pages without reloading, without AJAX or APIs. This technology provides a secure, stable, and low-latency connection for real-time web applications.
 
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-1.avif][Architecture send]]
@@ -17,47 +17,50 @@ HTML over ther Wire, or HTML over the WebSockets, is a strategy for creating rea
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-2.avif][Architecture receive]]
 
-** What is Django LiveView?
+** What is Django LiveView? 🚀
 
-Django LiveView is a framework for creating Realtime SPAs using HTML over the Wire technology. It is inspired by Phoenix LiveView and it is built on top of Django Channels.
+Django LiveView is a framework for creating real-time, interactive web applications entirely in Python 🐍, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
 
-It allows you to create interactive web applications using only HTML, CSS and Python. JavaScript ONLY is used to capture events, send and receive strings over a WebSockets channel.
+Build rich, dynamic user experiences ✨ with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features ⚡ without the complexity of a separate frontend framework.
 
 Let's illustrate with an example. I want to print article number 2.
 
-1- A WebSockets connection, a channel, is established between the client and the server.
+1. A WebSocket connection (a channel) is established between the client and the server.
 
-2- JavaScript sends a text, not a request, via WebSockets to the Server (in our case Django).
+2. JavaScript sends a message via WebSocket to the server (Django).
 
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-3.avif][Send string]]
 
-3- Django interprets the text and renders the HTML of the article through the template system and the database.
+3. Django interprets the message and renders the HTML of the article through the template system and the database.
 
-4- Django sends the HTML to JavaScript via the channel and tells it which selector to embed it in.
+4. Django sends the HTML to JavaScript via the channel and specifies which selector to embed it in.
 
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-4.avif][Send JSON]]
 
-5- JavaScript draws the received HTML in the indicated selector.
+5. JavaScript renders the received HTML in the indicated selector.
 
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-5.avif][Place HTML]]
 
 The same process is repeated for each action, such as clicking a button, submitting a form, etc.
 
-** What are your superpowers?
+** What are your superpowers? 💪
 
-- All in real time. The data is sent and received instantly.
-- Single connection. You don't need to open and close connections like calls to an API.
-- Create SPAs without using APIs o JavaScript frameworks.
-- Uses Django's template system to render the frontend (The use of JavaScript is anecdotal).
-- The logic is not split between the backend and the frontend, it all stays in Python.
-- You can still use all of Django's native tools, such as its ORM, forms, plugins, etc.
-- Everything is asynchronous by default.
-- Don't learn anything new. If you know Python, you know how to use Django LiveView.
+- 🎯 **Create SPAs without using APIs** — No REST or GraphQL needed
+- 🎨 **Uses Django's template system** to render the frontend (without JavaScript frameworks)
+- 🐍 **Logic stays in Python** — No split between backend and frontend
+- 🛠️ **Use all of Django's tools** — ORM, forms, authentication, admin, etc.
+- ⚡ **Everything is asynchronous by default** — Built on Django Channels
+- 📚 **Zero learning curve** — If you know Python and Django, you're ready
+- 🔄 **Real-time by design** — All interactions happen over WebSockets
+- 🔋 **Batteries included** — JavaScript assets bundled, automatic reconnection with exponential backoff
+- 💡 **Type hints** and modern Python (3.10+)
+- 📡 **Broadcast support** for multi-user real-time updates
+- 🔐 **Middleware system** for authentication and authorization
 
-Are you ready to create your first Realtime SPA? Let's go to the [[#/tutorials/quickstart/][Quickstart]].
+Are you ready to create your first real-time SPA? Let's go to the [[#/tutorial/][Tutorial]].
 
 * Install
 :PROPERTIES:
@@ -68,815 +71,666 @@ Are you ready to create your first Realtime SPA? Let's go to the [[#/tutorials/q
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-You can install Django LiveView with ~pip~.
+** Requirements
+
+- Python 3.10+
+- Django 4.2+
+- Redis (for Channels layer)
+- Channels 4.0+
+
+** Installation
+
+Install Django LiveView with pip:
 
 #+BEGIN_SRC sh
 pip install django-liveview
 #+END_SRC
 
-Then add ~liveview~ to your installed ~INSTALLED_APPS~ in your ~settings.py~.
+** Configure Django
+
+Add to your ~settings.py~:
 
 #+BEGIN_SRC python
+# settings.py
 INSTALLED_APPS = [
-    "daphne",
+    "daphne",  # Must be first for ASGI support
     "channels",
     "liveview",
+    # ... your other apps
 ]
-#+END_SRC
 
-You need to previously have installed ~channels~ and ~daphne~.
+# ASGI configuration
+ASGI_APPLICATION = "your_project.asgi.application"
 
-Now, in ~settings.py~, indicate in which previously created App you want to integrate LiveView.
-
-#+BEGIN_SRC python
-LIVEVIEW_APPS = ["website"]
-#+END_SRC
-
-Finally, execute the migrations so that the LiveView tables are generated.
-
-#+BEGIN_SRC python
-python manage.py migrate
-#+END_SRC
-
-We strongly recommend that you follow the [[#/tutorials/quickstart/][Quickstart]] to see the installation in action.
-
-* Actions
-:PROPERTIES:
-:ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/actions/
-:TITLE: Actions
-:DESCRIPTION: Actions of Django LiveView.
-:NAVIGATOR-ACTIVE: docs
-:END:
-
-Actions are where business logic is stored. The place where you write the functions in Python instead of JavaScript. They are the ones that will be executed when the page is loaded, when a button is clicked, when a form is submitted, etc. The can be launched by the backend or by the frontend. For example, when a button is clicked, the frontend sends a request to the backend to execute an action. But the backend can send a request to the frontend at any time, for example when a new commentary is added to an article then all clients will receive the new commentary. In other words, the actions can be executed by the backend or by the frontend.  The more common actions will be render HTML and send it to the client, but you can do anything you want. They are the heart of Django LiveView.
-
-** Backend side
-
-In every app you can create a folder called ~actions~ and inside it a file for each page. For example, ~home.py~ for the home page. The file will have the following structure:
-
-#+BEGIN_SRC python
-  # my_app/actions/home.py
-  from liveview.context_processors import get_global_context
-  from core import settings
-  from liveview.utils import (
-      get_html,
-      update_active_nav,
-      enable_lang,
-      loading,
-  )
-  from django.utils.translation import gettext as _
-  from django.templatetags.static import static
-  from django.urls import reverse
-
-  template = "pages/home.html"
-
-  # Database
-
-  # Functions
-
-  async def get_context(consumer=None):
-      context = get_global_context(consumer=consumer)
-      # Update context
-      context.update(
-	  {
-	      "url": settings.DOMAIN_URL + reverse("home"),
-	      "title": _("Home") + " | Home",
-	      "meta": {
-		  "description": _("Home page of the website"),
-		  "image": f"{settings.DOMAIN_URL}{static('img/seo/og-image.jpg')}",
-	      },
-	      "active_nav": "home",
-	      "page": template,
-	  }
-      )
-      return context
-
-
-  @enable_lang
-  @loading
-  async def send_page(consumer, client_data, lang=None):
-      # Nav
-      await update_active_nav(consumer, "home")
-      # Main
-      my_context = await get_context(consumer=consumer)
-      html = await get_html(template, my_context)
-      data = {
-	  "action": client_data["action"],
-	  "selector": "#main",
-	  "html": html,
-      }
-      data.update(my_context)
-      await consumer.send_html(data)
-#+END_SRC
-
-Let's explain each part.
-
-- ~template~ is the name of the template that will be rendered.
-- ~get_context()~ is a function that returns a dictionary with the context of the page.
-  - ~url~: The URL of the page. It will be used to change the direction of the browser and the user perceives a page change, even if it is not real.
-  - ~title~: The title of the page.
-  - ~meta~: They are the SEO and Open Graph meta tags.
-- ~active_nav~: It is used to highlight the active page in the navigation menu.
-- ~page~: Name of the template that will be rendered. it is the same as ~template~.
-
-The function ~send_page()~ is responsible for rendering the page and sending it.
-
-#+BEGIN_SRC python
-
-from liveview.utils import (
-    get_html,
-    update_active_nav,
-    enable_lang,
-    loading,
-)
-
-@enable_lang
-@loading
-async def send_page(consumer, client_data, lang=None):
-    # Nav
-    await update_active_nav(consumer, "home")
-    # Main
-    my_context = await get_context(consumer=consumer)
-    html = await get_html(template, my_context)
-    data = {
-	"action": client_data["action"],
-	"selector": "#main",
-	"html": html,
-    }
-    data.update(my_context)
-    await consumer.send_html(data)
-#+END_SRC
-
-~update_active_nav()~ updates the class that marks the page where we are in the menu. You need update the context with the data that you want to send to the client. ~get_html()~ is a function that renders the template with the context. ~send_html()~ is a function that sends the HTML to the client.
-
-Whenever you want to send a new HTML to the frontend, you will use the ~send_html()~ function with the following structure.
-
-#+BEGIN_SRC python
-data = {
-    "action": "home->send_page",
-    "selector": "#main",
-    "html": "<h1>My home</h1><p>Welcome to my home</p>",
+# Configure Channels with Redis
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
-await consumer.send_html(data)
 #+END_SRC
 
-- ~action~: The name of the action that will be executed on the client side. It is used for cache management and to know which action to execute. It will almost always be the same action that the client sent us.
-- ~selector~: The selector where the HTML will be placed.
-- ~html~: The HTML that will be placed in the selector.
+** Setup ASGI routing
 
-Optionally we can include others.
-
-- ~append~: Default: false. If true, the HTML will be added, not replaced.
-- ~delete~: Default: false. If true, the HTML will be deleted. ~html~ and ~append~ will be ignored. Only ~selector~ will be used.
-- ~scroll~: Default: false. If true, the page will be scrolled to the selector
-- ~scrollTop~: Default: false. If true, the page will be scrolled to the top.
-
-When you update via context, you add the following. They are all optional.
-
-- ~title~: The title of the page.
-- ~meta~: They are the SEO and Open Graph meta tags.
-- ~active_nav~: It is used to highlight the active page in the navigation menu.
-- ~page~: Name of the template that will be rendered.
-
-*** Decorators
-
-You can use the following decorators to make your actions more readable and maintainable.
-
-- ~@enable_lang~: It is used to enable the language. It is necessary to use the ~gettext~ function. If you site only has one language, you can remove it.
-- ~@loading~: It is used to show a loading animation while the page is being rendered. If there is no loading delay, for example the database access is very fast or you don't access anything external like an API, you can remove it.
-
-*** Database access (ORM)
-
-If you want to access the database, you can use the Django ORM as you would in a normal view. The only difference is that the views are asynchronous by default. You can use the ~database_sync_to_async~ function from ~channels.db~.
+Create or update ~asgi.py~:
 
 #+BEGIN_SRC python
-  from channels.db import database_sync_to_async
-  from .models import Article
+# asgi.py
+import os
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from liveview.routing import get_liveview_urlpatterns
 
-  template = "pages/articles.html"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "your_project.settings")
 
-  # Database
-  @database_sync_to_async
-  def get_articles(): # New
-      return Article.objects.all()
-
-  # Functions
-
-  async def get_context(consumer=None):
-      articles = await get_articles()
-      context = get_global_context(consumer=consumer)
-      # Update context
-      context.update(
-	  {
-	      ...
-	      "articles": await get_articles(), # New
-	  }
-      )
-      return context
-
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(
+                get_liveview_urlpatterns()
+            )
+        )
+    ),
+})
 #+END_SRC
 
-Now you can use the ~articles~ variable in the template.
+** Add JavaScript to your base template
 
 #+BEGIN_SRC html
-{% for article in articles %}
-    <h2>{{ article.title }}</h2>
-    <p>{{ article.content }}</p>
-{% endfor %}
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-room="{% if request.user.is_authenticated %}{{ request.user.id }}{% else %}anonymous{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+</head>
+<body data-controller="page">
+    {% block content %}{% endblock %}
+
+    <!-- Django LiveView JavaScript -->
+    <script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+</body>
+</html>
 #+END_SRC
 
-If you want the SSR (Server Side Rendering) to continue working, you need to modify the view function so that it is asynchronous.
+**Important attributes:**
+- ~data-room~ on ~<html>~ — unique identifier for WebSocket room (user-specific or shared)
+- ~data-controller="page"~ on ~<body>~ — activates the Stimulus controller
 
-From:
+We strongly recommend that you follow the [[#/tutorial/][Tutorial]] to see the installation in action.
 
-#+BEGIN_SRC python
-  async def articles(request):
-      return render(request, settings.TEMPLATE_BASE, await get_context())
-#+END_SRC
-
-To:
-
-#+BEGIN_SRC python
-  from asgiref.sync import sync_to_async
-
-  async def articles(request):
-      return await sync_to_async(render)(request, settings.TEMPLATE_BASE, await get_context())
-#+END_SRC
-
-** Frontend side
-
-The frontend is responsible for capturing events and sending and receiving strings. No logic, rendering or state is in the frontend. It is the backend that does all the work.
-
-Since DOM trees are constantly being created, updated and deleted, a small framework is used to manage events and avoid collisions: [[https://stimulus.hotwired.dev/][Stimulus]]. It is very simple and easy to use. In addition, some custom functions have been created to simplify more processes such as WebSockets connection, data sending, painting, history, etc. When you cloned the [[https://github.com/Django-LiveView/frontend][frontend]] repository you included all of that. You do not have to do anything.
-
-*** Run actions
-
-In the following example, we will create a button that when clicked will call the ~sent_articles_next_page~ function of the ~blog_list~ action (~actions/blog_list.py~).
-
-#+BEGIN_SRC html
-<button type="button"
-    data-action="click->page#run"
-    data-liveview-action="blog_list"
-    data-liveview-function="send_articles_next_page"
-    data-next-page="2"
->Cargar mas</button>
-#+END_SRC
-
-- ~data-action~: Required. Indicate the event (~click~), the controller (~page~ is the default controller in Django LiveView) and function in Stimulus (~run~). You will never change it.
-- ~data-liveview-action~: Required. The name of the action file (~blog_list.py~).
-- ~data-liveview-function~: Required. The name of the function in the action file (~send_articles_next_page~).
-- ~data-next-page~: Optional. You can send data to the backend. In this case, the page number.
-
-*** Change page
-
-All actions have a mandatory function ~send_page~. It is used to move from one page to another. There is a quick function called ~changePage~ to do this.
-
-For example, if you want to go to the About Me page, you can use the following code.
-
-#+BEGIN_SRC html
-<button
-    data-action="click->page#changePage"
-    data-page="about_me"
-   >Go to about me page</button>
-#+END_SRC
-
-It would be equivalent to doing:
-
-#+BEGIN_SRC html
-<button
-    data-action="click->page#run"
-    data-liveview-action="about_me"
-    data-liveview-function="send_page"
-   >Go to about me page</button>
-#+END_SRC
-
-* Views
+* Handlers
 :PROPERTIES:
 :ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/views/
-:TITLE: Views
-:DESCRIPTION: Views of Django LiveView.
+:CUSTOM_ID: /docs/handlers/
+:TITLE: Handlers
+:DESCRIPTION: LiveView handlers of Django LiveView.
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-Django LiveView uses the same views as Django, but the main difference is that the views are asynchronous by default.
+Handlers are Python functions that respond to WebSocket messages from the client. They contain your business logic and can render HTML, update the database, broadcast to multiple users, and more.
 
-To make a view renderable by SSR (Server Side Rendering) and by SPA (Single Page Application), you need to create a function with the following structure:
+** Creating Handlers
 
-#+BEGIN_SRC python
-  from .actions.home import get_context as get_home_context
-
-  async def home(request):
-      return render(request, settings.TEMPLATE_BASE, await get_home_context())
-#+END_SRC
-
-The ~get_home_context()~ function returns a dictionary with the context of the page present in the action. The ~settings.TEMPLATE_BASE~ is the base template that will be rendered, por example ~layouts/base.html~.
-
-If you want to render data from a database on the template, for example:
-
-#+BEGIN_SRC html
-{% for article in articles %}
-    {{ article.title }}
-    {{ article.content }}
-{% endfor %}
-#+END_SRC
-
-You will see an error: ~You cannot call this from an async context - use a thread or sync_to_async.~.
-
-You can use the ~sync_to_async~ function from ~asgiref~.
+Use the ~@liveview_handler~ decorator to register functions that can be called from the client:
 
 #+BEGIN_SRC python
-  from asgiref.sync import sync_to_async
-  from .actions.blog_list import get_context as get_list_context
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
 
-  async def blog_list(request):
-      return await sync_to_async(render)(request, settings.TEMPLATE_BASE, await get_list_context())
+@liveview_handler("say_hello")
+def say_hello(consumer, content):
+    """
+    Args:
+        consumer: WebSocket consumer instance
+        content: dict with:
+            - function: str - the function name
+            - data: dict - custom data from data-data-* attributes
+            - form: dict - form input values
+            - lang: str - current language
+            - room: str - room identifier
+    """
+    name = content.get("form", {}).get("name", "World")
+
+    html = render_to_string("hello_message.html", {
+        "message": f"Hello, {name}!"
+    })
+
+    send(consumer, {
+        "target": "#greeting",
+        "html": html
+    })
 #+END_SRC
 
-Or transform ~articles~ to a list. But you lose the benefits of ORM.
+** Auto-discovery
 
-* Routing
+Django LiveView automatically discovers handlers in ~liveview_components/~ directories within your installed apps:
+
+#+BEGIN_SRC
+my_app/
+├── liveview_components/
+│   ├── __init__.py
+│   ├── users.py
+│   ├── posts.py
+│   └── comments.py
+#+END_SRC
+
+Handlers are loaded on startup with this output:
+#+BEGIN_SRC
+✓ Imported: my_app.liveview_components.users
+✓ Imported: my_app.liveview_components.posts
+✓ Imported: my_app.liveview_components.comments
+#+END_SRC
+
+** Using the send() function
+
+The ~send()~ function sends data back to the client with many options:
+
+*** Replace HTML (Basic Update)
+
+#+BEGIN_SRC python
+@liveview_handler("update_content")
+def update_content(consumer, content):
+    send(consumer, {
+        "target": "#my-element",
+        "html": "<p>New content</p>"
+    })
+#+END_SRC
+
+*** Append HTML
+
+#+BEGIN_SRC python
+@liveview_handler("add_item")
+def add_item(consumer, content):
+    send(consumer, {
+        "target": "#items-list",
+        "html": "<li>New item</li>",
+        "append": True  # Adds to the end
+    })
+#+END_SRC
+
+*** Remove Element
+
+#+BEGIN_SRC python
+@liveview_handler("delete_item")
+def delete_item(consumer, content):
+    item_id = content["data"]["id"]
+    # Delete from database...
+
+    send(consumer, {
+        "target": f"#item-{item_id}",
+        "remove": True
+    })
+#+END_SRC
+
+*** Update URL and Title
+
+#+BEGIN_SRC python
+@liveview_handler("navigate")
+def navigate(consumer, content):
+    send(consumer, {
+        "target": "#content",
+        "html": render_to_string("new_page.html"),
+        "url": "/new-page/",
+        "title": "New Page Title"
+    })
+#+END_SRC
+
+*** Scroll Management
+
+#+BEGIN_SRC python
+@liveview_handler("show_section")
+def show_section(consumer, content):
+    send(consumer, {
+        "target": "#content",
+        "html": render_to_string("section.html"),
+        "scroll": "#section-2"  # Smooth scroll to element
+    })
+
+@liveview_handler("back_to_top")
+def back_to_top(consumer, content):
+    send(consumer, {
+        "target": "#content",
+        "html": render_to_string("content.html"),
+        "scrollTop": True  # Scroll to top of page
+    })
+#+END_SRC
+
+* Frontend Integration
 :PROPERTIES:
 :ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/routing/
-:TITLE: Routing
-:DESCRIPTION: Routing of Django LiveView.
+:CUSTOM_ID: /docs/frontend/
+:TITLE: Frontend Integration
+:DESCRIPTION: How to call handlers from the frontend.
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-If you want to move from one page to another, you can use the ~page~ controller and the ~changePage~ action.
+The frontend is responsible for capturing events and sending messages over WebSocket. No logic, rendering, or state is in the frontend—the backend does all the work.
 
-For example, you can create a link to the ~about me~ page.
+Django LiveView uses [[https://stimulus.hotwired.dev/][Stimulus]] to manage DOM events and avoid collisions. The JavaScript assets are bundled within the package.
 
-#+BEGIN_SRC html
-  <a
-      data-action="click->page#changePage"
-      data-page="about_me"
-      href="{% url "about me" %}" <!-- Optional -->
-      role="button" <!-- Optional -->
-     >Go to about me page</a>
-#+END_SRC
+** Calling Handlers
 
-- ~data-action~: Indicates that the element is an action. ~click~ to capture the click event. ~page#changePage~ to call the ~changePage~ function of the ~page~ controller.
-- ~data-page~: Indicates the name of the page to which you want to move. The name is the same as the name of the action file. For example, ~actions/about_me.py~.
-- ~href~: Optional. It is recommended to use the ~href~ attribute to improve SEO or if JavaScript is disabled.
-- ~role~: Optional. It is recommended to use the ~role~ attribute to improve accessibility or if JavaScript is disabled.
-
-Or use a button for it.
+To call a handler from a button click:
 
 #+BEGIN_SRC html
-  <button
-      data-action="click->page#changePage"
-      data-page="about_me"
-     >Go to about me page</button>
+<button
+    data-liveview-function="say_hello"
+    data-action="click->page#run">
+    Say Hello
+</button>
 #+END_SRC
 
-** Send data
+- ~data-liveview-function~ — The handler name registered with ~@liveview_handler~
+- ~data-action~ — Stimulus action (event->controller#action)
 
-If you want to send data to the next page, you can use the ~data-~ attribute. All datasets will be sent.
+** Sending Form Data
 
-For example, you can create a link to the ~blog single~ page with the ~slug~ of the article.
+All form fields are automatically extracted and sent in ~content["form"]~:
 
 #+BEGIN_SRC html
-  <a
-      data-action="click->page#changePage"
-      data-page="blog_single"
-      data-slug="{{ article.slug }}"
-      href="{% url "blog single" slug=article.slug %}" <!-- Optional -->
-      role="button" <!-- Optional -->
-     >See article</a>
+<div>
+    <input type="text" name="name" placeholder="Enter your name">
+    <button
+        data-liveview-function="say_hello"
+        data-action="click->page#run">
+        Submit
+    </button>
+</div>
 #+END_SRC
 
-To receive the data in action ~blog_single.py~ you can use the ~client_data~ parameter with the ~data~ key.
+** Sending Custom Data
+
+Use ~data-data-*~ attributes to send additional data:
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="open_modal"
+    data-data-modal-id="123"
+    data-data-user-id="456"
+    data-action="click->page#run">
+    Open Modal
+</button>
+#+END_SRC
+
+Access in Python:
 
 #+BEGIN_SRC python
-    @enable_lang
-    @loading
-    async def send_page(consumer, client_data, lang=None):
-	slug = client_data["data"]["slug"]
-	# ...
+@liveview_handler("open_modal")
+def open_modal(consumer, content):
+    data = content.get("data", {})
+    modal_id = data.get("modalId")      # from modal-id
+    user_id = data.get("userId")        # from user-id
 #+END_SRC
 
-Here you can see a typical example of a single page of a blog.
+** Stimulus Actions Reference
 
-#+BEGIN_SRC python
-  @enable_lang
-  @loading
-  async def send_page(consumer, client_data, lang=None):
-      # Nav
-      await update_active_nav(consumer, "blog")
-      # Main
-      my_context = await get_context(consumer=consumer, slug=client_data["data"]["slug"])
-      html = await get_html(template, my_context)
-      data = {
-	  "action": client_data["action"],
-	  "selector": "#main",
-	  "html": html,
-      }
-      data.update(my_context)
-      await consumer.send_html(data)
-#+END_SRC
+Available Stimulus actions:
+
+- ~data-action="click->page#run"~ — Execute LiveView function on click
+- ~data-action="input->page#run"~ — Execute on input change (real-time)
+- ~data-action="submit->page#run"~ — Execute on form submit
+- ~data-action="change->page#run"~ — Execute on change event
+- ~data-action="blur->page#run"~ — Execute when element loses focus
+- ~data-action="page#stop"~ — Stop event propagation
 
 * Forms
 :PROPERTIES:
 :ONE: one-custom-default-doc
 :CUSTOM_ID: /docs/forms/
 :TITLE: Forms
-:DESCRIPTION: Forms of Django LiveView.
+:DESCRIPTION: Form handling in Django LiveView.
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-Los formularios en Django LiveView son nativos de Django. Puedes usar los formularios de modelo, los formularios de clase, los formularios de funciones, etc. O crearlos directamente en HTML. La única diferencia es que los datos se envían a través de WebSockets en lugar de HTTP.
+Django LiveView works seamlessly with Django forms. Form data is sent via WebSocket instead of HTTP.
 
-** Recoger un campo
+** Form Handling Example
 
-A continución puedes ver un ejemplo de un formulario de búsqueda donde se crea un campo de texto.
-
-#+BEGIN_SRC python
-from django import forms
-
-class SearchForm(forms.Form):
-    search = forms.CharField(
-        label="Search",
-        max_length=255,
-        widget=forms.TextInput(
-            attrs={
-                "data-action": "keyup.enter->page#run",
-                "data-liveview-action": "blog_list",
-                "data-liveview-function": "send_search_results",
-            },
-        ),
-    )
-#+END_SRC
-
-Cuando se pulse la tecla ~Enter~ se ejecutará la función ~send_search_results~ del archivo de acción ~blog_list.py~.
-
-Incluyelo en el contexto.
+Python handler:
 
 #+BEGIN_SRC python
-  async def get_context(consumer=None):
-      context = get_global_context(consumer=consumer)
-      # Update context
-      context.update(
-	  {
-	      ...
-	      "search_form": SearchForm(),
-	      ...
-	  }
-      )
-      return context
+@liveview_handler("submit_contact")
+def submit_contact(consumer, content):
+    from .forms import ContactForm
+
+    form = ContactForm(content["form"])
+
+    if form.is_valid():
+        # Save to database
+        contact = form.save()
+
+        # Show success message
+        html = render_to_string("contact_success.html", {
+            "message": "Thank you! We'll be in touch."
+        })
+    else:
+        # Show form with errors
+        html = render_to_string("contact_form.html", {
+            "form": form
+        })
+
+    send(consumer, {
+        "target": "#contact-container",
+        "html": html
+    })
 #+END_SRC
 
-E imprimirlo en el template puedes hacerlo mediante el objeto.
-
-  #+BEGIN_SRC html
-  <form id="search" class="search">
-      {{ search_form.as_p }}
-  </form>
-#+END_SRC
-
-Para recoger los datos en la función ~send_search_results~ puedes hacerlo mediante el objeto ~client_data~.
-
-#+BEGIN_SRC python
-  @enable_lang
-  @loading
-  async def send_search_results(consumer, client_data, lang=None):
-      search = client_data["form"]["search"]
-      # ...
-#+END_SRC
-
-** Recoger un formulario completo
-
-Recibir un campo o todo un formulario es similar. La diferencia es que ~action~, ~data-liveview-action~ y ~data-liveview-function~ se encuentran en el formulario, o botón de envío, y no en un campo concreto.
-
-Veamos un ejemplo de un formulario de contacto.
-
-#+BEGIN_SRC python
-  class ContactForm(forms.Form):
-      name = forms.CharField(
-	  label="Name",
-	  max_length=255,
-      )
-      email = forms.EmailField(
-	  label="Email",
-	  max_length=255,
-      )
-      message = forms.CharField(
-	  label="Message",
-      )
-
-#+END_SRC
-
-Lo incluimos en el contexto.
-
-#+BEGIN_SRC python
-  async def get_context(consumer=None):
-      context = get_global_context(consumer=consumer)
-      # Update context
-      context.update(
-	  {
-	      ...
-	      "contact_form": ContactForm(),
-	      ...
-	  }
-      )
-      return context
-#+END_SRC
-
-Y lo imprimimos en el template con el botón de envío personalizado.
+HTML template:
 
 #+BEGIN_SRC html
-  <form id="contact" class="contact">
-      {{ contact_form.as_p }}
-      <button
-	  type="button"
-	  data-action="click->page#run"
-	  data-liveview-action="contact"
-	  data-liveview-function="send_contact"
-      >Send</button>
-  </form>
+<div id="contact-container">
+    <form>
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <textarea name="message" placeholder="Message" required></textarea>
+
+        <button
+            data-liveview-function="submit_contact"
+            data-action="click->page#run"
+            type="button">
+            Submit
+        </button>
+    </form>
+</div>
 #+END_SRC
 
-Los datos se recogen de la misma forma que en el caso anterior.
+** Real-time Validation
 
 #+BEGIN_SRC python
-  @enable_lang
-  @loading
-  async def send_contact(consumer, client_data, lang=None):
-      name = client_data["form"]["name"]
-      email = client_data["form"]["email"]
-      message = client_data["form"]["message"]
-      # ...
+@liveview_handler("validate_field")
+def validate_field(consumer, content):
+    field_name = content["data"]["field"]
+    field_value = content["form"].get(field_name, "")
+
+    # Validate
+    error = None
+    if field_name == "email" and "@" not in field_value:
+        error = "Invalid email address"
+    elif field_name == "name" and len(field_value) < 3:
+        error = "Name must be at least 3 characters"
+
+    # Show error or success
+    html = f'<span class="{"error" if error else "success"}">{error or "✓"}</span>'
+
+    send(consumer, {
+        "target": f"#error-{field_name}",
+        "html": html
+    })
 #+END_SRC
 
-** Validaciones y errores
+#+BEGIN_SRC html
+<input
+    type="text"
+    name="email"
+    data-liveview-function="validate_field"
+    data-data-field="email"
+    data-action="blur->page#run">
+<span id="error-email"></span>
+#+END_SRC
 
-Para validar un formulario puedes hacerlo de la misma forma que en Django. Pero si quieres mostrar los errores en tiempo real, debes redibujar el formulario en cada ocasión.
-
-* History
+* Broadcasting
 :PROPERTIES:
 :ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/history/
-:TITLE: History
-:DESCRIPTION: History management of Django LiveView.
+:CUSTOM_ID: /docs/broadcasting/
+:TITLE: Broadcasting
+:DESCRIPTION: Broadcasting updates to multiple users.
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-If you make a SPA you will have a problem with the history management system. When you go back in history, you will lose the data and the HTML of the previous page. This is because the data is removed from the DOM. It is not a problem with Django LiveView.
+Send updates to all connected clients using the ~broadcast~ parameter:
 
-Django LiveView has a history management system that allows you go back in history without receive any data from the server. Every time you change the page, the data and HTML are stored in the Session Storage. You don't need to do anything, it is automatic! 😸
+** Simple Broadcast
 
-The only limitation is forward navigation. If you want to go forward, you need to receive the data from the server because the data is remove from the Session Storage when you go back.
+#+BEGIN_SRC python
+@liveview_handler("notify_all")
+def notify_all(consumer, content):
+    message = content["form"]["message"]
 
-You can customize the history management system by editing the ~history~ controller in ~assets/js/mixins/history.js~.
+    html = render_to_string("notification.html", {
+        "message": message
+    })
 
-If you want to disable it, remove `startHistory();` from ~assets/js/main.js~.
+    send(consumer, {
+        "target": "#notifications",
+        "html": html,
+        "append": True
+    }, broadcast=True)  # Sends to ALL connected users
+#+END_SRC
+
+** Background Thread Broadcast with Auto-removal
+
+#+BEGIN_SRC python
+from threading import Thread
+from time import sleep
+from uuid import uuid4
+
+@liveview_handler("send_notification")
+def send_notification(consumer, content):
+    notification_id = str(uuid4().hex)
+    message = "New update available!"
+
+    def broadcast_notification():
+        # Send notification
+        html = render_to_string("notification.html", {
+            "id": notification_id,
+            "message": message
+        })
+
+        send(consumer, {
+            "target": "#notifications",
+            "html": html,
+            "append": True
+        }, broadcast=True)
+
+        # Remove after 5 seconds
+        sleep(5)
+        send(consumer, {
+            "target": f"#notification-{notification_id}",
+            "remove": True
+        }, broadcast=True)
+
+    Thread(target=broadcast_notification).start()
+#+END_SRC
+
+* Advanced Features
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/advanced/
+:TITLE: Advanced Features
+:DESCRIPTION: Advanced features of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+** Intersection Observer (Infinite Scroll)
+
+Trigger functions when elements enter or exit the viewport:
+
+#+BEGIN_SRC python
+ITEMS_PER_PAGE = 10
+
+@liveview_handler("load_more")
+def load_more(consumer, content):
+    page = int(content["data"].get("page", 1))
+
+    # Fetch items
+    start = (page - 1) * ITEMS_PER_PAGE
+    end = start + ITEMS_PER_PAGE
+    items = Item.objects.all()[start:end]
+    is_last_page = end >= Item.objects.count()
+
+    # Append items to list
+    send(consumer, {
+        "target": "#items-list",
+        "html": render_to_string("items_partial.html", {
+            "items": items
+        }),
+        "append": True
+    })
+
+    # Update or remove intersection observer trigger
+    if is_last_page:
+        html = ""
+    else:
+        html = render_to_string("load_trigger.html", {
+            "next_page": page + 1
+        })
+
+    send(consumer, {
+        "target": "#load-more-trigger",
+        "html": html
+    })
+#+END_SRC
+
+HTML template:
+
+#+BEGIN_SRC html
+<!-- load_trigger.html -->
+<div
+    data-liveview-intersect-appear="load_more"
+    data-data-page="{{ next_page }}"
+    data-liveview-intersect-threshold="200">
+    <p>Loading more...</p>
+</div>
+#+END_SRC
+
+**Attributes:**
+- ~data-liveview-intersect-appear="function_name"~ — Call when element appears
+- ~data-liveview-intersect-disappear="function_name"~ — Call when element disappears
+- ~data-liveview-intersect-threshold="200"~ — Trigger 200px before entering viewport (default: 0)
+
+** Auto-focus
+
+Automatically focus elements after rendering:
+
+#+BEGIN_SRC html
+<input
+    type="text"
+    name="title"
+    value="{{ item.title }}"
+    data-liveview-focus="true">
+#+END_SRC
+
+** Init Functions
+
+Execute functions when elements are first rendered:
+
+#+BEGIN_SRC html
+<div
+    data-liveview-init="init_counter"
+    data-data-counter-id="1"
+    data-data-initial-value="0">
+    <span id="counter-1-value"></span>
+</div>
+#+END_SRC
+
+** Middleware System
+
+Add middleware to run before handlers for authentication, logging, or rate limiting:
+
+#+BEGIN_SRC python
+from liveview import liveview_registry, send
+
+def auth_middleware(consumer, content, function_name):
+    """Check if user is authenticated before running handler"""
+    user = consumer.scope.get("user")
+
+    if not user or not user.is_authenticated:
+        send(consumer, {
+            "target": "#error",
+            "html": "<p>You must be logged in</p>"
+        })
+        return False  # Cancel handler execution
+
+    return True  # Continue to handler
+
+def logging_middleware(consumer, content, function_name):
+    """Log all handler calls"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    user = consumer.scope.get("user")
+    logger.info(f"Handler '{function_name}' called by {user}")
+
+    return True  # Continue to handler
+
+# Register middleware
+liveview_registry.add_middleware(auth_middleware)
+liveview_registry.add_middleware(logging_middleware)
+#+END_SRC
 
 * Internationalization
 :PROPERTIES:
 :ONE: one-custom-default-doc
 :CUSTOM_ID: /docs/internationalization/
 :TITLE: Internationalization
-:DESCRIPTION: Internationalization of Django LiveView.
+:DESCRIPTION: Multi-language support in Django LiveView.
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-Django LiveView uses the same internationalization system as Django. You can read more about it in the [[https://docs.djangoproject.com/en/dev/topics/i18n/][Django documentation]]. However, let's go deeper.
-
-Every time that the client sends a request for action, it sends the language that the user has set in the browser.
-
-#+BEGIN_SRC json
-  {
-  "action": "blog_list->send_page",
-  "data": {
-    "lang": "es"
-  }
-}
-#+END_SRC
-
-The ~lang~ attribute is extracted directly from the ~<html>~ tag.
-
-#+BEGIN_SRC html
-    {% load static i18n %}
-  <!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
-  <html lang="{{ CURRENT_LANGUAGE }}">
-#+END_SRC
-
-You can access the language with the ~lang~ parameter of the action using the ~@enable_lang~ decorator.
+Django LiveView automatically passes the current language to handlers:
 
 #+BEGIN_SRC python
-  @enable_lang
-  @loading
-  async def send_page(consumer, client_data, lang=None):
-      print(lang)
+from django.utils import translation
+
+@liveview_handler("show_content")
+def show_content(consumer, content):
+    # Get language from WebSocket message
+    lang = content.get("lang", "en")
+
+    # Activate language for this context
+    translation.activate(lang)
+
+    try:
+        html = render_to_string("content.html", {
+            "title": _("Welcome"),
+            "message": _("This content is in your language")
+        })
+
+        send(consumer, {
+            "target": "#content",
+            "html": html
+        })
+    finally:
+        # Always deactivate to avoid side effects
+        translation.deactivate()
 #+END_SRC
 
-Or you could read it with the ~lang~ key of the ~client_data~ parameter.
-
- #+BEGIN_SRC python
-    @loading
-    async def send_page(consumer, client_data):
-	print(client_data["data"]["lang"])
-#+END_SRC
-
-You can read the tutorial [[#/tutorials/internationalize-with-subdomains/][Internationalize with subdomains]] to see how to create a multilingual website with subdomains.
-
-* Loading
-:PROPERTIES:
-:ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/loading/
-:TITLE: Loading
-:DESCRIPTION: Loading management of Django LiveView.
-:NAVIGATOR-ACTIVE: docs
-:END:
-
-It is very useful when the database access is slow or you access external services like APIs. You can make a loading animation while the page is being rendered.
-
-For example, first create a template called ~loading.html~.
+The language is automatically detected from the ~<html>~ tag:
 
 #+BEGIN_SRC html
-  <div
-    style="
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    backdrop-filter: blur(3px);
-    "
-></div>
+{% load static i18n %}
+<!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
+<html lang="{{ CURRENT_LANGUAGE }}">
 #+END_SRC
-
-This code will blur the entire page. You can customize it as you like.
-
-Add a tag with ~#loading~ to your main layout, or HTML fragment that all templates share.
-
-#+BEGIN_SRC html
-    <section id="loading"></section>
-#+END_SRC
-
-  Now you can make ~tools_template.py~ in the app or root folder with the following content.
-
-  #+BEGIN_SRC python
-    from django.template.loader import render_to_string
-    from liveview.context_processors import get_global_context
-
-    async def toggle_loading(consumer, show=False):
-	"""Toogle Loading template."""
-	data = {
-	    "action": ("Show" if show else "Hide") + " loading",
-	    "selector": "#loading",
-	    "html": render_to_string(
-		"loading.html", get_global_context(consumer=consumer)
-	    )
-	    if show
-	    else "",
-	}
-	await consumer.send_html(data)
-
-
-    def loading(func):
-	"""Decorator: Show loading."""
-
-	async def wrapper(*args, **kwargs):
-	    await toggle_loading(args[0], True)
-	    result = await func(*args, **kwargs)
-	    await toggle_loading(args[0], False)
-	    return result
-
-	return wrapper
-#+END_SRC
-
-And in the action file, you can use the ~@loading~ decorator.
-
-#+BEGIN_SRC python
-  from app.tools_template import loading
-
-  @loading
-  async def send_page(consumer, client_data, lang=None):
-      my_context = await get_context(consumer=consumer)
-      html = await get_html(template, my_context)
-      data = {
-	  "action": client_data["action"],
-	  "selector": "#main",
-	  "html": html,
-      }
-      data.update(my_context)
-      await consumer.send_html(data)
-#+END_SRC
-
-This will render the loading HTML in ~#loading~ before running the action and clear all the HTML when finished.
-
-* Lost connection
-:PROPERTIES:
-:ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/lost-connection/
-:TITLE: Lost connection
-:DESCRIPTION: Lost connection management of Django LiveView.
-:NAVIGATOR-ACTIVE: docs
-:END:
-
-It may be the case that the connection is lost, when user has lost the internet connection or the server has been restarted, and it's a problem because Django LiveView depends on a constant connection. In these cases, the client automatically will try to reconnect to the server. But while this happens, the user will have to be informed and any type of interaction blocked. If you do not block user interactions, actions will accumulate in the browser until communication is reestablished. Where they will all be sent at once. If, for example, the user impatiently presses the next page button 10 times, the user will skip 10 pages. It is a problem for him and for the server that will process many instructions at once.
-
-To solve this problem, you can create a tag with the ~#no-connection~ id in your main layout, or HTML fragment that all templates share.
-
-#+BEGIN_SRC html
-  <section id="no-connection" class="no-connection no-connection--hide">
-      <h2>Lost connection</h2>
-      <p>Trying to reconnect...</p>
-  </section>
-#+END_SRC
-
-Add add the followind styles.
-
-#+BEGIN_SRC css
-  .no-connection {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background-color: black;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-  }
-
-  .no-connection--hide {
-      display: flex;
-  }
-#+END_SRC
-
-If there is no connection, the ~#no-connection~ will be displayed with ~.no-connection--show~ class. Otherwise, it will be hidden with the ~.no-connection--hide~ class.
-
-* Deploy
-:PROPERTIES:
-:ONE: one-custom-default-doc
-:CUSTOM_ID: /docs/deploy/
-:TITLE: Deploy
-:DESCRIPTION: Deploy Django LiveView to production.
-:NAVIGATOR-ACTIVE: docs
-:END:
-
-You can deploy Django LiveView using any web server like reverse proxy.
-
-** Nginx
-
- I recommend using Nginx. Here is an example of how to configure. Replace ~example.com~ with your domain and ~my-project~ with your folder name.
-
-#+BEGIN_SRC nginx
-server {
-    listen 80;
-    server_name example.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $server_name;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_redirect off;
-    }
-
-    location /static {
-        include /etc/nginx/mime.types;
-        root /var/www/my-project;
-    }
-
-    location /media {
-        include /etc/nginx/mime.types;
-        root /var/www/my-project;
-    }
-
-    location = /favicon.ico { access_log off; log_not_found off; }
-}
-#+END_SRC
-
-It is important to note that the ~proxy_set_header~ lines are necessary for the WebSocket to work. You can see more about it in [[https://channels.readthedocs.io/en/latest/deploying.html][Channels]].
 
 * FAQ
 :PROPERTIES:
 :ONE: one-custom-default-doc
 :CUSTOM_ID: /docs/faq/
-:TITLE: FAQ (Frequently Asked Questions)
+:TITLE: FAQ
 :DESCRIPTION: Frequently asked questions about Django LiveView.
 :NAVIGATOR-ACTIVE: docs
 :END:
 
 ** Do I need to know JavaScript to use Django LiveView?
 
-No, you don't need. You can create SPAs without using APIs, without JavaScript, and without learning anything new. If you know Python, you know how to use Django LiveView.
+No, you don't need to. You can create SPAs without using APIs, without JavaScript, and without learning anything new. If you know Python, you know how to use Django LiveView.
 
 ** Can I use JavaScript?
 
-Yes, you can. You can use JavaScript to capture events, send and receive strings over a WebSockets channel.
+Yes, you can. You can use JavaScript to enhance your application, but it's not required for basic functionality.
 
 ** Can I use Django's native tools?
 
-Of course. You can still use all of Django's native tools, such as its ORM, forms, plugins, etc.
+Of course. You can still use all of Django's native tools, such as its ORM, forms, authentication, admin, etc.
 
 ** Do I need to use React, Vue, Angular or any other frontend framework?
 
@@ -884,546 +738,178 @@ No. All logic, rendering and state is in the backend.
 
 ** Can I use Django REST Framework or GraphQL?
 
-Yes, you can.
+Yes, you can use both alongside Django LiveView.
+
+** What's the difference between v0.1.0 and v2.0.0?
+
+v2.0.0 is a complete rewrite with a much simpler API:
+- Module name changed from ~django_liveview~ to ~liveview~ for cleaner imports
+- Simpler decorator-based API with ~@liveview_handler~
+- Built-in auto-discovery of handlers
+- JavaScript assets bundled within the package
+- More comprehensive documentation
 
 ** Who finances the project?
 
-Only me and my free time. If you want to support the project, you can be my [[https://liberapay.com/androsfenollosa/][patron]].
+This project is maintained by Andros Fenollosa in his free time. If you want to support the project, you can become a [[https://liberapay.com/androsfenollosa/][patron]].
 
-
-* Tutorials
+* Tutorial
 :PROPERTIES:
 :ONE: one-custom-default-tutorials
-:CUSTOM_ID: /tutorials/
-:TITLE: Tutorials
-:DESCRIPTION: Tutorials about Django LiveView.
-:NAVIGATOR-ACTIVE: tutorials
-:END:
-
-** Tutorials
-
-Learn how to create a Django LiveView application step by step.
-
-- [[#/tutorials/quickstart/][Quickstart]]
-- [[#/tutorials/internationalize-with-subdomains/][Internationalize with subdomains]]
-
-* Quickstart
-:PROPERTIES:
-:ONE: one-custom-default-page
-:CUSTOM_ID: /tutorials/quickstart/
-:TITLE: Quickstart
+:CUSTOM_ID: /tutorial/
+:TITLE: Tutorial
 :DESCRIPTION: Get started with Django LiveView the easy way.
-:NAVIGATOR-ACTIVE: tutorials
+:NAVIGATOR-ACTIVE: tutorial
 :END:
 
-Welcome to the Quickstart guide. Here you will learn how to create your first Realtime SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
+Welcome to the Tutorial guide. Here you will learn how to create your first real-time SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
 
 All the steps are applied in a [[https://github.com/Django-LiveView/minimal-template][minimalist template]].
 
-** 1. Install Django
-
-Install Django, create a project and an app.
-
-** 2. Install LiveView
-
-Install django-liveview with ~pip~.
+** Step 1: Installation
 
 #+BEGIN_SRC sh
 pip install django-liveview
 #+END_SRC
 
-** 3. Modify the configuration
+** Step 2: Configure Django
 
-Add ~liveview~ to your installed ~INSTALLED_APPS~.
+Add to your ~settings.py~:
 
 #+BEGIN_SRC python
+# settings.py
 INSTALLED_APPS = [
-    "daphne",
+    "daphne",  # Must be first for ASGI support
     "channels",
     "liveview",
+    # ... your other apps
 ]
+
+# ASGI configuration
+ASGI_APPLICATION = "your_project.asgi.application"
+
+# Configure Channels with Redis
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 #+END_SRC
 
-Then indicate in which previously created App you want to implement LiveView.
+** Step 3: Setup ASGI routing
+
+Create or update ~asgi.py~:
 
 #+BEGIN_SRC python
-LIVEVIEW_APPS = ["website"]
-#+END_SRC
-
-** 4. Migration
-
-Execute the migrations so that the LiveView tables are generated.
-
-#+BEGIN_SRC python
-python manage.py migrate
-#+END_SRC
-
-** 5. ASGI
-
-Modify the ASGI file, ~asgi.py~ to add the LiveView routing. In this example it is assumed that settings.py is inside core, in your case it may be different.
-
-#+BEGIN_SRC python
+# asgi.py
 import os
-import django
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
-django.setup()
-
-from channels.auth import AuthMiddlewareStack
 from django.core.asgi import get_asgi_application
-from channels.security.websocket import AllowedHostsOriginValidator
 from channels.routing import ProtocolTypeRouter, URLRouter
-from django.urls import re_path
-from liveview.consumers import LiveViewConsumer
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from liveview.routing import get_liveview_urlpatterns
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "your_project.settings")
 
-application = ProtocolTypeRouter(
-    {
-        # Django's ASGI application to handle traditional HTTP requests
-        "http": get_asgi_application(),
-        # WebSocket handler
-        "websocket": AuthMiddlewareStack(
-            AllowedHostsOriginValidator(
-                URLRouter([re_path(r"^ws/liveview/$", LiveViewConsumer.as_asgi())])
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(
+                get_liveview_urlpatterns()
             )
-        ),
-    }
-)
+        )
+    ),
+})
 #+END_SRC
 
-** 6. Create your first Action
-
-Place where the functions and logic of the business logic are stored. We will start by creating an action to generate a random number and print it.
-
-Create inside your App a folder called ~actions~, here will go all the actions for each page. Now we will create inside the folder a file named ~home.py~.
-
-#+BEGIN_SRC python
-# my-app/actions/home.py
-from liveview.context_processors import get_global_context
-from core import settings
-from liveview.utils import (
-    get_html,
-    update_active_nav,
-    enable_lang,
-    loading,
-)
-from channels.db import database_sync_to_async
-from django.templatetags.static import static
-from django.urls import reverse
-from django.utils.translation import gettext as _
-from random import randint
-
-template = "pages/home.html"
-
-# Database
-
-# Functions
-
-async def get_context(consumer=None):
-    context = get_global_context(consumer=consumer)
-    # Update context
-    context.update(
-        {
-            "url": settings.DOMAIN_URL + reverse("home"),
-            "title": _("Home") + " | Home",
-            "meta": {
-                "description": _("Home page of the website"),
-                "image": f"{settings.DOMAIN_URL}{static('img/seo/og-image.jpg')}",
-            },
-            "active_nav": "home",
-            "page": template,
-        }
-    )
-    return context
-
-
-@enable_lang
-@loading
-async def send_page(consumer, client_data, lang=None):
-    # Nav
-    await update_active_nav(consumer, "home")
-    # Main
-    my_context = await get_context(consumer=consumer)
-    html = await get_html(template, my_context)
-    data = {
-        "action": client_data["action"],
-        "selector": "#main",
-        "html": html,
-    }
-    data.update(my_context)
-    await consumer.send_html(data)
-
-async def random_number(consumer, client_data, lang=None):
-    my_context = await get_context(consumer=consumer)
-    data = {
-        "action": client_data["action"],
-        "selector": "#output-random-number",
-        "html": randint(0, 10),
-    }
-    data.update(my_context)
-    await consumer.send_html(data)
-#+END_SRC
-
-There are several points in the above code to keep in mind.
-
-- ~template~ is the name of the template that will be rendered.
-- ~get_context()~ is a function that returns a dictionary with the context of the page.
-- ~send_page()~ is the function that will be executed when the page is loaded.
-- ~random_number()~ is the function that will be executed when the button is clicked.
-
-** 7. Create the base template
-
-Now we will create the base template, which will be the one that will be rendered when the page is loaded.
-
-Create a folder called ~templates~, or use your template folder, inside your App and inside it create another folder called ~layouts~. Now create a file called ~base.html~.
+** Step 4: Add JavaScript to your base template
 
 #+BEGIN_SRC html
-  {# my-app/templates/layouts/base.html #}
-  {% load static i18n %}
-  <!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
-  <html lang="{{ CURRENT_LANGUAGE }}">
-      <head>
-	  <meta charset="utf-8">
-	  <title>{{ title }}</title>
-	  <meta
-	      name="viewport"
-	      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-	  >
-	  <meta
-	      name="description"
-	      content="{{ meta.description }}"
-	  >
-	  <meta
-	      property="og:image"
-	      content="{{ meta.image }}"
-	  >
-	  <script type="module" src="{% static 'js/main.js' %}" defer></script>
-      </head>
-      <body
-		  data-host="{{ request.get_host }}"
-		  data-debug="{{ DEBUG }}"
-		  data-controller="page"
-	  >
-	  <main id="main" class="main-container">{% include page %}</main>
-      </body>
-  </html>
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-room="{% if request.user.is_authenticated %}{{ request.user.id }}{% else %}anonymous{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+</head>
+<body data-controller="page">
+    {% block content %}{% endblock %}
+
+    <!-- Django LiveView JavaScript -->
+    <script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+</body>
+</html>
 #+END_SRC
 
-In the future we will define ~main.js~, a minimal JavaScript to connect the events and the WebSockets client.
+** Step 5: Create your first LiveView handler
 
-** 8. Create the page template
+Create ~app/liveview_components/hello.py~:
 
-We will create the home page template, which will be the one that will be rendered when the page is loaded.
+#+BEGIN_SRC python
+# app/liveview_components/hello.py
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
 
-Create a folder called ~pages~ in your template folder and inside it create a file called ~home.html~.
+@liveview_handler("say_hello")
+def say_hello(consumer, content):
+    """Handle 'say_hello' function from client"""
+    name = content.get("form", {}).get("name", "World")
+
+    html = render_to_string("hello_message.html", {
+        "message": f"Hello, {name}!"
+    })
+
+    send(consumer, {
+        "target": "#greeting",
+        "html": html
+    })
+#+END_SRC
+
+Create the template ~templates/hello_message.html~:
 
 #+BEGIN_SRC html
-  {# my-app/templates/pages/home.html #}
-  {% load static %}
-
-  <main>
-      <p>
-	  <button
-	      data-action="click->page#run"
-	      data-liveview-action="home"
-	      data-liveview-function="random_number"
-	  >Random number</button>
-      </p>
-      <h2 id="output-random-number"></h2>
-  </main>
+<h1>{{ message }}</h1>
 #+END_SRC
 
-As you can see, we have defined a button to launch the action of generating the random number (~button~) and the place where we will print the result (~output-random-number~).
+** Step 6: Use it in your page
 
-** 9. Create frontend
+#+BEGIN_SRC html
+<!-- templates/hello_page.html -->
+{% extends "base.html" %}
 
-Now we are going to create the frontend, the part where we will manage the JavaScript events and invoke the actions.
+{% block content %}
+<div>
+    <input type="text" name="name" placeholder="Enter your name">
+    <button
+        data-liveview-function="say_hello"
+        data-action="click->page#run">
+        Say Hello
+    </button>
 
-Download [[https://github.com/Django-LiveView/frontend/archive/refs/heads/main.zip][frontend]] and unzip it in your static folder. You will be left with the following route: ~/static/js/~.
-
-** 10. Create View
-
-We will create the view that will render the page for the first time (like Server Side Rendering). The rest of the times will be rendered dynamically (like Single Page Application).
-
-In a normal Django application we would create a view, ~views.py~, similar to the following:
-
-#+BEGIN_SRC python
-# my-app/views.py
-from django.shortcuts import render
-
-# Create your views here.
-def home(request):
-    return render(request, "pages/home.html")
+    <div id="greeting">
+        <h1>Hello, World!</h1>
+    </div>
+</div>
+{% endblock %}
 #+END_SRC
 
-With LiveView, on the other hand, you will have the following structure.
-
-#+BEGIN_SRC python
-# my-app/views.py
-from django.shortcuts import render
-from .actions.home import get_context as get_home_context
-
-from liveview.utils import get_html
-
-async def home(request):
-    return render(request, "layouts/base.html", await get_home_context())
-#+END_SRC
-
-** 11. Create URL
-
-Finally, we will create the URL that will render the page.
-
-#+BEGIN_SRC python
-# my-app/urls.py
-from django.urls import path
-
-from .views import home
-
-urlpatterns = [
-    path("", home, name="home"),
-]
-#+END_SRC
-
-** 12. Run the server
-
-Run the server.
+** Step 7: Run your project
 
 #+BEGIN_SRC sh
-  python3 manage.py runserver
+# Run Django with Daphne (ASGI server)
+python manage.py runserver
 #+END_SRC
 
-And open the browser at ~http://localhost:8000/~. You should see the home page with a button that generates a random number when clicked.
+That's it! Click the button and see real-time updates. 🎉
 
-#+ATTR_HTML: :class center-block image image--responsive
-[[#/img/quickstart/minimal-template.webp][Random number]]
+You can also interact with the [[https://django-liveview-demo-minimal-template.andros.dev/][online demo]].
 
-You can also interact with [[https://django-liveview-demo-minimal-template.andros.dev/][the online demo]].
-
-Congratulations! You have created your first Realtime SPA using Django LiveView.
-
-The next step is to create a more complex application. You can read other [[#/tutorials/][tutorials]] or go to the [[#/docs/install/][documentation]].
-
-* Internationalize with subdomains
-:PROPERTIES:
-:ONE: one-custom-default-page
-:CUSTOM_ID: /tutorials/internationalize-with-subdomains/
-:TITLE: Internationalize with subdomains
-:DESCRIPTION: Create a multilingual website with subdomains.
-:NAVIGATOR-ACTIVE: tutorials
-:END:
-
-Here you will learn how to create a multilingual website using Django LiveView.
-
-We using subdomains to define the language (~en.example.com~, ~es.example.com~...), instead of using prefixes in addresses (~example.com/en/blog/~, ~example.com/es/blog/~). They simplify SEO, maintain consistency in the Sitemap and are easy to test.
-
-We will use the following structure:
-
-- ~example.com~ and ~en.example.com~ for English.
-- ~es.example.com~ for Spanish.
-
-** 1. Configure the subdomains
-
-In your ~settings.py~ file, add all domains that will be used.
-
-#+BEGIN_SRC python
-ALLOWED_HOSTS = ["example.com", "en.example.com", "es.example.com"]
-#+END_SRC
-
-** 2. Configure the languages
-
-And add or modify the following settings in the same file (~settings.py~).
-
-#+BEGIN_SRC python
-  # Languages
-
-  # Enable internationalization
-  USE_I18N = True
-
-  # Default language
-  LANGUAGE_CODE = "en"
-
-  # Available languages
-  LANGUAGES = [
-      ("en", _("English")),
-      ("es", _("Spanish")),
-  ]
-
-  # Locale paths
-  LOCALE_PATHS = (BASE_DIR / "locale/",)
-#+END_SRC
-
-** 3. Redirection with Middleware
-
-Create a middleware that redirects the user to the correct subdomain and sets the language. If the user enters ~en.example.com~ or ~example.com~, English language will be activated. If the user enters ~es.example.com~, Spanish language will be activated. And if the user enters ~en.example.com~, it will be redirected to ~example.com~.
-
-Create a file called ~middlewares.py~ in your project folder and add the following code.
-
-#+BEGIN_SRC python
-  from django.utils import translation
-  from django.conf import settings
-  from django.utils.translation import get_language
-  from django.http import HttpResponseRedirect
-
-  def language_middleware(get_response):
-      # One-time configuration and initialization.
-
-      def middleware(request):
-	  # Code to be executed for each request before
-	  # the view (and later middleware) are called.
-
-	  # Set the language based on the domain
-	  # Example:
-	  # "example.com" and "en.example.com" -> en
-	  # "es.example.com" -> es
-
-	  # Get the domain from the request
-	  domain = request.META["HTTP_HOST"]
-	  # Get the subdomain
-	  domain_list = domain.split(".")
-	  subdomain = domain_list[0] if len(domain_list) == 3 else None
-	  # Set the language
-	  if get_language() != subdomain:
-	      translation.activate(subdomain)
-
-	  # Redirect default language to main domain
-	  # Example: "en.example.com" -> "example.com"
-	  if subdomain == settings.LANGUAGE_CODE:
-	      return HttpResponseRedirect("http://example.com")
-
-	  response = get_response(request)
-
-	  # Code to be executed for each request/response after
-	  # the view is called.
-
-	  return response
-
-      return middleware
-#+END_SRC
-
-Now, add the middleware to the ~MIDDLEWARE~ list in ~settings.py~.
-
-#+BEGIN_SRC python
-  MIDDLEWARE = [
-      ...
-      "middlewares.language_middleware",
-  ]
-#+END_SRC
-
-** 4. Set multilingual texts
-
-In any of your HTML templates, you can use translation tags to display multilingual texts.
-
-#+BEGIN_SRC
-  {% load i18n %}
-
-  <h1>{% trans "Hello" %}</h1>
-
-  <p>{% blocktrans %}This is a multilingual website.{% endblocktrans %}</p>
-
-#+END_SRC
-
-For titles and descriptions, you can use the ~meta~ dictionary in the action with ~_("text")~ to translate the texts.
-
-#+BEGIN_SRC python
-  from liveview.context_processors import get_global_context
-  from django.conf import settings
-  from liveview.utils import (
-      get_html,
-      update_active_nav,
-      enable_lang,
-      loading,
-  )
-  from django.utils.translation import gettext as _
-  from django.templatetags.static import static
-  from django.urls import reverse
-
-  ...
-  context.update(
-      {
-	  "url": settings.DOMAIN_URL + reverse("home"),
-	  "title": _("Home") + " | Home",
-	  "meta": {
-	      "description": _("Home page of the website"),
-	  },
-      }
-  )
-  ...
-#+END_SRC
-
-For the url of the page, you can edit the ~urls.py~ file to include the language.
-
-#+BEGIN_SRC python
-  from django.urls import path
-  from django.utils.translation import gettext as _
-  from .views import home
-
-  urlpatterns = [
-      path(_("home") + "/", home, name="home"),
-      path(_("about") + "/", about, name="about"),
-  ]
-#+END_SRC
-
-** 5. Make messages
-
-Create the ~locale~ folder in the root of your project and run the following commands.
-
-#+BEGIN_SRC sh
-  ./manage.py makemessages -l en
-  ./manage.py makemessages -l es
-#+END_SRC
-
-The files ~locale/en/LC_MESSAGES/django.po~ and ~locale/es/LC_MESSAGES/django.po~ will be created. You can edit them with a text editor or use a translation tool like [[https://poedit.net/][Poedit]].
-
-** 6. Compile messages
-
-After translating the texts, compile the messages.
-
-#+BEGIN_SRC sh
-./manage.py compilemessages
-#+END_SRC
-
-Your multilingual website is ready. You can test it by entering ~example.com~, ~en.example.com~ and ~es.example.com~.
-
-** 7. Selector of languages
-
-You can create a selector of languages in the header of your website.
-
-#+BEGIN_SRC html
-  {% load i18n %}
-  {% get_current_language as CURRENT_LANGUAGE %}
-  {% get_available_languages as AVAILABLE_LANGUAGES %}
-  <ul>
-      {# Display the current language #}
-      <li>
-	      <a href="#" disabled>{{ CURRENT_LANGUAGE }}</a>
-      </li>
-      {# Display the other languages #}
-      {% for language in AVAILABLE_LANGUAGES %}
-      {% if language.0 != CURRENT_LANGUAGE %}
-      <li>
-	  <a href="http{% if request.is_secure %}s{% endif %}://{{ language.0 }}.{{ DOMAIN }}">
-	      {{ language.0 }}
-	  </a>
-      </li>
-      {% endif %}
-      {% endfor %}
-  </ul>
-#+END_SRC
-
-The above code will create a list of languages with the current language disabled.
-
-Or also simple links with the subdomain.
-
-#+BEGIN_SRC html
-  <a href="http://en.example.com">
-      English
-  </a>
-
-  <a href="http://es.example.com">
-      Español
-  </a>
-  {% endfor %}
-#+END_SRC
+Congratulations! You have created your first real-time SPA using Django LiveView.
 
 * Source code
 :PROPERTIES:
@@ -1436,14 +922,13 @@ Or also simple links with the subdomain.
 
 You can find all the source code in the following repositories:
 
-- [[https://github.com/Django-LiveView/liveview][LiveView]]: Source code of the Django framework and app published in pip.
-- [[https://github.com/Django-LiveView/docs][Website and Docs]]: All documentation, including this same page.
+- [[https://github.com/Django-LiveView/liveview][LiveView]]: Source code of the Django framework published on PyPI as django-liveview
+- [[https://github.com/Django-LiveView/docs][Website and Docs]]: All documentation, including this page
 - Templates
-    - [[https://github.com/Django-LiveView/starter-template][Starter]]: Check all the features of Django LiveView.
-    - [[https://github.com/Django-LiveView/minimal-template][Minimal]]: The minimal template to get started.
-    - [[https://github.com/Django-LiveView/frontend][Frontend]]: Frontend assets.
+    - [[https://github.com/Django-LiveView/starter-template][Starter]]: Check all the features of Django LiveView
+    - [[https://github.com/Django-LiveView/minimal-template][Minimal]]: The minimal template to get started
 - Demos
-    - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake.
+    - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake
 
 * Books
 :PROPERTIES:
@@ -1454,13 +939,14 @@ You can find all the source code in the following repositories:
 :NAVIGATOR-ACTIVE: books
 :END:
 
-There are no books about Django LiveView yet. But you can find book about Django working with HTML over the Wire technology.
+There are no books specifically about Django LiveView yet, but you can find books about Django working with HTML over the Wire technology.
 
-
-** Building SPAs with Django and HTML Over the Wire: Learn to build real-time single page applications with Python (English Edition)
+** Building SPAs with Django and HTML Over the Wire
 
 #+ATTR_HTML: :class center-block image image--cover-book
 [[#/img/books/building-spas.avif][Building SPAs with Django and HTML Over the Wire]]
+
+Learn to build real-time single page applications with Python.
 
 Buy:
 
