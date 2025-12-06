@@ -164,7 +164,7 @@ application = ProtocolTypeRouter({
 - ~data-room~ on ~<html>~ — unique identifier for WebSocket room (user-specific or shared)
 - ~data-controller="page"~ on ~<body>~ — activates the Stimulus controller
 
-We strongly recommend that you follow the [[#/tutorial/][Tutorial]] to see the installation in action.
+We strongly recommend that you follow the [[#/quick-start/][Quick start]] to see the installation in action.
 
 * Handlers
 :PROPERTIES:
@@ -803,8 +803,6 @@ This project is maintained by [[https://andros.dev][Andros Fenollosa]] in his fr
 
 Welcome to the quick start. Here you will learn how to create your first real-time SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
 
-All the steps are applied in a [[https://github.com/Django-LiveView/minimal-template][minimalist template]].
-
 ** Step 1: Installation
 
 #+BEGIN_SRC sh
@@ -945,8 +943,6 @@ python manage.py runserver
 #+END_SRC
 
 That's it! Click the button and see real-time updates. 🎉
-
-You can also interact with the [[https://django-liveview-demo-minimal-template.andros.dev/][online demo]].
 
 Congratulations! You have created your first real-time SPA using Django LiveView.
 
