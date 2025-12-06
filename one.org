@@ -60,7 +60,7 @@ The same process is repeated for each action, such as clicking a button, submitt
 - 📡 **Broadcast support** for multi-user real-time updates
 - 🔐 **Middleware system** for authentication and authorization
 
-Are you ready to create your first real-time SPA? Let's go to the [[#/tutorial/][Tutorial]].
+Are you ready to create your first real-time SPA? Let's go to the [[#/quick-start/][Quick start]].
 
 * Install
 :PROPERTIES:
