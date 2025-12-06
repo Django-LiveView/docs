@@ -790,7 +790,7 @@ v2.0.0 is a complete rewrite with a much simpler API:
 
 ** Who finances the project?
 
-This project is maintained by Andros Fenollosa in his free time. If you want to support the project, you can become a [[https://liberapay.com/androsfenollosa/][patron]].
+This project is maintained by [[https://andros.dev][Andros Fenollosa]] in his free time. If you want to support the project visit [[https://liberapay.com/androsfenollosa/][Liberapay]].
 
 * Tutorial
 :PROPERTIES:
