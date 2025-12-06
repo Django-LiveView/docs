@@ -100,7 +100,7 @@
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "📚 Docs"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/tutorial/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "🎓 Tutorial"))
+		   (:a.button.nav-main__link (@ :href "/quick-start/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "🎓 Quick start"))
 		  (:li.nav-main__item
 		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "📖 Books"))
 		  (:li.nav-main__item
