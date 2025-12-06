@@ -795,13 +795,13 @@ This project is maintained by [[https://andros.dev][Andros Fenollosa]] in his fr
 * Tutorial
 :PROPERTIES:
 :ONE: one-custom-default-tutorials
-:CUSTOM_ID: /tutorial/
-:TITLE: Tutorial
+:CUSTOM_ID: /quick-start/
+:TITLE: Quick start
 :DESCRIPTION: Get started with Django LiveView the easy way.
 :NAVIGATOR-ACTIVE: tutorial
 :END:
 
-Welcome to the Tutorial guide. Here you will learn how to create your first real-time SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
+Welcome to the quick start. Here you will learn how to create your first real-time SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
 
 All the steps are applied in a [[https://github.com/Django-LiveView/minimal-template][minimalist template]].
 
