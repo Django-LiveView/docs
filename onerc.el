@@ -154,7 +154,7 @@
 		   (:div.container
 		    (:hgroup.hero__hgroup
 		     (:h1.hero__title "Django LiveView")
-		     (:h2.hero__subtitle "Build real-time, reactive interfaces with Django using WebSockets — write Python, not JavaScript")
+		     (:h2.hero__subtitle "Build real-time, reactive interfaces with Django using WebSockets: write Python, not JavaScript")
 		     (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
 		  (:section.home
 		   (:div.container ,content)))))))

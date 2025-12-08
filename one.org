@@ -3,13 +3,13 @@
 :ONE: one-custom-default-home
 :CUSTOM_ID: /
 :TITLE:
-:DESCRIPTION: Build real-time, reactive interfaces with Django using WebSockets — write Python, not JavaScript.
+:DESCRIPTION: Build real-time, reactive interfaces with Django using WebSockets: write Python, not JavaScript.
 :NAVIGATOR-ACTIVE: home
 :END:
 
 ** What is HTML over the Wire?
 
-HTML over the Wire, or HTML over WebSockets, is a strategy for creating real-time SPAs by establishing a WebSocket connection between a client and server. It allows JavaScript to request actions—its only responsibility is to handle events—while the backend handles the business logic and renders HTML. This means you can create dynamic pages without reloading, without AJAX or APIs. This technology provides a secure, stable, and low-latency connection for real-time web applications.
+HTML over the Wire, or HTML over WebSockets, is a strategy for creating real-time SPAs by establishing a WebSocket connection between a client and server. It allows JavaScript to request actions (its only responsibility is to handle events) while the backend handles the business logic and renders HTML. This means you can create dynamic pages without reloading, without AJAX or APIs. This technology provides a secure, stable, and low-latency connection for real-time web applications.
 
 #+ATTR_HTML: :class center-block image image--home
 [[#/img/step-1.avif][Architecture send]]
@@ -48,14 +48,14 @@ The same process is repeated for each action, such as clicking a button, submitt
 
 ** What are your superpowers? 💪
 
-- 🎯 **Create SPAs without using APIs** — No REST or GraphQL needed
+- 🎯 **Create SPAs without using APIs**: No REST or GraphQL needed
 - 🎨 **Uses Django's template system** to render the frontend (without JavaScript frameworks)
-- 🐍 **Logic stays in Python** — No split between backend and frontend
-- 🛠️ **Use all of Django's tools** — ORM, forms, authentication, admin, etc.
-- ⚡ **Everything is asynchronous by default** — Built on Django Channels
-- 📚 **Zero learning curve** — If you know Python and Django, you're ready
-- 🔄 **Real-time by design** — All interactions happen over WebSockets
-- 🔋 **Batteries included** — JavaScript assets bundled, automatic reconnection with exponential backoff
+- 🐍 **Logic stays in Python**: No split between backend and frontend
+- 🛠️ **Use all of Django's tools**: ORM, forms, authentication, admin, etc.
+- ⚡ **Everything is asynchronous by default**: Built on Django Channels
+- 📚 **Zero learning curve**: If you know Python and Django, you're ready
+- 🔄 **Real-time by design**: All interactions happen over WebSockets
+- 🔋 **Batteries included**: JavaScript assets bundled, automatic reconnection with exponential backoff
 - 💡 **Type hints** and modern Python (3.10+)
 - 📡 **Broadcast support** for multi-user real-time updates
 - 🔐 **Middleware system** for authentication and authorization
@@ -145,8 +145,9 @@ application = ProtocolTypeRouter({
 #+BEGIN_SRC html
 <!-- templates/base.html -->
 {% load static %}
+{% load liveview %}
 <!DOCTYPE html>
-<html lang="en" data-room="{% if request.user.is_authenticated %}{{ request.user.id }}{% else %}anonymous{% endif %}">
+<html lang="en" data-room="{% liveview_room_uuid %}">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Site{% endblock %}</title>
@@ -161,8 +162,16 @@ application = ProtocolTypeRouter({
 #+END_SRC
 
 **Important attributes:**
-- ~data-room~ on ~<html>~ — unique identifier for WebSocket room (user-specific or shared)
-- ~data-controller="page"~ on ~<body>~ — activates the Stimulus controller
+- ~data-room="{% liveview_room_uuid %}"~ on ~<html>~: unique room ID for each page load
+- ~data-controller="page"~ on ~<body>~: activates the Stimulus controller
+
+The ~{% liveview_room_uuid %}~ template tag generates a random UUID for each request, ensuring isolated sessions and preventing room ID enumeration attacks.
+
+**Alternative: User-specific Room ID** (use with caution)
+#+BEGIN_SRC html
+<html lang="en" data-room="{% if request.user.is_authenticated %}user-{{ request.user.id }}{% else %}{% liveview_room_uuid %}{% endif %}">
+#+END_SRC
+⚠️ *Warning:* Using predictable IDs like user IDs can be a security risk. An attacker could subscribe to another user's room by guessing their ID. Only use this if you implement proper authorization checks in your handlers.
 
 We strongly recommend that you follow the [[#/quick-start/][Quick start]] to see the installation in action.
 
@@ -381,6 +390,8 @@ HTML code:
 
 The attribute ~data-data-comment-id~ becomes ~comment_id~ (with underscores, not camelCase) within ~content["data"]~.
 
+**Important**: Django LiveView automatically converts all attribute names from camelCase to snake_case. HTML attributes with hyphens (~data-data-comment-id~) are first converted by the browser to camelCase (~dataCommentId~), which Django LiveView then converts to snake_case (~comment_id~) in your handlers.
+
 ** Appending Content to Lists
 
 When building dynamic lists (like infinite scroll or chat messages), you want to add items without replacing the entire list.
@@ -586,7 +597,7 @@ HTML code:
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-The frontend is responsible for capturing events and sending messages over WebSocket. No logic, rendering, or state is in the frontend—the backend does all the work.
+The frontend is responsible for capturing events and sending messages over WebSocket. No logic, rendering, or state is in the frontend: the backend does all the work.
 
 Django LiveView uses [[https://stimulus.hotwired.dev/][Stimulus]] to manage DOM events and avoid collisions. The JavaScript assets are bundled within the package.
 
@@ -602,8 +613,8 @@ To call a handler from a button click:
 </button>
 #+END_SRC
 
-- ~data-liveview-function~ — The handler name registered with ~@liveview_handler~
-- ~data-action~ — Stimulus action (event->controller#action)
+- ~data-liveview-function~: The handler name registered with ~@liveview_handler~
+- ~data-action~: Stimulus action (event->controller#action)
 
 ** Sending Form Data
 
@@ -640,20 +651,20 @@ Access in Python:
 @liveview_handler("open_modal")
 def open_modal(consumer, content):
     data = content.get("data", {})
-    modal_id = data.get("modalId")      # from modal-id
-    user_id = data.get("userId")        # from user-id
+    modal_id = data.get("modal_id")      # from data-data-modal-id
+    user_id = data.get("user_id")        # from data-data-user-id
 #+END_SRC
 
 ** Stimulus Actions Reference
 
 Available Stimulus actions:
 
-- ~data-action="click->page#run"~ — Execute LiveView function on click
-- ~data-action="input->page#run"~ — Execute on input change (real-time)
-- ~data-action="submit->page#run"~ — Execute on form submit
-- ~data-action="change->page#run"~ — Execute on change event
-- ~data-action="blur->page#run"~ — Execute when element loses focus
-- ~data-action="page#stop"~ — Stop event propagation
+- ~data-action="click->page#run"~: Execute LiveView function on click
+- ~data-action="input->page#run"~: Execute on input change (real-time)
+- ~data-action="submit->page#run"~: Execute on form submit
+- ~data-action="change->page#run"~: Execute on change event
+- ~data-action="blur->page#run"~: Execute when element loses focus
+- ~data-action="page#stop"~: Stop event propagation
 
 * Forms
 :PROPERTIES:
@@ -876,9 +887,9 @@ HTML template:
 #+END_SRC
 
 **Attributes:**
-- ~data-liveview-intersect-appear="function_name"~ — Call when element appears
-- ~data-liveview-intersect-disappear="function_name"~ — Call when element disappears
-- ~data-liveview-intersect-threshold="200"~ — Trigger 200px before entering viewport (default: 0)
+- ~data-liveview-intersect-appear="function_name"~: Call when element appears
+- ~data-liveview-intersect-disappear="function_name"~: Call when element disappears
+- ~data-liveview-intersect-threshold="200"~: Trigger 200px before entering viewport (default: 0)
 
 ** Auto-focus
 
@@ -977,6 +988,1348 @@ def logging_middleware(consumer, content, function_name):
 # Register middleware
 liveview_registry.add_middleware(auth_middleware)
 liveview_registry.add_middleware(logging_middleware)
+#+END_SRC
+
+* Error Handling
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/error-handling/
+:TITLE: Error Handling
+:DESCRIPTION: Handle errors and exceptions in Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Proper error handling is essential for production applications. Django LiveView provides several patterns for handling errors gracefully.
+
+** Basic Error Handling
+
+Wrap your handler logic in try-except blocks to catch and handle errors:
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("load_article")
+def load_article(consumer, content):
+    article_id = content.get("data", {}).get("article_id")
+
+    try:
+        from .models import Article
+        article = Article.objects.get(id=article_id)
+
+        html = render_to_string("article_detail.html", {
+            "article": article
+        })
+
+        send(consumer, {
+            "target": "#article-container",
+            "html": html
+        })
+    except Article.DoesNotExist:
+        # Show error message to user
+        send(consumer, {
+            "target": "#article-container",
+            "html": "<p class='error'>Article not found</p>"
+        })
+    except Exception as e:
+        # Log unexpected errors
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error loading article {article_id}: {e}")
+
+        # Show generic error to user
+        send(consumer, {
+            "target": "#article-container",
+            "html": "<p class='error'>An error occurred. Please try again.</p>"
+        })
+#+END_SRC
+
+** Validation Errors
+
+Handle validation errors from Django forms:
+
+#+BEGIN_SRC python
+@liveview_handler("submit_form")
+def submit_form(consumer, content):
+    from .forms import ArticleForm
+
+    form = ArticleForm(content.get("form", {}))
+
+    if form.is_valid():
+        article = form.save()
+
+        # Show success message
+        html = render_to_string("article_success.html", {
+            "article": article
+        })
+
+        send(consumer, {
+            "target": "#form-container",
+            "html": html
+        })
+    else:
+        # Show form with errors
+        html = render_to_string("article_form.html", {
+            "form": form,
+            "errors": form.errors
+        })
+
+        send(consumer, {
+            "target": "#form-container",
+            "html": html
+        })
+#+END_SRC
+
+Template (~article_form.html~):
+
+#+BEGIN_SRC html
+{% if errors %}
+<div class="errors">
+    {% for field, error_list in errors.items %}
+        <p class="error">{{ field }}: {{ error_list.0 }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form>
+    {{ form.as_p }}
+    <button
+        data-liveview-function="submit_form"
+        data-action="click->page#run">
+        Submit
+    </button>
+</form>
+#+END_SRC
+
+** Permission and Authentication Errors
+
+Check permissions before executing operations:
+
+#+BEGIN_SRC python
+@liveview_handler("delete_article")
+def delete_article(consumer, content):
+    user = consumer.scope.get("user")
+    article_id = content.get("data", {}).get("article_id")
+
+    # Check authentication
+    if not user or not user.is_authenticated:
+        send(consumer, {
+            "target": "#error-message",
+            "html": "<p class='error'>You must be logged in to delete articles</p>"
+        })
+        return
+
+    try:
+        from .models import Article
+        article = Article.objects.get(id=article_id)
+
+        # Check permissions
+        if article.author != user and not user.is_staff:
+            send(consumer, {
+                "target": "#error-message",
+                "html": "<p class='error'>You don't have permission to delete this article</p>"
+            })
+            return
+
+        article.delete()
+
+        # Show success and remove from DOM
+        send(consumer, {
+            "target": f"#article-{article_id}",
+            "remove": True
+        })
+
+        send(consumer, {
+            "target": "#success-message",
+            "html": "<p class='success'>Article deleted successfully</p>"
+        })
+    except Article.DoesNotExist:
+        send(consumer, {
+            "target": "#error-message",
+            "html": "<p class='error'>Article not found</p>"
+        })
+#+END_SRC
+
+** Database Transaction Errors
+
+Use database transactions to ensure data integrity:
+
+#+BEGIN_SRC python
+from django.db import transaction
+
+@liveview_handler("create_post_with_tags")
+def create_post_with_tags(consumer, content):
+    from .models import Post, Tag
+
+    try:
+        with transaction.atomic():
+            # Create post
+            post = Post.objects.create(
+                title=content["form"]["title"],
+                content=content["form"]["content"]
+            )
+
+            # Add tags
+            tag_names = content["form"]["tags"].split(",")
+            for tag_name in tag_names:
+                tag, _ = Tag.objects.get_or_create(name=tag_name.strip())
+                post.tags.add(tag)
+
+            # Success
+            html = render_to_string("post_created.html", {
+                "post": post
+            })
+
+            send(consumer, {
+                "target": "#post-container",
+                "html": html
+            })
+    except Exception as e:
+        # Transaction is automatically rolled back
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating post: {e}")
+
+        send(consumer, {
+            "target": "#error-message",
+            "html": "<p class='error'>Failed to create post. Please try again.</p>"
+        })
+#+END_SRC
+
+** Timeout Errors
+
+Handle long-running operations with timeouts:
+
+#+BEGIN_SRC python
+import asyncio
+from threading import Thread
+
+@liveview_handler("process_large_file")
+def process_large_file(consumer, content):
+    file_id = content.get("data", {}).get("file_id")
+
+    def process_with_timeout():
+        try:
+            from .models import File
+            file_obj = File.objects.get(id=file_id)
+
+            # Simulate long operation
+            result = file_obj.process()  # This might take a while
+
+            # Send success
+            html = render_to_string("process_success.html", {
+                "result": result
+            })
+
+            send(consumer, {
+                "target": "#result-container",
+                "html": html
+            }, broadcast=True)
+        except Exception as e:
+            send(consumer, {
+                "target": "#result-container",
+                "html": f"<p class='error'>Processing failed: {str(e)}</p>"
+            })
+
+    # Start processing in background
+    Thread(target=process_with_timeout).start()
+
+    # Show immediate feedback
+    send(consumer, {
+        "target": "#result-container",
+        "html": "<p>Processing file... This may take a moment.</p>"
+    })
+#+END_SRC
+
+** Global Error Handler with Middleware
+
+Create a middleware to catch all errors:
+
+#+BEGIN_SRC python
+from liveview import liveview_registry, send
+import logging
+
+logger = logging.getLogger(__name__)
+
+def error_handling_middleware(consumer, content, function_name):
+    """Catch all exceptions and show user-friendly error"""
+    try:
+        # Continue to handler
+        return True
+    except Exception as e:
+        # Log the error
+        logger.error(f"Error in handler '{function_name}': {e}", exc_info=True)
+
+        # Show error to user
+        send(consumer, {
+            "target": "#global-error",
+            "html": "<p class='error'>Something went wrong. Our team has been notified.</p>"
+        })
+
+        # Don't continue to handler
+        return False
+
+# Register middleware
+liveview_registry.add_middleware(error_handling_middleware)
+#+END_SRC
+
+Note: Middleware runs ~before~ the handler. To catch errors ~during~ handler execution, wrap your handler logic in try-except blocks.
+
+** Logging Best Practices
+
+#+BEGIN_SRC python
+import logging
+
+logger = logging.getLogger(__name__)
+
+@liveview_handler("important_operation")
+def important_operation(consumer, content):
+    user = consumer.scope.get("user")
+
+    # Log the operation attempt
+    logger.info(f"User {user.id if user else 'anonymous'} attempting operation")
+
+    try:
+        # Perform operation
+        result = perform_operation()
+
+        # Log success
+        logger.info(f"Operation successful for user {user.id if user else 'anonymous'}")
+
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p>Success: {result}</p>"
+        })
+    except ValueError as e:
+        # Log validation errors as warnings
+        logger.warning(f"Validation error for user {user.id if user else 'anonymous'}: {e}")
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p class='error'>Invalid input: {e}</p>"
+        })
+    except Exception as e:
+        # Log unexpected errors as errors
+        logger.error(f"Unexpected error for user {user.id if user else 'anonymous'}: {e}", exc_info=True)
+        send(consumer, {
+            "target": "#result",
+            "html": "<p class='error'>An unexpected error occurred</p>"
+        })
+#+END_SRC
+
+* Testing
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/testing/
+:TITLE: Testing
+:DESCRIPTION: Testing Django LiveView handlers and applications.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Testing LiveView handlers ensures your real-time features work correctly. Django LiveView handlers are regular Python functions, so you can test them like any other Django code.
+
+** Unit Testing Handlers
+
+Test handlers directly by calling them with mock data:
+
+#+BEGIN_SRC python
+from django.test import TestCase
+from unittest.mock import Mock, patch
+from myapp.liveview_components.articles import load_article
+
+class ArticleHandlerTest(TestCase):
+    def setUp(self):
+        from myapp.models import Article
+        self.article = Article.objects.create(
+            title="Test Article",
+            content="Test content"
+        )
+
+    def test_load_article_success(self):
+        # Create mock consumer
+        consumer = Mock()
+
+        # Create content dict
+        content = {
+            "data": {"article_id": str(self.article.id)},
+            "form": {},
+            "function": "load_article"
+        }
+
+        # Patch the send function to capture calls
+        with patch("myapp.liveview_components.articles.send") as mock_send:
+            # Call handler
+            load_article(consumer, content)
+
+            # Verify send was called
+            mock_send.assert_called_once()
+
+            # Verify the call arguments
+            call_args = mock_send.call_args[0]
+            self.assertEqual(call_args[0], consumer)
+
+            # Verify HTML contains article title
+            html = call_args[1]["html"]
+            self.assertIn("Test Article", html)
+            self.assertIn("Test content", html)
+
+    def test_load_article_not_found(self):
+        consumer = Mock()
+        content = {
+            "data": {"article_id": "99999"},
+            "form": {}
+        }
+
+        with patch("myapp.liveview_components.articles.send") as mock_send:
+            load_article(consumer, content)
+
+            # Verify error message is sent
+            html = mock_send.call_args[0][1]["html"]
+            self.assertIn("not found", html.lower())
+#+END_SRC
+
+** Integration Testing with WebSocket Client
+
+Test the full WebSocket flow using Django Channels testing utilities:
+
+#+BEGIN_SRC python
+from channels.testing import WebsocketCommunicator
+from django.test import TransactionTestCase
+from myproject.asgi import application
+import json
+
+class LiveViewIntegrationTest(TransactionTestCase):
+    async def test_websocket_connection(self):
+        # Create WebSocket communicator
+        communicator = WebsocketCommunicator(
+            application,
+            "/ws/liveview/test-room/"
+        )
+
+        # Connect
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        # Send message to handler
+        await communicator.send_json_to({
+            "function": "say_hello",
+            "form": {"name": "Django"},
+            "data": {},
+            "lang": "en",
+            "room": "test-room"
+        })
+
+        # Receive response
+        response = await communicator.receive_json_from()
+
+        # Verify response
+        self.assertEqual(response["target"], "#greeting")
+        self.assertIn("Hello, Django", response["html"])
+
+        # Disconnect
+        await communicator.disconnect()
+
+    async def test_form_validation(self):
+        from myapp.models import Article
+
+        communicator = WebsocketCommunicator(
+            application,
+            "/ws/liveview/test-room/"
+        )
+
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        # Send invalid form data
+        await communicator.send_json_to({
+            "function": "submit_article",
+            "form": {"title": ""},  # Empty title should fail
+            "data": {},
+            "lang": "en",
+            "room": "test-room"
+        })
+
+        response = await communicator.receive_json_from()
+
+        # Verify error is shown
+        self.assertIn("error", response["html"].lower())
+
+        # Verify article was not created
+        self.assertEqual(Article.objects.count(), 0)
+
+        await communicator.disconnect()
+#+END_SRC
+
+** Testing Broadcasting
+
+Test that handlers broadcast to all connected users:
+
+#+BEGIN_SRC python
+from channels.testing import WebsocketCommunicator
+from django.test import TransactionTestCase
+from myproject.asgi import application
+
+class BroadcastTest(TransactionTestCase):
+    async def test_broadcast_to_all_users(self):
+        # Connect multiple users
+        user1 = WebsocketCommunicator(
+            application,
+            "/ws/liveview/room-1/"
+        )
+        user2 = WebsocketCommunicator(
+            application,
+            "/ws/liveview/room-1/"
+        )
+
+        await user1.connect()
+        await user2.connect()
+
+        # User 1 sends a broadcast message
+        await user1.send_json_to({
+            "function": "notify_all",
+            "form": {"message": "Hello everyone!"},
+            "data": {},
+            "lang": "en",
+            "room": "room-1"
+        })
+
+        # Both users should receive the message
+        response1 = await user1.receive_json_from()
+        response2 = await user2.receive_json_from()
+
+        self.assertIn("Hello everyone!", response1["html"])
+        self.assertIn("Hello everyone!", response2["html"])
+
+        await user1.disconnect()
+        await user2.disconnect()
+#+END_SRC
+
+** Testing with Authenticated Users
+
+Test handlers that require authentication:
+
+#+BEGIN_SRC python
+from channels.testing import WebsocketCommunicator
+from django.contrib.auth import get_user_model
+from django.test import TransactionTestCase
+from channels.db import database_sync_to_async
+
+User = get_user_model()
+
+class AuthenticatedHandlerTest(TransactionTestCase):
+    async def test_authenticated_handler(self):
+        # Create user
+        user = await database_sync_to_async(User.objects.create_user)(
+            username="testuser",
+            password="testpass123"
+        )
+
+        # Create authenticated communicator
+        communicator = WebsocketCommunicator(
+            application,
+            "/ws/liveview/user-room/",
+        )
+        communicator.scope["user"] = user
+
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        # Send request that requires authentication
+        await communicator.send_json_to({
+            "function": "delete_article",
+            "data": {"article_id": "123"},
+            "form": {},
+            "lang": "en",
+            "room": "user-room"
+        })
+
+        response = await communicator.receive_json_from()
+
+        # Should succeed (not show "must be logged in" error)
+        self.assertNotIn("must be logged in", response["html"].lower())
+
+        await communicator.disconnect()
+#+END_SRC
+
+** Testing Middleware
+
+Test that middleware correctly filters requests:
+
+#+BEGIN_SRC python
+from django.test import TestCase
+from unittest.mock import Mock, patch
+from myapp.middleware import auth_middleware
+
+class MiddlewareTest(TestCase):
+    def test_auth_middleware_blocks_anonymous(self):
+        # Create mock consumer with anonymous user
+        consumer = Mock()
+        consumer.scope = {"user": None}
+
+        content = {"function": "protected_handler"}
+
+        with patch("myapp.middleware.send") as mock_send:
+            # Call middleware
+            result = auth_middleware(consumer, content, "protected_handler")
+
+            # Should block the request
+            self.assertFalse(result)
+
+            # Should send error message
+            mock_send.assert_called_once()
+            self.assertIn("logged in", mock_send.call_args[0][1]["html"])
+
+    def test_auth_middleware_allows_authenticated(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        # Create mock consumer with authenticated user
+        user = User(username="testuser", is_authenticated=True)
+        consumer = Mock()
+        consumer.scope = {"user": user}
+
+        content = {"function": "protected_handler"}
+
+        # Call middleware
+        result = auth_middleware(consumer, content, "protected_handler")
+
+        # Should allow the request
+        self.assertTrue(result)
+#+END_SRC
+
+** End-to-End Testing with Selenium
+
+Test the full user experience including JavaScript:
+
+#+BEGIN_SRC python
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+class E2ETest(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.driver = webdriver.Chrome()
+        cls.driver.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
+
+    def test_real_time_update(self):
+        # Open the page
+        self.driver.get(f"{self.live_server_url}/")
+
+        # Type in input field
+        input_field = self.driver.find_element(By.NAME, "name")
+        input_field.send_keys("Django")
+
+        # Click button
+        button = self.driver.find_element(
+            By.CSS_SELECTOR,
+            "[data-liveview-function='say_hello']"
+        )
+        button.click()
+
+        # Wait for update
+        greeting = WebDriverWait(self.driver, 5).until(
+            EC.presence_of_element_located((By.ID, "greeting"))
+        )
+
+        # Verify content updated
+        self.assertIn("Hello, Django", greeting.text)
+#+END_SRC
+
+** Testing Best Practices
+
+1. **Test handler logic separately** from WebSocket connection
+2. **Mock the ~send~ function** to verify what gets sent to clients
+3. **Test error cases** to ensure proper error handling
+4. **Test permissions** to prevent unauthorized access
+5. **Use ~TransactionTestCase~** for WebSocket tests (not ~TestCase~)
+6. **Test broadcasts** to ensure multi-user features work correctly
+7. **Write E2E tests** for critical user flows
+
+* Deployment
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/deployment/
+:TITLE: Deployment
+:DESCRIPTION: Deploy Django LiveView applications to production.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Deploying Django LiveView requires an ASGI server (like Daphne or Uvicorn), Redis for the channel layer, and proper WebSocket support.
+
+** Production Requirements
+
+- **ASGI Server**: Daphne, Uvicorn, or Hypercorn
+- **Redis**: For channel layer (shared state between workers)
+- **WebSocket Support**: Reverse proxy must support WebSockets (Nginx, Caddy, Traefik)
+- **Process Manager**: Supervisor, systemd, or Docker
+- **SSL/TLS**: Required for ~wss://~ connections in production
+
+** Using Daphne (Recommended)
+
+Install Daphne:
+
+#+BEGIN_SRC sh
+pip install daphne
+#+END_SRC
+
+Run Daphne in production:
+
+#+BEGIN_SRC sh
+daphne -b 0.0.0.0 -p 8000 myproject.asgi:application
+#+END_SRC
+
+With multiple workers for better performance:
+
+#+BEGIN_SRC sh
+daphne -b 0.0.0.0 -p 8000 --workers 4 myproject.asgi:application
+#+END_SRC
+
+** Using Uvicorn
+
+Install Uvicorn:
+
+#+BEGIN_SRC sh
+pip install uvicorn[standard]
+#+END_SRC
+
+Run Uvicorn:
+
+#+BEGIN_SRC sh
+uvicorn myproject.asgi:application --host 0.0.0.0 --port 8000 --workers 4
+#+END_SRC
+
+** Redis Configuration for Production
+
+Update ~settings.py~ for production Redis:
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                {
+                    "address": ("redis", 6379),  # Redis hostname
+                    "password": "your-redis-password",
+                    "db": 0,
+                }
+            ],
+            "capacity": 1500,  # Max messages per channel
+            "expiry": 10,      # Message expiry in seconds
+        },
+    },
+}
+#+END_SRC
+
+For Redis Sentinel (high availability):
+
+#+BEGIN_SRC python
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                {
+                    "sentinels": [
+                        ("sentinel1", 26379),
+                        ("sentinel2", 26379),
+                        ("sentinel3", 26379),
+                    ],
+                    "master_name": "mymaster",
+                    "password": "your-redis-password",
+                }
+            ],
+        },
+    },
+}
+#+END_SRC
+
+** Nginx Configuration
+
+Configure Nginx to proxy WebSocket connections:
+
+#+BEGIN_SRC nginx
+upstream django {
+    server 127.0.0.1:8000;
+}
+
+server {
+    listen 80;
+    server_name example.com;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # Static files
+    location /static/ {
+        alias /path/to/static/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /media/ {
+        alias /path/to/media/;
+        expires 7d;
+    }
+
+    # WebSocket support
+    location /ws/ {
+        proxy_pass http://django;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Increase timeout for long-lived connections
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+
+    # Regular HTTP requests
+    location / {
+        proxy_pass http://django;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+#+END_SRC
+
+** Docker Deployment
+
+~Dockerfile~:
+
+#+BEGIN_SRC dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project
+COPY . .
+
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
+# Expose port
+EXPOSE 8000
+
+# Run Daphne
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]
+#+END_SRC
+
+~docker-compose.yml~:
+
+#+BEGIN_SRC yaml
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass your-redis-password
+
+  web:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=your-redis-password
+      - DJANGO_SETTINGS_MODULE=myproject.settings
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/static:ro
+      - media_volume:/media:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+
+volumes:
+  redis_data:
+  static_volume:
+  media_volume:
+#+END_SRC
+
+** Systemd Service
+
+Create ~/etc/systemd/system/django-liveview.service~:
+
+#+BEGIN_SRC ini
+[Unit]
+Description=Django LiveView Application
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/project
+Environment="PATH=/path/to/venv/bin"
+ExecStart=/path/to/venv/bin/daphne -b 0.0.0.0 -p 8000 myproject.asgi:application
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+#+END_SRC
+
+Enable and start:
+
+#+BEGIN_SRC sh
+sudo systemctl enable django-liveview
+sudo systemctl start django-liveview
+sudo systemctl status django-liveview
+#+END_SRC
+
+** Environment Variables
+
+Store sensitive configuration in environment variables:
+
+#+BEGIN_SRC python
+# settings.py
+import os
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [{
+                "address": (
+                    os.environ.get("REDIS_HOST", "127.0.0.1"),
+                    int(os.environ.get("REDIS_PORT", 6379))
+                ),
+                "password": os.environ.get("REDIS_PASSWORD"),
+            }],
+        },
+    },
+}
+#+END_SRC
+
+** Performance Tuning
+
+1. **Use Redis persistence** (~appendonly yes~) for channel layer reliability
+2. **Increase worker count** based on CPU cores (~workers = CPU cores * 2 + 1~)
+3. **Set proper ~capacity~ and ~expiry~** in channel layer config
+4. **Enable HTTP/2** in Nginx for better performance
+5. **Use connection pooling** for database
+6. **Configure WebSocket timeouts** appropriately
+7. **Monitor Redis memory** usage and set ~maxmemory~ limits
+
+** Monitoring
+
+Monitor your Django LiveView application:
+
+#+BEGIN_SRC python
+# settings.py
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "/var/log/django/liveview.log",
+        },
+    },
+    "loggers": {
+        "liveview": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
+#+END_SRC
+
+Monitor key metrics:
+- WebSocket connection count
+- Redis memory usage
+- Handler execution time
+- Error rates
+- Message throughput
+
+** Security Checklist
+
+- ✓ Use HTTPS/WSS in production
+- ✓ Set ~ALLOWED_HOSTS~ correctly
+- ✓ Use ~AllowedHostsOriginValidator~ in ASGI
+- ✓ Enable Redis password authentication
+- ✓ Set proper CORS headers if needed
+- ✓ Use authentication middleware for protected handlers
+- ✓ Validate and sanitize all user input
+- ✓ Set WebSocket rate limiting
+- ✓ Monitor for suspicious activity
+
+** Scaling Horizontally
+
+To scale beyond one server:
+
+1. **Use external Redis** (not Redis on the same server)
+2. **Share sessions** across servers (database or Redis sessions)
+3. **Load balance** WebSocket connections (sticky sessions not required)
+4. **Use Redis Sentinel or Cluster** for Redis high availability
+5. **Monitor all instances** with centralized logging
+
+* API Reference
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/api-reference/
+:TITLE: API Reference
+:DESCRIPTION: Complete API reference for Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Complete reference for all Django LiveView functions, decorators, and classes.
+
+** Decorators
+
+*** ~@liveview_handler(name)~
+
+Register a function as a LiveView handler.
+
+**Parameters:**
+- ~name~ (str): The handler name that will be called from the frontend
+
+**Returns:** Decorated function
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_handler
+
+@liveview_handler("my_handler")
+def my_handler(consumer, content):
+    pass
+#+END_SRC
+
+** Functions
+
+*** ~send(consumer, data, broadcast=False)~
+
+Send data to the client(s).
+
+**Parameters:**
+- ~consumer~ (WebsocketConsumer): The WebSocket consumer instance
+- ~data~ (dict): Dictionary containing the update instructions
+- ~broadcast~ (bool, optional): If True, send to all connected clients. Default: False
+
+**Data dictionary keys:**
+- ~target~ (str, required): CSS selector of element to update
+- ~html~ (str, optional): HTML content to insert
+- ~append~ (bool, optional): If True, append instead of replace. Default: False
+- ~remove~ (bool, optional): If True, remove the target element. Default: False
+- ~url~ (str, optional): Update browser URL (uses ~history.pushState~)
+- ~title~ (str, optional): Update page title
+- ~scroll~ (str, optional): CSS selector to scroll to
+- ~scrollTop~ (bool, optional): If True, scroll to top of page
+- ~script~ (str, optional): JavaScript code to execute
+
+**Returns:** None
+
+**Examples:**
+
+#+BEGIN_SRC python
+from liveview import send
+
+# Replace content
+send(consumer, {
+    "target": "#container",
+    "html": "<p>New content</p>"
+})
+
+# Append content
+send(consumer, {
+    "target": "#list",
+    "html": "<li>New item</li>",
+    "append": True
+})
+
+# Remove element
+send(consumer, {
+    "target": "#notification-123",
+    "remove": True
+})
+
+# Update URL and title
+send(consumer, {
+    "target": "#main",
+    "html": "<h1>New Page</h1>",
+    "url": "/new-page/",
+    "title": "New Page - My Site"
+})
+
+# Execute JavaScript
+send(consumer, {
+    "script": "console.log('Hello from server');"
+})
+
+# Broadcast to all users
+send(consumer, {
+    "target": "#notifications",
+    "html": "<p>New message!</p>",
+    "append": True
+}, broadcast=True)
+#+END_SRC
+
+** Handler Content Parameter
+
+Every handler receives a ~content~ dictionary with the following structure:
+
+#+BEGIN_SRC python
+{
+    "function": str,      # Handler name that was called
+    "form": dict,         # All form inputs {name: value}
+    "data": dict,         # Custom data-data-* attributes
+    "lang": str,          # Current language (from <html lang="">)
+    "room": str           # WebSocket room identifier
+}
+#+END_SRC
+
+**Example access:**
+
+#+BEGIN_SRC python
+@liveview_handler("example")
+def example(consumer, content):
+    function_name = content["function"]           # "example"
+    user_input = content["form"]["name"]          # From <input name="name">
+    custom_id = content["data"]["item_id"]        # From data-data-item-id
+    language = content["lang"]                    # "en", "es", etc.
+    room_id = content["room"]                     # "user_123" or UUID
+#+END_SRC
+
+** Registry
+
+*** ~liveview_registry~
+
+Global registry for handlers and middleware.
+
+**Methods:**
+
+**** ~add_middleware(middleware_func)~
+
+Add a middleware function to run before handlers.
+
+**Parameters:**
+- ~middleware_func~ (callable): Function with signature ~(consumer, content, function_name) -> bool~
+
+**Returns:** None
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+def my_middleware(consumer, content, function_name):
+    # Run before handler
+    print(f"Calling {function_name}")
+
+    # Return True to continue, False to cancel
+    return True
+
+liveview_registry.add_middleware(my_middleware)
+#+END_SRC
+
+**** ~list_functions()~
+
+Get list of all registered handler names.
+
+**Returns:** List[str]
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+handlers = liveview_registry.list_functions()
+print(handlers)  # ['say_hello', 'load_articles', ...]
+#+END_SRC
+
+** Routing
+
+*** ~get_liveview_urlpatterns()~
+
+Get URL patterns for WebSocket routing.
+
+**Returns:** List of URL patterns
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview.routing import get_liveview_urlpatterns
+from channels.routing import URLRouter
+
+application = URLRouter(
+    get_liveview_urlpatterns()
+)
+#+END_SRC
+
+** Frontend Attributes
+
+*** HTML Attributes
+
+**** ~data-controller="page"~
+
+Required on ~<html>~ or ~<body>~ to activate Stimulus controller.
+
+#+BEGIN_SRC html
+<html data-controller="page">
+#+END_SRC
+
+**** ~data-room="room-id"~
+
+WebSocket room identifier. Use ~{% liveview_room_uuid %}~ to generate a random UUID for each request.
+
+#+BEGIN_SRC html
+{% load liveview %}
+<html data-room="{% liveview_room_uuid %}">
+#+END_SRC
+
+**** ~data-liveview-function="handler-name"~
+
+Specifies which handler to call.
+
+#+BEGIN_SRC html
+<button data-liveview-function="say_hello">Click</button>
+#+END_SRC
+
+**** ~data-action="event->controller#action"~
+
+Stimulus action binding.
+
+#+BEGIN_SRC html
+<button data-action="click->page#run">Click</button>
+<input data-action="input->page#run">
+<form data-action="submit->page#run">
+#+END_SRC
+
+**** ~data-data-*~
+
+Custom data attributes sent to handler in ~content["data"]~.
+
+#+BEGIN_SRC html
+<button data-data-user-id="123" data-data-action="delete">
+#+END_SRC
+
+Becomes:
+
+#+BEGIN_SRC python
+content["data"]["user_id"]  # "123"
+content["data"]["action"]   # "delete"
+#+END_SRC
+
+**** ~data-liveview-debounce="milliseconds"~
+
+Delay before sending request.
+
+#+BEGIN_SRC html
+<input data-liveview-debounce="500" data-action="input->page#run">
+#+END_SRC
+
+**** ~data-liveview-focus="true"~
+
+Auto-focus element after rendering.
+
+#+BEGIN_SRC html
+<input data-liveview-focus="true">
+#+END_SRC
+
+**** ~data-liveview-init="handler-name"~
+
+Call handler when element is first rendered.
+
+#+BEGIN_SRC html
+<div data-liveview-init="initialize_chart">
+#+END_SRC
+
+**** ~data-liveview-intersect-appear="handler-name"~
+
+Call handler when element appears in viewport.
+
+#+BEGIN_SRC html
+<div data-liveview-intersect-appear="load_more">
+#+END_SRC
+
+**** ~data-liveview-intersect-disappear="handler-name"~
+
+Call handler when element leaves viewport.
+
+#+BEGIN_SRC html
+<div data-liveview-intersect-disappear="pause_video">
+#+END_SRC
+
+**** ~data-liveview-intersect-threshold="pixels"~
+
+Trigger intersection before entering viewport.
+
+#+BEGIN_SRC html
+<div
+    data-liveview-intersect-appear="load_more"
+    data-liveview-intersect-threshold="200">
+#+END_SRC
+
+** Consumer Scope
+
+The ~consumer~ parameter provides access to connection metadata:
+
+#+BEGIN_SRC python
+@liveview_handler("example")
+def example(consumer, content):
+    # Get authenticated user
+    user = consumer.scope.get("user")
+
+    # Get session data
+    session = consumer.scope.get("session")
+
+    # Get URL route kwargs
+    url_kwargs = consumer.scope.get("url_route", {}).get("kwargs", {})
+
+    # Get headers
+    headers = dict(consumer.scope.get("headers", []))
 #+END_SRC
 
 * Internationalization
@@ -1142,8 +2495,9 @@ application = ProtocolTypeRouter({
 #+BEGIN_SRC html
 <!-- templates/base.html -->
 {% load static %}
+{% load liveview %}
 <!DOCTYPE html>
-<html lang="en" data-room="{% if request.user.is_authenticated %}{{ request.user.id }}{% else %}anonymous{% endif %}">
+<html lang="en" data-room="{% liveview_room_uuid %}">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Site{% endblock %}</title>
@@ -1156,6 +2510,10 @@ application = ProtocolTypeRouter({
 </body>
 </html>
 #+END_SRC
+
+**Important attributes:**
+- ~data-room="{% liveview_room_uuid %}"~ on ~<html>~: unique room ID for each page load
+- ~data-controller="page"~ on ~<body>~: activates the Stimulus controller
 
 ** Step 5: Create your first LiveView handler
 
