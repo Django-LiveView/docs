@@ -2578,6 +2578,12 @@ That's it! Click the button and see real-time updates. 🎉
 
 Congratulations! You have created your first real-time SPA using Django LiveView.
 
+** Live Demo
+
+Want to see Django LiveView in action? Check out our [[https://django-liveview-demo.andros.dev/][live demo]] showcasing a real-time alert system with WebSocket communication, form validation, and broadcast notifications.
+
+The source code is available at [[https://github.com/Django-LiveView/demo-alarms][GitHub]].
+
 * Source code
 :PROPERTIES:
 :ONE: one-custom-default-page
@@ -2595,6 +2601,7 @@ You can find all the source code in the following repositories:
     - [[https://github.com/Django-LiveView/starter-template][Starter]]: Check all the features of Django LiveView
     - [[https://github.com/Django-LiveView/minimal-template][Minimal]]: The minimal template to get started
 - Demos
+    - [[https://github.com/Django-LiveView/demo-alarms][Alert System]]: Real-time alert system with WebSocket communication ([[https://django-liveview-demo.andros.dev/][live demo]])
     - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake
 
 * Books
