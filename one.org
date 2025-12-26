@@ -13,6 +13,67 @@ Django LiveView is a framework for creating real-time, interactive web applicati
 
 Build rich, dynamic user experiences with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features without the complexity of a separate frontend framework.
 
+** See it in action
+
+Here's a complete example: a button that loads the latest blog article with a single click.
+
+*HTML:*
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="load_latest_article"
+    data-action="click->page#run">
+    Load Latest Article
+</button>
+
+<div id="article-container"></div>
+#+END_SRC
+
+*Python:*
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("load_latest_article")
+def load_latest_article(consumer, content):
+    # Get the latest article from database
+    article = Article.objects.latest('published_at')
+
+    # Render with Django templates
+    html = render_to_string('article.html', {
+        'article': article
+    })
+
+    # Send to frontend
+    send(consumer, {
+        "target": "#article-container",
+        "html": html
+    })
+#+END_SRC
+
+*Result (after clicking the button):*
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="load_latest_article"
+    data-action="click->page#run">
+    Load Latest Article
+</button>
+
+<div id="article-container">
+    <article>
+        <h2>Understanding Django Channels</h2>
+        <p class="meta">Published on Dec 15, 2024 by Jane Doe</p>
+        <p>Django Channels extends Django to handle WebSockets,
+           long-running connections, and background tasks...</p>
+        <a href="/blog/understanding-django-channels/">Read more</a>
+    </article>
+</div>
+#+END_SRC
+
+That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend framework. The article appears instantly via WebSocket. Just Python and Django templates working together in real-time.
+
 ** Key features
 
 - 🎯 **Create SPAs without using APIs**: No REST or GraphQL needed
