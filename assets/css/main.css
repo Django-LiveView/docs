@@ -45,6 +45,12 @@ i {
     font-style: normal;
 }
 
+strong,
+b {
+    color: var(--color-brown);
+    font-weight: bold;
+}
+
 /* Components */
 
 .container {
@@ -65,13 +71,13 @@ a,
 .link {
     display: inline-block;
     color: var(--color-brown);
-    text-decoration: none;
+    text-decoration: underline;
     padding-block: .3rem;
 }
 
 a:hover,
 .link:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .title {
