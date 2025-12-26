@@ -7,46 +7,13 @@
 :NAVIGATOR-ACTIVE: home
 :END:
 
-** What is HTML over the Wire?
+** Build real-time SPAs with Python, not JavaScript
 
-HTML over the Wire, or HTML over WebSockets, is a strategy for creating real-time SPAs by establishing a WebSocket connection between a client and server. It allows JavaScript to request actions (its only responsibility is to handle events) while the backend handles the business logic and renders HTML. This means you can create dynamic pages without reloading, without AJAX or APIs. This technology provides a secure, stable, and low-latency connection for real-time web applications.
+Django LiveView is a framework for creating real-time, interactive web applications entirely in Python, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
 
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-1.avif][Architecture send]]
+Build rich, dynamic user experiences with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features without the complexity of a separate frontend framework.
 
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-2.avif][Architecture receive]]
-
-** What is Django LiveView? 🚀
-
-Django LiveView is a framework for creating real-time, interactive web applications entirely in Python 🐍, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
-
-Build rich, dynamic user experiences ✨ with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features ⚡ without the complexity of a separate frontend framework.
-
-Let's illustrate with an example. I want to print article number 2.
-
-1. A WebSocket connection (a channel) is established between the client and the server.
-
-2. JavaScript sends a message via WebSocket to the server (Django).
-
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-3.avif][Send string]]
-
-3. Django interprets the message and renders the HTML of the article through the template system and the database.
-
-4. Django sends the HTML to JavaScript via the channel and specifies which selector to embed it in.
-
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-4.avif][Send JSON]]
-
-5. JavaScript renders the received HTML in the indicated selector.
-
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-5.avif][Place HTML]]
-
-The same process is repeated for each action, such as clicking a button, submitting a form, etc.
-
-** What are your superpowers? 💪
+** Key features
 
 - 🎯 **Create SPAs without using APIs**: No REST or GraphQL needed
 - 🎨 **Uses Django's template system** to render the frontend (without JavaScript frameworks)
@@ -59,6 +26,77 @@ The same process is repeated for each action, such as clicking a button, submitt
 - 💡 **Type hints** and modern Python (3.10+)
 - 📡 **Broadcast support** for multi-user real-time updates
 - 🔐 **Middleware system** for authentication and authorization
+
+** Why Django LiveView?
+
+*** Performance that speaks for itself
+
+[[https://github.com/tanrax/django-interactive-frameworks-benchmark][Benchmarks]] show Django LiveView delivers the fastest response times among Django interactive frameworks:
+
+#+ATTR_HTML: :class center-block image image--benchmark
+[[#/img/benchmark-response-time.webp][Response Time Comparison]]
+
+| Framework | Technology | Response Time | Data Transfer | Use Case |
+|-----------+------------+---------------+---------------|----------|
+| **LiveView** | WebSockets | **9.35ms** | 450 bytes | Real-time dashboards, collaborative apps |
+| HTMX | AJAX | 16.48ms | ~37 KB | Modern UX with minimal JavaScript |
+| Unicorn | AJAX | 26.76ms | ~71 KB | Complex forms with reactive state |
+| SSR | POST + redirect | 47.25ms | ~8.5 KB | SEO-critical pages, traditional CRUD |
+
+Django LiveView is approximately **43% faster than HTMX** and **80% faster than traditional SSR** through persistent WebSocket connectivity.
+
+*** Technology Comparison
+
+| Feature | LiveView | SSR | HTMX | Unicorn |
+|---------+----------+-----+------+---------|
+| **Transport** | WebSocket | HTTP | AJAX | AJAX |
+| **Update Type** | Real-time | Full reload | Partial | Reactive |
+| **Multi-user** | ✅ Broadcast | ❌ | ❌ | ❌ |
+| **Infrastructure** | Redis + Channels | Django only | Django only | Django only |
+| **Page Reload** | ❌ No | ✅ Yes | ❌ No | ❌ No |
+
+*** What makes it different?
+
+The key difference is the connection model:
+
+**Django LiveView** uses a persistent WebSocket connection that stays open between the client and server. This allows bidirectional, real-time communication with minimal latency. Think of it like a phone call: once connected, both sides can talk instantly.
+
+**HTMX** sends a new HTTP request for each user interaction and updates only part of the page. It's like sending text messages: you send a message, wait for a response, then repeat.
+
+**Traditional SSR** reloads the entire page with each interaction through a POST request followed by a redirect. It's like hanging up and calling back every time you want to say something.
+
+#+ATTR_HTML: :class center-block image image--home
+[[#/img/step-1.avif][Architecture send]]
+
+#+ATTR_HTML: :class center-block image image--home
+[[#/img/step-2.avif][Architecture receive]]
+
+** How does it work?
+
+Let's illustrate with an example: displaying article number 2.
+
+1. [@1] A WebSocket connection (a channel) is established between the client and the server.
+
+2. [@2] JavaScript sends a message via WebSocket to the server (Django).
+
+   #+ATTR_HTML: :class center-block image image--home
+   [[#/img/step-3.avif][Send string]]
+
+3. [@3] Django interprets the message and renders the HTML of the article through the template system and the database.
+
+4. [@4] Django sends the HTML to JavaScript via the channel and specifies which selector to embed it in.
+
+   #+ATTR_HTML: :class center-block image image--home
+   [[#/img/step-4.avif][Send JSON]]
+
+5. [@5] JavaScript renders the received HTML in the indicated selector.
+
+   #+ATTR_HTML: :class center-block image image--home
+   [[#/img/step-5.avif][Place HTML]]
+
+The same process is repeated for each action: clicking a button, submitting a form, navigating, etc.
+
+** Ready to start?
 
 Are you ready to create your first real-time SPA? Let's go to the [[#/quick-start/][Quick start]].
 
