@@ -1,0 +1,1790 @@
+* one.el
+:PROPERTIES:
+:ONE: one-default-with-sidebar
+:CUSTOM_ID: /
+:END:
+** Static Site Generator for Emacs Lisp programmers
+
+[[youtube:GGP2mxZn4mY]]
+
+Have you ever wanted to write a blog:
+
+- contained in a unique org file,
+- rendered with only one Emacs command,
+- that can be modified by writing Emacs Lisp code (and CSS too),
+- with "html templates" that are plain Emacs Lisp data,
+- with no config file,
+- and no dependencies on external static site generators?
+
+If so, you might be interested in ~one.el~ a simple *Static Site
+Generator* for *Emacs Lisp* programmers and *org-mode* users.
+
+To get started right away check [[#/docs/install-one-el/][Install one.el]] and [[#/docs/getting-started/][Getting started]]
+pages.
+
+You can find the code here: https://github.com/tonyaldon/one.el.
+
+Athough ~one.el~ uses org-mode not all the org elements are useful to
+build technical blog sites (see [[#/#why][Why one.el?]]).  So only a few org
+elements have an transcoder function implemented in [[#/docs/one-ox/][one-ox]], the org
+backend used by ~one.el~ to build the default website (see [[#/docs/one-default-render-function/][one-default
+render function]]).  Please check [[#/docs/one-ox/#org-elements-not-supported][Org elements not supported]] before
+relying on ~one.el~.
+
+In ~one.el~, the following org document defines a website with 3 pages
+that we build by calling ~one-build~ command while we are visiting it:
+
+#+BEGIN_SRC org
+,* My website
+:PROPERTIES:
+:ONE: one-default-home
+:CUSTOM_ID: /
+:END:
+
+Welcome to my website!
+
+,* Blog post 1
+:PROPERTIES:
+:ONE: one-default
+:CUSTOM_ID: /blog/page-1/
+:END:
+
+My first blog post!
+
+,* Blog post 2
+:PROPERTIES:
+:ONE: one-default
+:CUSTOM_ID: /blog/page-2/
+:END:
+
+My second blog post!
+#+END_SRC
+
+Note that if we want to use the default css style sheet we can add it
+by calling ~one-default-add-css-file~ before building the website.
+
+The path ~/~ in the first ~CUSTOM_ID~ org property tells ~one.el~ that the
+page "My website" is the home page.  That page is rendered using
+~one-default-home~ render function, value of ~ONE~ org property of the
+same headline.
+
+The path ~/blog/page-1/~ in the second ~CUSTOM_ID~ org property tells
+~one.el~ that we want to render "Blog post 1" page in such a way
+that when we serve our website locally at ~http://localhost:3000~ for
+instance, that page is served at ~http://localhost:3000/blog/page-1/~.
+How that page is rendered is determined by the value of ~ONE~ org
+property of the same headline which is ~one-default~, a render
+function.
+
+The same goes for the last page "Blog post 2".
+
+As you might have noticed, a ~one.el~ website is an org file where the
+pages are the headlines of level 1 with the org properties ~ONE~ and
+~CUSTOM_ID~ set.  Nothing more!
+
+~ONE~ is the only org property added by ~one.el~.  Its value, an Emacs Lisp
+function which returns an HTML string, for a given page determines how
+~one.el~ renders that page.
+
+Paths of pages are set using ~CUSTOM_ID~ org property.
+
+With that said, if you want to try it you can check [[#/docs/install-one-el/][Install one.el]] and
+[[#/docs/getting-started/][Getting started]] pages.
+
+** Why one.el?
+:PROPERTIES:
+:CUSTOM_ID: /#why
+:END:
+
+I wrote ~one.el~ because I didn't find an existing static site generator
+with the following requirements:
+
+- I'm not looking for a solution for every type of websites, only for
+  technical blog sites which are basically chunks of code surrounded
+  by text,
+- I want something simple that I understand and that I can modify
+  only by writting some Emacs Lisp,
+- I want websites to be written to a single org file,
+- I want something with no dependencies other than emacs packages
+  that are not bridges to feed other static site frameworks,
+- I want something with no configuration options, if you want to
+  modify something you write Emacs Lisp code and
+- Finally, I want an Emacs solution for an Emacs user.
+
+Following those requirements led me to ~one.el~, an opiniated static
+site generator for Emacs Lisp programmers and Org mode users that
+works well if you want to build websites like
+
+- [[https://minibuffer.tonyaldon.com][minibuffer]] ([[https://github.com/tonyaldon/minibuffer.tonyaldon.com][source]]): learn Emacs Lisp one sexp at a time,
+- [[https://posts.tonyaldon.com][Elisp posts]]: some articles about Emacs Lisp,
+- [[https://jack.tonyaldon.com][jack]]: HTML generator library for Emacs Lisp,
+- [[https://one.tonyaldon.com][one.el]]: documentation of one.el package,
+- [[https://lnroom.live][LNROOM]]: learn how to hack on Core Lightning and
+- https://tonyaldon.com.
+
+all built with ~one.el~.
+
+* Install one.el
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/install-one-el/
+:END:
+** Manually
+
+~one.el~ depends on [[https://jack.tonyaldon.com/][jack]] and [[https://github.com/hniksic/emacs-htmlize][htmlize]] packages that are available on
+[[https://melpa.org/][Melpa]].  Once you have them installed you can add ~one.el~ to your
+~load-path~ and require it like this:
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "/path/to/one.el/")
+(require 'one)
+#+END_SRC
+
+** With package-install
+
+~one.el~ is also available on [[https://melpa.org/][Melpa]] so you can install it like this:
+
+#+BEGIN_SRC text
+M-x package-install <RET> one <RET>
+#+END_SRC
+
+** With straight.el
+
+If you're using [[https://github.com/radian-software/straight.el][straight.el]], to install ~one.el~ you just have to add
+this sexp to your init file:
+
+#+BEGIN_SRC emacs-lisp
+(straight-use-package
+ '(one :type git :host github :repo "tonyaldon/one.el"
+       :build (:not compile)))
+#+END_SRC
+
+Note that ~:build (:not compile)~ is important.  It tells ~straight.el~
+not to byte compile ~one.el~.  Something happened in ~straight.el~
+between commits ~3eca39d~ and ~b3760f5~ which broke byte compilation of
+~one.el~ if done by ~straight.el~.
+
+** Let's go
+
+Now you can create a new website by calling ~one-default-new-project~
+(preferably in an empty directory) and you can build it by calling
+~one-build~ command.
+
+If this is the first time you try ~one.el~ reading [[#/docs/getting-started/][Getting started]]
+page might be helpful.
+
+* Getting started
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/getting-started/
+:END:
+** Start a new project
+
+By calling ~one-default-new-project~ command (preferably in an empty
+directory) we produce a new ~one.el~ project with the following
+structure:
+
+#+BEGIN_SRC text
+.
+├── assets
+│   └── one.css
+└── one.org
+#+END_SRC
+
+Once done we can build the website under the directory ~./public/~
+by calling ~one-build~ command while we are in the file ~one.org~.  Our
+project's structure is now:
+
+#+BEGIN_SRC text
+.
+├── assets
+│   └── one.css
+├── one.org
+└── public
+    ├── blog
+    │   ├── default
+    │   │   └── index.html
+    │   ├── default-home-list-pages
+    │   │   └── index.html
+    │   ├── one-default-doc
+    │   │   └── index.html
+    │   ├── one-default-with-sidebar
+    │   │   └── index.html
+    │   └── one-default-with-toc
+    │       └── index.html
+    ├── index.html
+    └── one.css
+#+END_SRC
+
+** Modify the content with live reloading
+
+To get our website up and running, we serve the files in ~./public/~
+subdirectory using [[https://browsersync.io][brower-sync]] (any webserver serving files is OK).
+Once we have it installed, to start a webserver with live reloading,
+we run the following commands (in a terminal):
+
+#+BEGIN_SRC text
+$ cd public
+$ browser-sync start -s -w --files "*"
+#+END_SRC
+
+Assuming the port ~3000~ isn't used we have our website served at
+~http://localhost:3000~.
+
+Now we can modify the content of ~one.org~ file and see the changes
+reflected in the browser after we rebuild/re-render the whole website
+or part of it using the following commands ~one-build~, ~one-render-pages~
+and ~one-render-page-at-point~ or the asynchronous version of those
+commands ~one-build-async~, ~one-render-pages-async~ and
+~one-render-page-at-point-async~.
+
+** CSS style sheet
+
+When we call ~one-build~ (or ~one-build-async~) command the pages of the
+website are rendered in the directory ~./public/~ and the files in
+~./assets/~ directory are copied into ~./public/~ subdirectory.
+
+When we build a ~one.el~ website with the default render functions and
+the default CSS style sheet (this is the case if we used
+~one-default-new-project~ as we did above) the style sheet that applies
+is ~./public/one.css~ file which is a copy of ~./assets/one.css~ file.
+
+So in that case, to modify the website's layout we just have to modify
+the file ~./assets/one.css~ and copy it in ~./public/~ directory either
+with ~one-build~, ~one-build-async~ or ~one-copy-assets-to-public~.
+
+*** Modify the CSS style sheet with live reloading
+
+To get the file ~./assets/one.css~ copied into ~./public/~ directory each
+time we modify it we can use [[https://eradman.com/entrproject/][entr]] utility like this (being at the root
+of our project):
+
+#+BEGIN_SRC text
+$ ls assets/one.css | entr -s 'cp assets/one.css public/'
+#+END_SRC
+
+Combined with ~browser-sync~ live reloading I think we get a decent
+programmer experience.
+
+*** Source blocks
+
+When we use the default render functions and the default CSS style
+sheet, the org content is exported into HTML strings using ~one-ox~ org
+export backend.  Consequently, ~src-block~ elements are highlighted
+using [[https://github.com/hniksic/emacs-htmlize][htmlize]].
+
+See [[#/docs/one-ox-src-block/][one-ox | src-block]] for more information.
+
+* How does one.el work?
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/how-does-one-el-work/
+:END:
+
+In an org file containing all the pages of our website we can build
+the website under ~./public/~ subdirectory by calling either ~one-build~
+or ~one-render-pages~ commands.
+
+The only difference between those two commands is that before
+producing the HTML pages calling ~one-render-pages~, ~one-build~ command
+cleans the subdirectory ~./public/~ and copies the content of ~./assets/~
+subdirectory into ~./public/~ subdirectory.
+
+So let's focus on ~one-render-pages~ command.
+
+For each page of our website, the function ~one-render-pages~ uses
+the render function set in ~ONE~ org property of the page to produce the
+HTML string representing the page and stores it in an ~index.html~ file
+whom path is determined by ~CUSTOM_ID~ org property of the page.
+
+Render functions are at the heart of ~one.el~ mechanism.  They
+determined how pages are rendered.  Specifically, render functions are
+regular Elisp functions that takes 3 arguments
+
+- ~page-tree~: corresponding to the parsed tree of the org entry defining
+  the page,
+- ~pages~: the list of pages,
+- ~global~: a plist of global informations that are computed once
+  in ~one-render-pages~ (see ~one-add-to-global~) before rendering the
+  pages
+
+and return HTML strings.
+
+For instance, the following ~hello-world~ function
+
+#+BEGIN_SRC emacs-lisp
+(defun hello-world (page-tree pages global)
+      "<h1>Hello world!</h1>")
+#+END_SRC
+
+defines a valid render function.  We can use it to build a website
+like this.  In an empty directory, we create a file named ~one.org~ with
+the following content:
+
+#+BEGIN_SRC org
+,* The home page
+:PROPERTIES:
+:ONE: hello-world
+:CUSTOM_ID: /
+:END:
+,* Blog post 1
+:PROPERTIES:
+:ONE: hello-world
+:CUSTOM_ID: /blog/page-1/
+:END:
+#+END_SRC
+
+We visit that file and call ~one-build~ command.  It produces the
+following files
+
+#+BEGIN_SRC text
+.
+├── one.org (already there)
+└── public
+    ├── blog
+    │   └── page-1
+    │       └── index.html
+    └── index.html
+#+END_SRC
+
+and both files ~./public/blog/page-1/index.html~ and
+~./public/index.html~ have the same content:
+
+#+BEGIN_SRC html
+<h1>Hello world!</h1>
+#+END_SRC
+
+Therefore if we serve the website in ~./public/~ directory at
+~http://localhost:3000~ we can access the two "Hello world!" pages
+at ~http://localhost:3000/blog/page-1/~ and ~http://localhost:3000~.
+
+That's it!  This is how ~one.el~ works under the hood.
+
+~one.el~ comes with predefined render functions, a custom CSS style
+sheet and a custom [[#/docs/one-ox/][org export backend]] which are used all together to
+build that documentation for instance.
+
+See [[#/docs/getting-started/][Getting started]] to start a new project with those defaults.
+
+See [[#/docs/one-default-render-function/][one-default render function]] to take inspiration and write your own
+render functions.
+
+* one-default render function
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-default-render-function/
+:END:
+
+In [[#/docs/how-does-one-el-work/][How does one.el work?]] page we saw that render functions are at
+the heart of ~one.el~ mechanism.  They determine how pages are
+rendered.
+
+We saw that
+
+#+BEGIN_SRC emacs-lisp
+(defun hello-world (page-tree pages global)
+      "<h1>Hello world!</h1>")
+#+END_SRC
+
+defines a valid render function that can be used to render pages of a
+~one.el~ website by setting ~ONE~ org property to ~hello-world~ like this
+for instance:
+
+#+BEGIN_SRC org
+,* The home page
+:PROPERTIES:
+:ONE: hello-world
+:CUSTOM_ID: /
+:END:
+,* Blog post 1
+:PROPERTIES:
+:ONE: hello-world
+:CUSTOM_ID: /blog/page-1/
+:END:
+#+END_SRC
+
+~one.el~ comes with several default render functions that can be used
+instead of the dummy ~hello-world~ function:
+
+- ~one-default-home~: org content,
+- ~one-default-home-list-pages~: org content followed by the list in
+  reverse order of the pages of the website,
+- ~one-default~: org content with navigation buttons at the bottom to go
+  to the previous page, the next page or a random one,
+- ~one-default-with-toc~: same as ~one-default~ but with a table of
+  content at the top of the page and
+- ~one-default-with-sidebar~: same as ~one-default~ but with a sidebar
+  listing all the pages in the website,
+- ~one-default-doc~: same as ~one-default-with-sidebar~ but with a table
+  of content at the top of the page.
+
+Those default render functions use [[#/docs/one-ox/][one-ox]] custom org export backend and
+~one-default-css~ custom CSS style sheet.
+
+If we want to start a new project using these defaults, we can use
+~one-default-new-project~ command (see [[#/docs/getting-started/][Getting started]]).
+
+If you plan to write your own render functions you may find the
+following sections interesting.
+
+*** The org document
+
+Let's consider the following org document in a file named ~one.org~ for
+instance:
+
+#+BEGIN_SRC org
+,* Home
+:PROPERTIES:
+:ONE: one-default-home
+:CUSTOM_ID: /
+:END:
+,* Page 1
+:PROPERTIES:
+:ONE: one-default
+:CUSTOM_ID: /blog/page-1/
+:END:
+,** Headline foo 1
+
+[[#/blog/page-2/][Link to Page 2]]
+
+,** Headline foo 2
+,*** Headline bar
+
+Some content.
+
+,*** Headline baz
+:PROPERTIES:
+:CUSTOM_ID: /blog/page-1/#baz
+:END:
+
+,#+BEGIN_SRC emacs-lisp
+(message "foo bar baz")
+,#+END_SRC
+
+,* Page 2
+:PROPERTIES:
+:ONE: one-default
+:CUSTOM_ID: /blog/page-2/
+:END:
+
+[[#/blog/page-1/#baz][Link to Headline baz in Page 1]]
+
+#+END_SRC
+
+Let's generate the file ~./assets/one.css~ that contains the content of
+~one-default-css~ string by calling ~one-default-add-css-file~ command.
+
+Our project structure is now:
+
+#+BEGIN_SRC text
+.
+├── assets
+│   └── one.css
+└── one.org
+#+END_SRC
+
+*** Build the website
+
+Now, while vising the file ~one.org~ we call ~one-build~ which builds
+"Home", "Page 1" and "Page 2" pages under the directory ~./public/~ such
+that our project tree is now:
+
+#+BEGIN_SRC text
+.
+├── assets
+│   └── one.css
+├── one.org
+└── public
+    ├── blog
+    │   ├── page-1
+    │   │   └── index.html
+    │   └── page-2
+    │       └── index.html
+    ├── index.html
+    └── one.css
+#+END_SRC
+
+*** Home
+
+The page "Home" has been generated:
+
+- in the file ~./public/index.html~ respecting the path information ~/~ in
+  ~CUSTOM_ID~ org property and
+- its HTML content has been created using ~one-default-home~ render
+  function specified in ~ONE~ org property.
+
+~./public/index.html~ (pretty printed for the demonstration):
+
+#+BEGIN_SRC html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="/one.css" />
+    <title>Home</title>
+  </head>
+  <body>
+    <div class="header">Home</div>
+    <div class="content">
+      <div id="home"><div></div></div>
+    </div>
+  </body>
+</html>
+#+END_SRC
+
+*** Page 1
+
+The page "Page 1" has been generated:
+
+- in the file ~./public/blog/page-1/index.html~ respecting the path
+  information ~/blog/page-1/~ in ~CUSTOM_ID~ org property and
+- its HTML content has been created using ~one-default~ render function
+  specified in ~ONE~ org property.
+
+~./public/blog/page-1/index.html~ (pretty printed for the demonstration):
+
+#+BEGIN_SRC html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="/one.css" />
+    <title>Page 1</title>
+  </head>
+  <body>
+    <div class="header"><a href="/">Home</a></div>
+    <div class="content">
+      <div class="title">
+        <div class="title"><h1>Page 1</h1></div>
+      </div>
+      <div></div>
+      <div>
+        <h2 id="one-df8f0f16cc">Headline foo 1</h2>
+        <div>
+          <p><a href="/blog/page-2/">Link to Page 2</a></p>
+        </div>
+      </div>
+
+      <div>
+        <h2 id="one-9c2f3b8536">Headline foo 2</h2>
+        <div>
+          <h3 id="one-fe469dd578">Headline bar</h3>
+          <div><p>Some content.</p></div>
+        </div>
+
+        <div>
+          <h3 id="baz">Headline baz</h3>
+          <div>
+            <pre><code class="one-hl one-hl-block">(message <span class="one-hl-string">"foo bar baz"</span>)</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="/">PREV</a><a href="/">RANDOM</a
+        ><a href="/blog/page-2/">NEXT</a>
+      </div>
+    </div>
+  </body>
+</html>
+#+END_SRC
+
+*** Page 2
+
+The page "Page 2" has been generated:
+
+- in the file ~./public/blog/page-2/index.html~ respecting the path
+  information ~/blog/page-2/~ in ~CUSTOM_ID~ org property and
+- its HTML content has been created using ~one-default~ render function
+  specified in ~ONE~ org property.
+
+~./public/blog/page-2/index.html~ (pretty printed for the demonstration):
+
+#+BEGIN_SRC html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="/one.css" />
+    <title>Page 2</title>
+  </head>
+  <body>
+    <div class="header"><a href="/">Home</a></div>
+    <div class="content">
+      <div class="title">
+        <div class="title"><h1>Page 2</h1></div>
+      </div>
+      <div>
+        <p><a href="/blog/page-1/#baz">Link to Headline baz in Page 1</a></p>
+      </div>
+      <div class="nav">
+        <a href="/blog/page-1/">PREV</a><a href="/">RANDOM</a>
+      </div>
+    </div>
+  </body>
+</html>
+#+END_SRC
+
+*** How was "Page 1" built?
+
+When we called ~one-build~ in ~one.org~ buffer, the whole buffer was
+parsed with the function ~one-parse-buffer~ and a list of pages was
+built from that parsed tree and looked like this:
+
+#+BEGIN_SRC emacs-lisp
+((:one-title "Home"
+  :one-path "/"
+  :one-render-page-function one-default-home
+  :one-page-tree (headline (:raw-value "Home" ...) ...))
+ (:one-title "Page 1"
+  :one-path "/blog/page-1/"
+  :one-render-page-function one-default
+  :one-page-tree (headline (:raw-value "Page 1" ...) ...))
+ (:one-title "Page 2"
+  :one-path "/blog/page-2/"
+  :one-render-page-function one-default
+  :one-page-tree (headline (:raw-value "Page 2" ...) ...)))
+#+END_SRC
+
+Let's call ~pages~ that list of pages.
+
+Then for each ~page~ in ~pages~ the function ~one-render-page~ was called
+with ~page~, ~pages~ and ~global~ (see ~one-add-to-global~ variable) as
+arguments.
+
+Finally, in ~one-render-page~ the function ~one-default~ or
+~one-default-home~ was called with the arguments ~page-tree~, ~pages~ and
+~global~ to create the HTML content of each page whom path under the
+directory ~./public/~ was determined by the value of ~:one-path~ property
+in ~page~ and ~page-tree~ was the value of ~:one-page-tree~ property in
+~page~.
+
+Focusing on "Page 1", the function ~one-default~ was called with the
+arguments ~page-tree~, ~page~ and ~global~ with ~page-tree~ being the
+following parsed tree of the headline defining "Page 1":
+
+#+BEGIN_SRC emacs-lisp
+(headline
+ (:raw-value "Page 1"
+  :CUSTOM_ID "/blog/page-1/"
+  :ONE "one-default"
+  :parent (org-data ...)
+  :one-internal-id "one-9c81c230b6"
+  ...)
+ (section (...) (property-drawer ...))
+ (headline
+  (:raw-value "Headline foo 1"
+   :one-internal-id "one-4df8d962d9"
+   ...)
+  (section (...) (paragraph ...)))
+ (headline
+  (:raw-value "Headline foo 2"
+   :one-internal-id "one-9d89da8271"
+   ...)
+  (headline
+   (:raw-value "Headline bar"
+    :one-internal-id "one-95fa001487"
+    ...)
+   (section
+    (...)
+    (paragraph (...) #("Some content. " 0 14 (:parent #4)))))
+  (headline
+   (:raw-value "Headline baz"
+    :CUSTOM_ID "/blog/page-1/#baz"
+    :one-internal-id "baz"
+    ...)
+   (section
+    (...)
+    (property-drawer ...)
+    (src-block
+     (:language "emacs-lisp"
+      :value "(message \"foo bar baz\")"
+      ...))))))
+#+END_SRC
+
+In ~one-default~ the org content of "Page 1" was exported into a HTML
+string using ~org-export-data-with-backend~ and [[#/docs/one-ox/][one-ox]] custom org export
+backend.  Then this HTML string was used in a data structure
+representing the HTML page.  Finally, ~jack-html~ (see [[https://jack.tonyaldon.com/][jack]]) transformed
+that data structure into a HTML string which was written on the file
+~./public/blog/page-1/index.html~:
+
+#+BEGIN_SRC emacs-lisp
+(defun one-default (page-tree pages _global)
+  "Default render function.
+
+See `one-is-page', `one-render-pages' and `one-default-css'."
+  (let* ((title (org-element-property :raw-value page-tree))
+         (path (org-element-property :CUSTOM_ID page-tree))
+         (content (org-export-data-with-backend
+                   (org-element-contents page-tree)
+                   'one-ox nil))
+         (website-name (one-default-website-name pages))
+         (nav (one-default-nav path pages)))
+    (jack-html
+     "<!DOCTYPE html>"
+     `(:html
+       (:head
+        (:meta (@ :name "viewport" :content "width=device-width,initial-scale=1"))
+        (:link (@ :rel "stylesheet" :type "text/css" :href "/one.css"))
+        (:title ,title))
+       (:body
+        (:div.header (:a (@ :href "/") ,website-name))
+        (:div.content
+         (:div.title
+          ,(if (not (string= path "/"))
+               `(:div.title (:h1 ,title))
+             '(:div.title-empty)))
+         ,content
+         ,nav))))))
+#+END_SRC
+
+* Miscellaneous
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/miscellaneous/
+:END:
+** Page at point
+
+If we need to render only the page at point, meaning the headline of
+level 1 with ~ONE~ and ~CUSTOM_ID~ org properties set, we can use the
+commands ~one-render-page-at-point~ and ~one-render-page-at-point-async~.
+
+** onerc.el file
+
+We can use an Emacs Lisp file called ~onerc.el~ to customize our
+website.  It must be in the same directory of the org file containing
+the content of our website.
+
+This file is loaded first in ~one-render-pages~ before rendering the
+webpages.
+
+This is a good place to set ~one-add-to-global~ and ~one-hook~ variables
+or to define our own render functions.
+
+** one-add-to-global
+:PROPERTIES:
+:CUSTOM_ID: /docs/miscellaneous/#one-add-to-global
+:END:
+
+Render functions takes 3 arguments:
+
+- ~page-tree~: the parsed tree of the page being rendered,
+- ~pages~: the list of pages,
+- ~global~: a plist of global informations that are computed once
+  in ~one-render-pages~ before rendering the pages using
+  ~one-add-to-global~ variable.
+
+That means that if a render function needs extra informations, we can
+use ~one-add-to-global~ variable to pass those informations to the
+render function.
+
+Specifically, elements in ~one-add-to-global~ list are plist with the
+following properties:
+
+- ~:one-global-property~: a keyword that is used as proprety
+  in the ~global~ argument passed to the render functions,
+- ~:one-global-function~: a function that takes two arguments ~pages~
+  (list of pages, see ~one-list-pages~) and ~tree~
+  (see ~one-parse-buffer~).  That function is called once in
+  ~one-render-pages~ and its result is used as the value of
+  the property ~:one-global-property~ in the ~global~ argument
+  passed to the render functions.
+
+For instance, if ~one-add-to-global~ is set to
+
+#+BEGIN_SRC emacs-lisp
+((:one-global-property :one-tree
+  :one-global-function (lambda (pages tree) tree)))
+#+END_SRC
+
+then ~global~ local variable will be set to
+
+#+BEGIN_SRC emacs-lisp
+((:one-tree tree))
+#+END_SRC
+
+where ~tree~ is the value returned by ~one-parse-buffer~ function.
+
+** one-hook
+
+Each function in ~one-hook~ is called once in ~one-render-pages~.
+
+Those functions take three arguments:
+
+- ~pages~: list of pages (see ~one-list-pages~),
+- ~tree~: see ~one-parse-buffer~,
+- ~global~: see [[#/docs/miscellaneous/#one-add-to-global][one-add-to-global]].
+
+As those functions take ~global~ argument they are called after
+that argument has been let binded using ~one-add-to-global~.
+
+*** feed.xml example
+
+This hook is used to build ~feed.xml~ file of [[https://minibuffer.tonyaldon.com][minibuffer.tonyaldon.com]]
+website.  You can check ~onerc.el~ file of
+[[https://github.com/tonyaldon/minibuffer.tonyaldon.com][tonyaldon/minibuffer.tonyaldon.com]] repository to see how it is done.
+
+*** robot.txt and sitemap.txt
+
+If we want to add a ~sitemap.txt~ file to our website we can do so using
+~one-hook~.
+
+**** robot.txt
+
+First we need to indicate in a ~robots.txt~ where our ~sitemap.txt~ is
+located.
+
+Assuming our website is ~https://example.com~ and our ~sitemap.txt~ file
+is at the root of it, we can add the following ~robots.txt~ file in the
+~assets~ directory (~./assets/robots.txt~):
+
+#+BEGIN_SRC text
+User-Agent: *
+Allow: /
+Sitemap: https://domain.com/sitemap.txt
+#+END_SRC
+
+**** sitemap.txt
+
+Now in ~onerc.el~ file:
+
+1) we set our domain with protocol in the variable ~domain~,
+2) then we define ~make-sitemap~ function which will create the file
+   ~sitemap.txt~ in the ~public~ directory (~./public/sitemap.txt~) each
+   time be build our website,
+3) Finally, to tell ~one.el~ to actually create ~sitemap.txt~ file using
+   ~make-sitemap~ function each time be build our website, we add it
+   to ~one-hook~:
+
+#+BEGIN_SRC emacs-lisp
+(defvar domain "https://example.com"
+  "Domain with protocol to be used to produce sitemap file.
+
+See `make-sitemap'.")
+
+(defun make-sitemap (pages tree global)
+  "Produce file ./public/sitemap.txt
+
+Global variable `domain' is used as domain with protocol.
+This function is meant to be added to `one-hook'."
+  (with-temp-file "./public/sitemap.txt"
+    (insert
+     (mapconcat 'identity
+                (mapcar
+			           (lambda (page)
+			             (let* ((path (plist-get page :one-path))
+                          (link (concat domain path)))
+			               link))
+			           pages)
+                "\n"))))
+
+(add-hook 'one-hook 'make-sitemap)
+#+END_SRC
+
+Thanks [[https://github.com/tanrax][@tanrax]] for the code snippet (see [[https://github.com/tonyaldon/one.el/issues/6][issue #6]]).
+
+** Async commands
+
+The function ~one-render-pages-async~ and ~one-build-async~ spawn an
+~emacs~ subprocess in order to build html pages asynchronously.  The
+arguments passed to ~emacs~ depends on ~one-emacs-cmd-line-args-async~ value.
+
+By default, when ~one-emacs-cmd-line-args-async~ is ~nil~, we run ~emacs~
+in "batch mode", we load the user's initialization file and we
+evaluate a specific sexp that builds html pages.  Specifically, we
+pass the following ~command~ (~emacs~ file name followed by command line
+arguments) to ~make-process~ function like this:
+
+#+BEGIN_SRC emacs-lisp
+(let* ((emacs (file-truename
+               (expand-file-name invocation-name invocation-directory)))
+       (command `(,emacs "--batch"
+                         "-l" ,user-init-file
+                         "--eval" ,sexp))
+       (sexp ...))
+  (make-process
+   :name ...
+   :buffer ...
+   :command command))
+#+END_SRC
+
+If ~one-emacs-cmd-line-args-async~ is non-nil, we no longer load the user's
+initialization file and replace ~"-l" ,user-init-file~ in ~command~ above
+by the elements of ~one-emacs-cmd-line-args-async~.  For instance, if
+~one-emacs-cmd-line-args-async~ is equal to
+
+#+BEGIN_SRC emacs-lisp
+'("-l" "/path/to/some-elisp-file.el")
+#+END_SRC
+
+then ~command~ becomes
+
+#+BEGIN_SRC emacs-lisp
+(let* (...
+       (command `(,emacs "--batch"
+                         "-l" "/path/to/some-elisp-file.el"
+                         "--eval" ,sexp))
+       ...)
+  ...)
+#+END_SRC
+
+** Extend one-ox org backend
+:PROPERTIES:
+:CUSTOM_ID: /docs/miscellaneous/#extend-one-ox-org-backend
+:END:
+
+When we use the default render functions, the org content of the
+webpages is exported using [[#/docs/one-ox/][one-ox]] org backend like this
+
+#+BEGIN_SRC emacs-lisp
+(org-export-data-with-backend
+ (org-element-contents page-tree)
+ 'one-ox nil)
+#+END_SRC
+
+where ~page-tree~ is the parsed tree of the headline containing the page
+being rendered (see [[#/docs/one-default-render-function/][one-default render function]]).
+
+While ~one-ox~ exports enough org elements for my use cases (see [[#/#why][Why
+one.el?]]) this might not be the case for you.
+
+I think this is not a big problem because we can extend ~one-ox~
+(precisely we can derive a new org backend from ~one-ox~ org backend)
+with other transcoder functions for the org elements that miss
+transcoder functions.
+
+Let's see how we can do that with an example.
+
+*** Extend one-ox with horizontal-rule org elements
+
+Lines consisting of only dashes (at least 5) are parsed by the org
+parser as ~horizontal-rule~ org elements.  ~one-ox~ doesn't provide a
+transcoder function for ~horizontal-rule~ so we can't use it directly if
+we want to have them exported as ~<hr>~ tags in our website.
+
+In that section we see how to derived an org backend ~one-ox-with-hr~
+from ~one-ox~ org backend that exports ~horizontal-rule~ org elements
+with ~<hr>~ tags.
+
+To do that we define a transcoder function ~my-horizontal-rule~ which
+takes 3 arguments (not used) and return the string ~"<hr>"~:
+
+#+BEGIN_SRC emacs-lisp
+(defun my-horizontal-rule (_ _ _) "<hr>")
+#+END_SRC
+
+Then we use that function in the ~:translate-alist~ alist in the body of
+the function ~org-export-define-derived-backend~ to define ~one-ox-with-hr~
+org backend:
+
+#+BEGIN_SRC emacs-lisp
+(org-export-define-derived-backend 'one-ox-with-hr 'one-ox
+  :translate-alist
+  '((horizontal-rule . my-horizontal-rule)))
+#+END_SRC
+
+Then we can export the org content of the webpages (including the
+~horizontal-rule~) using ~one-ox-with-hr~ org backend like this
+
+#+BEGIN_SRC emacs-lisp
+(org-export-data-with-backend
+ (org-element-contents page-tree)
+ 'one-ox-with-hr nil)
+#+END_SRC
+
+where ~page-tree~ is the parsed tree of the headline containing the page
+being rendered.
+
+Now that we saw how to derive ~one-ox-with-hr~ org backend and use it,
+let's build a website with only a home page with two ~horizontal-rule~.
+
+In an empty directory let's add the following files:
+
+- ~one.org~:
+
+  #+BEGIN_SRC org
+  ,* Home page
+  :PROPERTIES:
+  :ONE: my-render-function
+  :CUSTOM_ID: /
+  :END:
+
+  foo
+
+  -----
+
+  bar
+
+  -----
+
+  baz
+  #+END_SRC
+
+- ~onerc.el~:
+
+  #+BEGIN_SRC emacs-lisp
+  (defun my-horizontal-rule (_ _ _) "<hr>")
+
+  (org-export-define-derived-backend 'one-ox-with-hr 'one
+    :translate-alist
+    '((horizontal-rule . my-horizontal-rule)))
+
+  (defun my-render-function (page-tree pages _global)
+    ""
+    (let* ((title (org-element-property :raw-value page-tree))
+           (content (org-export-data-with-backend
+                     (org-element-contents page-tree)
+                     'one-ox-with-hr
+                     nil)))
+      (jack-html
+       "<!DOCTYPE html>"
+       `(:html
+         (:head (:title ,title))
+         (:body
+          (:h1 ,title)
+          ,content)))))
+  #+END_SRC
+
+Now while visiting ~one.org~ file we call ~one-build~ to build our website
+with ~<hr>~ tags.
+
+* one-ox
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox/
+:END:
+** Org export backend used by the default render functions
+
+~one.el~ (specifically the default render functions) uses its own org
+export backend called ~one-ox~ to export the org content of the pages
+into HTML strings.
+
+For instance, the render function ~one-default~ takes as first argument
+~page-tree~ which is the current page being rendered (~page-tree~ is the
+org parsed data structure representing the page) and exports it as an
+HTML string using ~org-export-data-with-backend~ function and ~one-ox~
+export backend and uses it to render the HTML page:
+
+#+BEGIN_SRC emacs-lisp
+(defun one-default (page-tree pages _global)
+  "..."
+  (let* (...
+         (content (org-export-data-with-backend
+                   (org-element-contents page-tree)
+                   'one-ox nil))
+         ...)
+    (jack-html
+     "<!DOCTYPE html>"
+     `(:html
+       (:head ...)
+       (:body ... (:div.content ... ,content ,nav))))))
+#+END_SRC
+
+This org backend is taylor for ~one.el~ usage.  So it doesn't try to
+export all the org elements unlike ~html~ backend and when the org
+elements are exported they differ from what we can expect from ~html~
+backend.
+
+For instance ~headline~ elements don't take into account markups
+neither links.
+
+Another example are the ~link~ elements.  They don't support org fuzzy
+links and links to local files that are not in the subdirectories
+~./public/~ or ~./assets/~ raise errors.
+
+You can read how the supported org elements are exported by ~one-ox~ org
+backend in the following page:
+
+- [[#/docs/one-ox-headline/][one-ox | headline]],
+- [[#/docs/one-ox-src-block/][one-ox | src-block]],
+- [[#/docs/one-ox-quote-block/][one-ox | quote-block]],
+- [[#/docs/one-ox-fixed-width-and-example-block/][one-ox | fixed-width and example-block]],
+- [[#/docs/one-ox-links/][one-ox | links]] and
+- [[#/docs/one-ox-plain-list/][one-ox | plain-list]].
+
+** Org elements not supported
+:PROPERTIES:
+:CUSTOM_ID: /docs/one-ox/#org-elements-not-supported
+:END:
+
+The org elements that are not supported are the following:
+~center-block~, ~clock~, ~drawer~, ~dynamic-block~, ~entity~, ~export-block~,
+~export-snippet~, ~footnote-reference~, ~horizontal-rule~, ~inline-src-block~,
+~inlinetask~, ~keyword~, ~latex-environment~, ~latex-fragment~, ~line-break~,
+~node-property~, ~planning~, ~property-drawer~, ~radio-target~, ~special-block~,
+~statistics-cookie~, ~table~, ~table-cell~, ~table-row~, ~target~, ~timestamp~,
+~verse-block~.
+
+Note that "not supported" means they are not rendered by default by
+~one.el~ but we can still use them or even extend ~one-ox~ org export
+backend to take some of them into account.
+
+Why doesn't ~one.el~ support all org elements?
+
+1. I don't need those org elements to write my technical blogs:
+
+   - I don't do math.  No support for Latex,
+   - I don't use table.  No support for tables,
+   - etc.
+
+2. ~one-ox~ org backend is used only by the default render functions, so
+   if you need more org elements you can either use another org
+   backend or extend ~one-ox~ org backend and use this other org backend
+   in your own render functions (See [[#/docs/miscellaneous/#extend-one-ox-org-backend][Extend one-ox org backend]]).
+
+* one-ox | headline
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-headline/
+:END:
+
+Note that markups and links are not exported if used in headlines, only
+the raw value string.
+
+So don't use them in headlines.
+
+* one-ox | src-block
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-src-block/
+:END:
+** Code highlighting with htmlize
+*** Description
+
+~one-ox~ highlights code via the function ~one-ox-htmlize~ that uses
+[[https://github.com/hniksic/emacs-htmlize][htmlize]] to do the work.
+
+For a given piece of code ~X~ in a certain language ~Y~, ~X~ will be
+highlighted as it would be in the emacs mode ~Z~ used to edit ~Y~ code.
+
+For instance, ~clojure-mode~ is used to highlight Clojure code and
+~sh-mode~ is used to highlight Bash code.
+
+Attributes of a face (like ~background-color~ or ~foreground-color~)
+are not taken directly.  A generated name for the face is produced and
+used as the CSS class for the parts of the code ~X~ that are highlighted
+with that face.
+
+For instance, in ~sh-mode~, the word ~echo~ is highlighted with the face
+~font-lock-builtin-face~.  So, the word ~echo~ in a piece of Shell (or
+Bash) code will be transformed into:
+
+#+BEGIN_SRC html
+<span class="one-hl-builtin">echo</span>
+#+END_SRC
+
+The whole piece of code ~X~, once the previously described operations
+have been done, is wrapped:
+
+1) for a normal block with the component:
+
+   #+BEGIN_SRC html
+   <pre><code class="one-hl one-hl-block">...</code></pre>
+   #+END_SRC
+
+2) for a result block with the component:
+
+   #+BEGIN_SRC html
+   <pre><code class="one-hl one-hl-results">...</code></pre>
+   #+END_SRC
+
+   See section [[#/docs/one-ox-src-block/#org-keywords-results-and-attr_one_results][org keyword RESULTS]].
+
+*** Example with Bash code
+
+For instance, the following org src-block, containing some ~bash~ code:
+
+#+BEGIN_SRC org
+,#+BEGIN_SRC bash
+echo "list file's extensions in current dir:"
+for f in `ls`; do
+    echo ${f##*.}
+done
+,#+END_SRC
+#+END_SRC
+
+is exported as follow:
+
+#+BEGIN_SRC html
+<pre><code class="one-hl one-hl-block"><span class="one-hl-builtin">echo</span> <span class="one-hl-string">"list file's extensions in current dir:"</span>
+<span class="one-hl-keyword">for</span> f<span class="one-hl-keyword"> in</span> <span class="one-hl-sh-quoted-exec">`ls`</span>; <span class="one-hl-keyword">do</span>
+    <span class="one-hl-builtin">echo</span> ${<span class="one-hl-variable-name">f</span>##*.}
+<span class="one-hl-keyword">done</span></code></pre>
+</div>
+#+END_SRC
+
+and rendered like this:
+
+#+BEGIN_SRC bash
+echo "list file's extensions in current dir:"
+for f in `ls`; do
+    echo ${f##*.}
+done
+#+END_SRC
+
+Note that ~one-ox-htmlize~ has produced and used the following CSS
+classes (listed with their corresponding emacs faces):
+
+#+BEGIN_SRC text
+# from font-lock
+one-hl-builtin        --> font-lock-builtin-face
+one-hl-keyword        --> font-lock-keyword-face
+one-hl-string         --> font-lock-string-face
+one-hl-variable-name  --> font-lock-variable-name-face
+
+# specific to sh-mode
+one-hl-sh-quoted-exec --> sh-quoted-exec
+#+END_SRC
+
+You might have notice the pattern used for ~font-lock~ faces and the one
+used for mode specific faces.
+
+~one.el~ provides a default style sheet (~one-default-css~) that has the
+CSS classes defined for all the ~font-lock~ faces (faces starting by
+~font-lock-~) but not the specific faces used by each prog mode.
+
+You can add the CSS classes specific to the prog modes you use as you
+go and need them.
+
+** Org keyword RESULTS
+:PROPERTIES:
+:CUSTOM_ID: /docs/one-ox-src-block/#org-keywords-results-and-attr_one_results
+:END:
+
+Result blocks are preceded by a line starting with ~#+RESULTS:~.  Blocks
+that are not result blocks are normal blocks.
+
+When exported, normal blocks and result blocks differ only by their
+CSS classes:
+
+- ~one-hl one-hl-block~ for normal blocks,
+- ~one-hl one-hl-results~ for result blocks.
+
+This way result blocks can be rendered with a different style
+than normal blocks as we can see in the following example.
+
+*** Example using org keyword 'RESULTS'
+
+The following org snippet:
+
+#+BEGIN_SRC org
+,#+BEGIN_SRC bash :results output
+ls
+,#+END_SRC
+
+,#+RESULTS:
+: assets
+: docs.org
+: public
+#+END_SRC
+
+is exported by ~one-ox~ as follow:
+
+#+BEGIN_SRC html
+<pre><code class="one-hl one-hl-block">ls</code></pre>
+<pre><code class="one-hl one-hl-results">assets
+docs.org
+public</code></pre>
+#+END_SRC
+
+and is rendered by ~one-ox~ with the first block (normal block) having a
+different style from second block (result block):
+
+#+BEGIN_SRC bash :results output
+ls
+#+END_SRC
+
+#+RESULTS:
+: assets
+: docs.org
+: public
+
+** Code blocks inside list
+
+Lists can contain source blocks as we can see in the following org
+snippet
+
+#+BEGIN_SRC org
+1. item 1
+
+   ,#+BEGIN_SRC emacs-lisp
+   (message "src-block in item 1")
+   ,#+END_SRC
+
+2. item 2
+3. item 3
+#+END_SRC
+
+which is exported by ~one~ as follow
+
+#+BEGIN_SRC html
+<ol>
+  <li>
+    <p>item 1</p>
+    <pre><code class="one-hl one-hl-block">(message <span class="one-hl-string">"src-block in item 1"</span>)</code></pre>
+  </li>
+  <li><p>item 2</p></li>
+  <li><p>item 3</p></li>
+</ol>
+#+END_SRC
+
+and is rendered by ~one-ox~ like this:
+
+1. item 1
+
+   #+BEGIN_SRC emacs-lisp
+   (message "src-block in item 1")
+   #+END_SRC
+
+2. item 2
+3. item 3
+
+* one-ox | quote-block
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-quote-block/
+:END:
+
+Blocks defined with ~#+BEGIN_QUOTE ... #+END_QUOTE~ pattern are
+quote-block.
+
+They are exported by ~one-ox~ in a ~<blockquote>...</blockquote>~
+component with the CSS class ~one-blockquote~.
+
+The following org snippet:
+
+#+BEGIN_SRC org
+,#+BEGIN_QUOTE
+A quitter never wins and a winner never quits. —Napoleon Hill
+,#+END_QUOTE
+#+END_SRC
+
+defines a quote and is exported by ~one-ox~ as follow
+
+#+BEGIN_SRC html
+<blockquote class="one-blockquote"><p>A quitter never wins and a winner never quits. —Napoleon Hill</p></blockquote>
+#+END_SRC
+
+and looks like this
+
+#+BEGIN_QUOTE
+A quitter never wins and a winner never quits. —Napoleon Hill
+#+END_QUOTE
+
+* one-ox | fixed-width and example-block
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-fixed-width-and-example-block/
+:END:
+** Description
+
+A line starting with a colon ~:~ followed by a space defines a
+~fixed-width~ element.  A ~fixed-width~ element can span several
+lines.
+
+Blocks defined with ~#+BEGIN_EXAMPLE ... #+END_EXAMPLE~ pattern are
+~example-block~ elements.
+
+Both ~fixed-width~ and ~example-block~ blocks are treated as [[#/docs/one-ox-src-block/][src-block]] in
+~text-mode~.  So:
+
+1. they are highlighted as ~text-mode~ would do,
+2. they are exported in ~<pre><code>...</code></pre>~ components
+   (indentation and newlines are respected) and
+3. the CSS classes used depend on the block's type:
+
+   - normal blocks use ~one-hl one-hl-block~ CSS classes and
+   - result blocks use ~one-hl one-hl-results~ CSS classes (see [[#/docs/one-ox-src-block/#org-keywords-results-and-attr_one_results][org
+     keyword RESULTS]]).
+
+** Example
+
+The following org snippet
+
+#+BEGIN_SRC org
+Here is a ~fixed-width~ element (one line):
+
+: I'm a fixed-width element
+
+~fixed-width~ elements can also be used within lists:
+
+- item 1
+
+  : fixed-width element
+
+- item 2
+
+  ,#+BEGIN_SRC bash :results output
+  printf 'multiline fixed-width element\nthat is also a result block,\nso has a different style.'
+  ,#+END_SRC
+
+  ,#+RESULTS:
+  : multiline fixed-width element
+  : that is also a result block,
+  : so has a different style.
+
+Although I don't often use ~example-block~ elements, here is one:
+
+,#+BEGIN_EXAMPLE
+This    is
+        an    example!
+,#+END_EXAMPLE
+#+END_SRC
+
+is exported by ~one~ as follow
+
+#+BEGIN_SRC html
+<p>Here is a <code class="one-hl one-hl-inline">fixed-width</code> element (one line):
+</p>
+
+<pre><code class="one-hl one-hl-block">I'm a fixed-width element</code></pre>
+
+
+<p><code class="one-hl one-hl-inline">fixed-width</code> elements can also be used within lists:
+</p>
+
+<ul><li><p>item 1
+</p>
+
+<pre><code class="one-hl one-hl-block">fixed-width element</code></pre>
+</li>
+
+<li><p>item 2
+</p>
+
+<pre><code class="one-hl one-hl-block"><span class="one-hl-builtin">printf</span> <span class="one-hl-string">'multiline fixed-width element\nthat is also a result block,\nso has a different style.'</span></code></pre>
+
+<pre><code class="one-hl one-hl-results">multiline fixed-width element
+that is also a result block,
+so has a different style.</code></pre>
+</li>
+</ul>
+
+<p>Although I don&apos;t often use <code class="one-hl one-hl-inline">example-block</code> elements, here is one:
+</p>
+
+<pre><code class="one-hl one-hl-block">This    is
+        an    example!</code></pre>
+#+END_SRC
+
+and looks like this:
+
+Here is a ~fixed-width~ element (one line):
+
+: I'm a fixed-width element
+
+~fixed-width~ elements can also be used within lists:
+
+- item 1
+
+  : fixed-width element
+
+- item 2
+
+  #+BEGIN_SRC bash :results output
+  printf 'multiline fixed-width element\nthat is also a result block,\nso has a different style.'
+  #+END_SRC
+
+  #+RESULTS:
+  : multiline fixed-width element
+  : that is also a result block,
+  : so has a different style.
+
+Although I don't often use ~example-block~ elements, here is one:
+
+#+BEGIN_EXAMPLE
+This    is
+        an    example!
+#+END_EXAMPLE
+
+* one-ox | links
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-links/
+:END:
+** http, https, mailto links
+
+Web links (starting by ~http~ or ~https~) and links to message
+composition (starting by ~mailto~) are exported as we expect.
+
+For instance the following link
+
+#+BEGIN_SRC org
+http://tonyaldon.com
+#+END_SRC
+
+is exported as follow
+
+#+BEGIN_SRC html
+<a href="http://tonyaldon.com">http://tonyaldon.com</a>
+#+END_SRC
+
+and rendered like this: http://tonyaldon.com.
+
+This following link with a description
+
+#+BEGIN_SRC org
+[[https://tonyaldon.com][Tony Aldon (https)]]
+#+END_SRC
+
+is exported as follow
+
+#+BEGIN_SRC html
+<a href="https://tonyaldon.com">Tony Aldon (https)</a>
+#+END_SRC
+
+and rendered like this: [[https://tonyaldon.com][Tony Aldon (https)]].
+
+This ~mailto~ link
+
+#+BEGIN_SRC org
+[[mailto:tony@tonyaldon.com][send me an email]]
+#+END_SRC
+
+is exported as follow
+
+#+BEGIN_SRC html
+<a href="mailto:tony@tonyaldon.com">send me an email</a>
+#+END_SRC
+
+and rendered like this: [[mailto:tony@tonyaldon.com][send me an email]].
+
+** Custom ID links
+
+In ~one.el~, ~CUSTOM_ID~ org property is used to defined the path of pages
+or the path to specific heading in pages.
+
+Considering the following org document
+
+#+BEGIN_SRC org
+,* Home Page
+:PROPERTIES:
+:ONE: one-default-home
+:CUSTOM_ID: /
+:END:
+
+- [[#/blog/page-1/]]
+- [[#/blog/page-1/#headline-1]]
+
+,* Page 1
+:PROPERTIES:
+:ONE: one-default
+:CUSTOM_ID: /blog/page-1/
+:END:
+,** headline 1 in Page 1
+:PROPERTIES:
+:CUSTOM_ID: /blog/page-1/#headline-1
+:END:
+#+END_SRC
+
+the link ~[[#/blog/page-1/]]~ in "Home Page" targets "Page 1" page
+and the link ~[[#/blog/page-1/#headline-1]]~ in "Home Page" targets the
+heading "headline 1 in page Page 1" in the "Page 1" page.
+
+Those paths define valid web urls starting at the root of the website
+if we respect the following rules for ~CUSTOM_ID~ values:
+
+1. we use only url-encoded characters,
+2. we start them with a ~/~ and end them with ~/~ excepted for the home
+   page which is a single ~/~,
+3. we use ~#~ character to start the last part of the path when we are
+   targeting a heading tag with its ~id~ being the last part after the ~#~
+   character.
+
+The benefits of these "rules/conventions" are:
+
+1. when we export ~custom-id~ links using ~one-ox~ org backend we can
+   leave them as they are and
+2. the navigation between pages inside emacs using ~custom-id~ links
+   works out-of-the-box.
+
+*** Example of a link to a page
+
+The following link
+
+#+BEGIN_SRC org
+[[#/docs/one-ox-plain-list/][one-ox | plain-list]]
+#+END_SRC
+
+is exported to this anchor tag that links to the page ~/docs/one-ox-plain-list/~:
+
+#+BEGIN_SRC html
+<a href="/docs/one-ox-plain-list/">one-ox | plain-list</a>
+#+END_SRC
+
+and is rendered like this [[#/docs/one-ox-plain-list/][one-ox | plain-list]].
+
+*** Example of a link to a heading in a page
+
+The following link
+
+#+BEGIN_SRC org
+[[#/docs/one-ox-plain-list/#unordered-lists][unordered lists heading in the page about plain-list]]
+#+END_SRC
+
+is exported to this anchor tag that links to the heading with the ~id~
+set to ~unordered-lists~ on the page ~/docs/one-ox-plain-list/~:
+
+#+BEGIN_SRC html
+<a href="/docs/one-ox-plain-list/#unordered-lists">unordered lists heading in the page about plain-list</a>
+#+END_SRC
+
+and is rendered like this [[#/docs/one-ox-plain-list/#unordered-lists][unordered lists heading in the page about
+plain-list]].
+
+** Fuzzy links
+
+I don't use ~fuzzy~ links.  So, if there is a ~fuzzy~ link
+in the document, that means I wrote the link wrong.
+
+Broken links are bad user experience.  I don't like them.
+
+So I decided that ~one-ox~ raises an error (hard-coded) when we try to
+export a fuzzy link to HTML.
+
+For instance, the following ~fuzzy~ link:
+
+#+BEGIN_SRC org
+[[fuzzy search]]
+#+END_SRC
+
+raise an error like the following:
+
+#+BEGIN_SRC emacs-lisp
+(one-link-broken "fuzzy search" "fuzzy links not supported" "goto-char: 5523")
+#+END_SRC
+
+** File links
+*** Links to local files in assets and public directories
+
+Links to local files in ~./assets/~ and ~./public/~ directories like
+
+#+BEGIN_SRC org
+[[./assets/foo/bar.txt][Bar file]]
+[[./public/foo/baz.txt][Baz file]]
+#+END_SRC
+
+are exported with the prefixes ~./assets~ and ~./public~ of the path
+removed like this:
+
+#+BEGIN_SRC html
+<a href="/foo/bar.txt">Bar file</a>
+<a href="/foo/baz.txt">Baz file</a>
+#+END_SRC
+
+*** Local file links that raise one-link-broken error
+
+Any file link that doesn't point to a file in ~./assets/~ or ~./public/~
+subdirectories raises an ~one-link-broken~ error when we try to
+export it with ~one-ox~ org backend
+
+For instance if we try to export using ~one-ox~ org backend the
+following link to the file ~foo.txt~ in the directory ~/tmp/~
+
+#+BEGIN_SRC org
+[[/tmp/foo.txt]]
+#+END_SRC
+
+which is not in ~./public/~ subdirectory nor in ~./assets/~ subdirectory
+we will get an error like the following:
+
+#+BEGIN_SRC emacs-lisp
+(one-link-broken "/tmp/" "goto-char: 26308")
+#+END_SRC
+
+*** Links to images
+
+Links to local files in ~./assets/~ and ~./public/~ directories whom path
+matches ~one-ox-link-image-extensions~ regexp are exported with an ~img~
+tag.
+
+For instance the following link to an image in ~./assets/img/~ directory
+
+#+BEGIN_SRC org
+[[./assets/img/keep-learning.png][Keep Learning]]
+#+END_SRC
+
+is exported as follow
+
+#+BEGIN_SRC html
+<img href="/img/keep-learning.png" alt="Keep Learning"></a>
+#+END_SRC
+
+and rendered like this
+
+[[./assets/img/keep-learning.png][Keep Learning]]
+
+* one-ox | plain-list and item
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-plain-list/
+:END:
+
+Only unordered and ordered lists are supported.
+
+** Unordered lists
+:PROPERTIES:
+:CUSTOM_ID: /docs/one-ox-plain-list/#unordered-lists
+:END:
+
+The following org snippet (unordered list):
+
+#+BEGIN_SRC org
+- a thing,
+- another thing,
+- and the last one.
+#+END_SRC
+
+is exported by ~one-ox~ as follow
+
+#+BEGIN_SRC html
+<ul>
+  <li>
+    <p>a thing,</p>
+  </li>
+  <li>
+    <p>another thing,</p>
+  </li>
+  <li>
+    <p>and the last one.</p>
+  </li>
+</ul>
+#+END_SRC
+
+and is rendered like this:
+
+- a thing,
+- another thing,
+- and the last one.
+
+** Ordered list
+
+The following org snippet (unordered list):
+
+#+BEGIN_SRC org
+1. first,
+2. second,
+3. third.
+#+END_SRC
+
+is exported by ~one-ox~ as follow
+
+#+BEGIN_SRC html
+<ol>
+  <li>
+    <p>a thing,</p>
+  </li>
+  <li>
+    <p>another thing,</p>
+  </li>
+  <li>
+    <p>and the last one.</p>
+  </li>
+</ol>
+#+END_SRC
+
+and is rendered like this:
+
+1. first,
+2. second,
+3. third.
