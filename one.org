@@ -114,7 +114,6 @@ Django LiveView is approximately **43% faster than HTMX** and **80% faster than 
 | **Update Type** | Real-time | Full reload | Partial | Reactive |
 | **Multi-user** | ✅ Broadcast | ❌ | ❌ | ❌ |
 | **Infrastructure** | Redis + Channels | Django only | Django only | Django only |
-| **Page Reload** | ❌ No | ✅ Yes | ❌ No | ❌ No |
 
 *** What makes it different?
 
