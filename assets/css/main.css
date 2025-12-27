@@ -51,6 +51,33 @@ b {
     font-weight: bold;
 }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--gap-l) 0;
+    background-color: rgba(217, 217, 217, 0.05);
+}
+
+table thead {
+    background-color: var(--color-brown);
+    color: var(--color-black);
+}
+
+table th,
+table td {
+    padding: var(--gap-s) var(--gap-m);
+    text-align: left;
+    border: 1px solid rgba(210, 158, 121, 0.3);
+}
+
+table tbody tr:hover {
+    background-color: rgba(217, 217, 217, 0.1);
+}
+
+table th {
+    font-weight: bold;
+}
+
 /* Components */
 
 .container {
