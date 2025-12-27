@@ -1112,8 +1112,7 @@ The org elements that are not supported are the following:
 ~export-snippet~, ~footnote-reference~, ~horizontal-rule~, ~inline-src-block~,
 ~inlinetask~, ~keyword~, ~latex-environment~, ~latex-fragment~, ~line-break~,
 ~node-property~, ~planning~, ~property-drawer~, ~radio-target~, ~special-block~,
-~statistics-cookie~, ~table~, ~table-cell~, ~table-row~, ~target~, ~timestamp~,
-~verse-block~.
+~statistics-cookie~, ~target~, ~timestamp~, ~verse-block~.
 
 Note that "not supported" means they are not rendered by default by
 ~one.el~ but we can still use them or even extend ~one-ox~ org export
@@ -1124,7 +1123,6 @@ Why doesn't ~one.el~ support all org elements?
 1. I don't need those org elements to write my technical blogs:
 
    - I don't do math.  No support for Latex,
-   - I don't use table.  No support for tables,
    - etc.
 
 2. ~one-ox~ org backend is used only by the default render functions, so
@@ -1788,3 +1786,46 @@ and is rendered like this:
 1. first,
 2. second,
 3. third.
+
+* one-ox | table
+:PROPERTIES:
+:ONE: one-default-doc
+:CUSTOM_ID: /docs/one-ox-table/
+:END:
+
+Tables with header rows are supported.
+
+The following org snippet:
+
+#+BEGIN_SRC org
+| Name  | Age | City     |
+|-------+-----+----------|
+| Alice |  30 | New York |
+| Bob   |  25 | London   |
+#+END_SRC
+
+is exported by ~one-ox~ as follow
+
+#+BEGIN_SRC html
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Age</th>
+    <th>City</th>
+  </tr>
+  <tr>
+    <td>Alice</td>
+    <td>30</td>
+    <td>New York</td>
+  </tr>
+  <tr>
+    <td>Bob</td>
+    <td>25</td>
+    <td>London</td>
+  </tr>
+</table>
+#+END_SRC
+
+The first row is automatically exported as ~<th>~ (header) tags when
+separated by a horizontal rule (~|---+---|~), and subsequent rows use
+~<td>~ (data) tags.
