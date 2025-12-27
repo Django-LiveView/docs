@@ -95,19 +95,23 @@ That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend fr
 #+ATTR_HTML: :class center-block image image--benchmark
 [[#/img/benchmark-response-time.webp][Response Time Comparison]]
 
-- **LiveView** (WebSockets): **9.35ms**, 450 bytes - Real-time dashboards, collaborative apps
-- HTMX (AJAX): 16.48ms, ~37 KB - Modern UX with minimal JavaScript
-- Unicorn (AJAX): 26.76ms, ~71 KB - Complex forms with reactive state
-- SSR (POST + redirect): 47.25ms, ~8.5 KB - SEO-critical pages, traditional CRUD
+| Framework    | Technology      | Response Time | Data Transfer | Use Case                             |
+|--------------+-----------------+---------------+---------------+--------------------------------------|
+| **LiveView** | WebSockets      | **9.35ms**    | 450 bytes     | Real-time dashboards, collaborative apps |
+| HTMX         | AJAX            | 16.48ms       | ~37 KB        | Modern UX with minimal JavaScript    |
+| Unicorn      | AJAX            | 26.76ms       | ~71 KB        | Complex forms with reactive state    |
+| SSR          | POST + redirect | 47.25ms       | ~8.5 KB       | SEO-critical pages, traditional CRUD |
 
 Django LiveView is approximately **43% faster than HTMX** and **80% faster than traditional SSR** through persistent WebSocket connectivity.
 
 *** Technology Comparison
 
-- **Transport**: LiveView (WebSocket) | SSR (HTTP) | HTMX (AJAX) | Unicorn (AJAX)
-- **Update Type**: LiveView (Real-time) | SSR (Full reload) | HTMX (Partial) | Unicorn (Reactive)
-- **Multi-user**: LiveView (✅ Broadcast) | SSR (❌) | HTMX (❌) | Unicorn (❌)
-- **Infrastructure**: LiveView (Redis + Channels) | SSR (Django only) | HTMX (Django only) | Unicorn (Django only)
+| Feature            | LiveView         | SSR         | HTMX        | Unicorn     |
+|--------------------+------------------+-------------+-------------+-------------|
+| **Transport**      | WebSocket        | HTTP        | AJAX        | AJAX        |
+| **Update Type**    | Real-time        | Full reload | Partial     | Reactive    |
+| **Multi-user**     | ✅ Broadcast     | ❌          | ❌          | ❌          |
+| **Infrastructure** | Redis + Channels | Django only | Django only | Django only |
 
 *** What makes it different?
 
