@@ -4,6 +4,11 @@
 	       '("melpa" . "https://melpa.org/packages/") t)
   (package-initialize)
   (package-refresh-contents)
-  (package-install 'one)
+  ;; Install one.el dependencies
+  (package-install 'jack)
+  (package-install 'htmlize)
+  ;; Add fork to load-path and load it
+  (add-to-list 'load-path "/usr/src/app/one.el")
+  (require 'one)
   (find-file "/usr/src/app/one.org")
   (one-build))
