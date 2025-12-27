@@ -1,4 +1,0 @@
-[submodule "one.el"]
-	path = one.el
-	url = git@github.com:tanrax/one.el.git
-	branch = add-table-support
