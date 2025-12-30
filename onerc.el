@@ -191,6 +191,14 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/advanced/") "Advanced Features"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/error-handling/") "Error Handling"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/testing/") "Testing"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/deployment/") "Deployment"))
+		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/api-reference/") "API Reference"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/internationalization/") "Internationalization"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
