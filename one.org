@@ -1086,6 +1086,529 @@ liveview_registry.add_middleware(auth_middleware)
 liveview_registry.add_middleware(logging_middleware)
 #+END_SRC
 
+** Script Execution
+
+Execute JavaScript code directly from your Python handlers.
+
+⚠️ *Security Warning:* Only execute scripts from trusted sources. Never pass user input directly to the ~script~ parameter without sanitization, as this can lead to XSS (Cross-Site Scripting) vulnerabilities.
+
+*** Basic Script Execution
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+
+@liveview_handler("show_notification")
+def show_notification(consumer, content):
+    message = content["form"]["message"]
+
+    # Execute JavaScript to show a browser notification
+    send(consumer, {
+        "script": f"""
+            if (Notification.permission === 'granted') {{
+                new Notification('New Message', {{
+                    body: '{message}',
+                    icon: '/static/icon.png'
+                }});
+            }}
+        """
+    })
+#+END_SRC
+
+*** Combining HTML and Script
+
+You can combine HTML updates with script execution:
+
+#+BEGIN_SRC python
+@liveview_handler("load_chart")
+def load_chart(consumer, content):
+    import json
+    chart_data = json.dumps(get_chart_data())
+
+    # Update HTML
+    html = render_to_string("chart_container.html", {
+        "chart_id": "sales-chart"
+    })
+
+    send(consumer, {
+        "target": "#chart-container",
+        "html": html
+    })
+
+    # Initialize chart with JavaScript
+    send(consumer, {
+        "script": f"""
+            const ctx = document.getElementById('sales-chart');
+            new Chart(ctx, {{
+                type: 'bar',
+                data: {chart_data}
+            }});
+        """
+    })
+#+END_SRC
+
+*** Inline Scripts in HTML
+
+Django LiveView automatically extracts and executes ~<script>~ tags from HTML responses:
+
+#+BEGIN_SRC python
+@liveview_handler("load_interactive_component")
+def load_interactive_component(consumer, content):
+    html = '''
+        <div id="counter">
+            <button id="increment">Count: <span>0</span></button>
+        </div>
+        <script>
+            let count = 0;
+            document.getElementById('increment').addEventListener('click', () => {
+                count++;
+                document.querySelector('#increment span').textContent = count;
+            });
+        </script>
+    '''
+
+    send(consumer, {
+        "target": "#component-container",
+        "html": html
+    })
+#+END_SRC
+
+The script will be automatically extracted and executed after the HTML is rendered.
+
+*** Use Cases
+
+- Integrating third-party JavaScript libraries (charts, maps, etc.)
+- Triggering browser APIs (notifications, geolocation, etc.)
+- Initializing complex UI components
+- Playing sounds or animations
+- Focusing specific elements with custom logic
+
+*** Best Practices
+
+1. ✓ Sanitize any user input before including in scripts
+2. ✓ Use JSON serialization for data: ~import json; json.dumps(data)~
+3. ✓ Prefer ~<script>~ tags in templates over the ~script~ parameter
+4. ✓ Keep scripts focused and minimal
+5. ✗ Don't use ~eval()~ or similar dangerous functions
+6. ✗ Don't pass unsanitized user input to scripts
+
+** File Upload Handling
+
+Handle file uploads with Base64 encoding for WebSocket transmission.
+
+*** Server-Side File Processing
+
+#+BEGIN_SRC python
+import base64
+from io import BytesIO
+from PIL import Image
+from django.core.files.base import ContentFile
+
+@liveview_handler("upload_avatar")
+def upload_avatar(consumer, content):
+    user = consumer.scope.get("user")
+
+    if not user or not user.is_authenticated:
+        send(consumer, {
+            "target": "#upload-status",
+            "html": "<p class='error'>Please log in to upload</p>"
+        })
+        return
+
+    # Get Base64 data from form
+    base64_data = content["form"].get("avatar", "")
+
+    if not base64_data:
+        send(consumer, {
+            "target": "#upload-status",
+            "html": "<p class='error'>No file selected</p>"
+        })
+        return
+
+    try:
+        # Extract format and data
+        # Format: "data:image/png;base64,iVBORw0KGgoAAAANS..."
+        format_str, img_str = base64_data.split(';base64,')
+        ext = format_str.split('/')[-1]
+
+        # Decode Base64
+        img_data = base64.b64decode(img_str)
+
+        # Validate it's an image
+        image = Image.open(BytesIO(img_data))
+
+        # Resize if needed
+        if image.width > 500 or image.height > 500:
+            image.thumbnail((500, 500), Image.Resampling.LANCZOS)
+
+            # Save resized image to bytes
+            buffer = BytesIO()
+            image.save(buffer, format=ext.upper())
+            img_data = buffer.getvalue()
+
+        # Save to user profile
+        filename = f"avatar_{user.id}.{ext}"
+        user.profile.avatar.save(
+            filename,
+            ContentFile(img_data),
+            save=True
+        )
+
+        # Show success
+        html = f'''
+            <p class='success'>Avatar uploaded successfully!</p>
+            <img src="{user.profile.avatar.url}" alt="Avatar" width="100">
+        '''
+
+        send(consumer, {
+            "target": "#upload-status",
+            "html": html
+        })
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error uploading avatar: {e}")
+
+        send(consumer, {
+            "target": "#upload-status",
+            "html": "<p class='error'>Upload failed. Please try again.</p>"
+        })
+#+END_SRC
+
+*** HTML Template
+
+#+BEGIN_SRC html
+<div>
+    <input type="file" id="avatar-upload" accept="image/*">
+    <button
+        data-liveview-function="upload_avatar"
+        data-action="click->page#run">
+        Upload Avatar
+    </button>
+    <div id="upload-status"></div>
+</div>
+
+<script>
+    // Encode file as Base64 before sending
+    document.querySelector('[data-liveview-function="upload_avatar"]')
+        .addEventListener('click', async (e) => {
+            const fileInput = document.getElementById('avatar-upload');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Store Base64 in hidden input
+                    let hiddenInput = document.getElementById('avatar-data');
+                    if (!hiddenInput) {
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'avatar';
+                        hiddenInput.id = 'avatar-data';
+                        document.querySelector('div').appendChild(hiddenInput);
+                    }
+                    hiddenInput.value = reader.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+</script>
+#+END_SRC
+
+*** File Size Limitations
+
+WebSocket has practical limits for Base64-encoded files:
+
+- ✓ *Small files* (< 1MB): Images, documents, avatars
+- ⚠️ *Medium files* (1-5MB): May work but can be slow
+- ✗ *Large files* (> 5MB): Not recommended, use traditional HTTP upload
+
+For large files, use a traditional HTTP POST to upload, then notify via WebSocket.
+
+*** Security Considerations
+
+1. ✓ Validate file types (check magic bytes, not just extensions)
+2. ✓ Limit file sizes on the server
+3. ✓ Scan files for malware if accepting from untrusted users
+4. ✓ Store files outside the web root
+5. ✓ Use unique filenames to prevent overwrites
+6. ✓ Validate image dimensions and format with Pillow/PIL
+
+** Message Queue System
+
+Django LiveView automatically queues messages when the WebSocket connection is not ready.
+
+*** How It Works
+
+When you call a LiveView handler but the WebSocket is:
+- Still connecting
+- Temporarily disconnected
+- Reconnecting after a network failure
+
+The message is automatically queued and sent once the connection is restored.
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="save_draft"
+    data-action="click->page#run">
+    Save Draft
+</button>
+#+END_SRC
+
+If the user clicks "Save Draft" while offline, the message is queued. When the connection is restored, all queued messages are sent automatically in order.
+
+*** User Feedback During Queueing
+
+Show users when their actions are being queued:
+
+#+BEGIN_SRC html
+<div id="connection-status"></div>
+
+<script>
+    // Monitor connection and queue status
+    setInterval(() => {
+        const statusEl = document.getElementById('connection-status');
+        const ws = window.myWebSocket;
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            statusEl.innerHTML = '<span class="online">🟢 Connected</span>';
+        } else if (ws && ws.readyState === WebSocket.CONNECTING) {
+            statusEl.innerHTML = '<span class="connecting">🟡 Connecting...</span>';
+        } else {
+            statusEl.innerHTML = '<span class="offline">🔴 Disconnected</span>';
+        }
+    }, 1000);
+</script>
+#+END_SRC
+
+** Network Connectivity Handling
+
+Django LiveView automatically handles network connectivity changes.
+
+*** Automatic Detection
+
+The framework detects when:
+- Network goes offline (airplane mode, WiFi disconnect, etc.)
+- Network comes back online
+- Connection to the server is lost
+- Connection to the server is restored
+
+*** Visual Feedback
+
+Create a connection status modal that appears when connectivity is lost:
+
+#+BEGIN_SRC html
+<!-- templates/base.html -->
+{% load static %}
+{% load liveview %}
+<!DOCTYPE html>
+<html lang="en" data-room="{% liveview_room_uuid %}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <style>
+        .no-connection {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ff6b6b;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 9999;
+        }
+
+        .no-connection--show {
+            display: block;
+        }
+
+        .no-connection--hide {
+            display: none;
+        }
+    </style>
+</head>
+<body data-controller="page">
+    <!-- Connection status notification -->
+    <div id="no-connection" class="no-connection no-connection--hide">
+        ⚠️ Connection lost. Reconnecting...
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+</body>
+</html>
+#+END_SRC
+
+The framework automatically shows/hides this modal when connectivity changes.
+
+*** Reconnection Behavior
+
+When the connection is lost, Django LiveView:
+
+1. Shows the ~#no-connection~ modal (if it exists)
+2. Queues any new messages
+3. Attempts to reconnect automatically
+4. Uses exponential backoff between attempts
+5. Tries up to 5 times before giving up
+
+Default reconnection settings:
+
+- *Initial delay:* 3 seconds
+- *Maximum attempts:* 5
+- *Backoff multiplier:* 1.5x
+- *Maximum delay:* 30 seconds
+
+Reconnection delays: 3s → 4.5s → 6.75s → 10.12s → 15.18s
+
+** Registry Management
+
+Advanced control over LiveView handler registration.
+
+*** Listing All Handlers
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+# Get all registered handler names
+handlers = liveview_registry.list_functions()
+print(handlers)  # ['say_hello', 'load_articles', 'submit_form', ...]
+#+END_SRC
+
+*** Getting a Specific Handler
+
+#+BEGIN_SRC python
+# Get handler by name
+handler = liveview_registry.get_handler("say_hello")
+
+if handler:
+    print(f"Handler found: {handler.__name__}")
+else:
+    print("Handler not found")
+#+END_SRC
+
+*** Unregistering Handlers
+
+Remove a handler from the registry:
+
+#+BEGIN_SRC python
+# Unregister a specific handler
+liveview_registry.unregister("old_handler")
+
+# Verify it's gone
+if liveview_registry.get_handler("old_handler") is None:
+    print("Handler successfully unregistered")
+#+END_SRC
+
+Use cases:
+- Removing deprecated handlers
+- Disabling features at runtime
+- Testing and cleanup
+
+*** Clearing All Handlers
+
+#+BEGIN_SRC python
+# Remove all registered handlers
+liveview_registry.clear()
+
+# Verify
+print(liveview_registry.list_functions())  # []
+#+END_SRC
+
+⚠️ *Warning:* This clears ALL handlers. Only use in testing or when reinitializing the application.
+
+*** Dynamic Handler Registration
+
+Register handlers programmatically without the decorator:
+
+#+BEGIN_SRC python
+from liveview import liveview_registry, send
+
+def dynamic_handler(consumer, content):
+    send(consumer, {
+        "target": "#result",
+        "html": "<p>Dynamic handler executed!</p>"
+    })
+
+# Register manually
+handler_name = "dynamic_action"
+decorated_func = liveview_registry.register(handler_name)(dynamic_handler)
+
+# Now callable from frontend
+# <button data-liveview-function="dynamic_action" data-action="click->page#run">
+#+END_SRC
+
+** WebSocket Configuration
+
+Customize WebSocket connection settings.
+
+*** Custom WebSocket Path
+
+Change the default WebSocket URL path:
+
+#+BEGIN_SRC python
+# routing.py
+from liveview.routing import get_liveview_path
+
+websocket_urlpatterns = [
+    get_liveview_path("custom/path/<str:room_name>/"),
+]
+#+END_SRC
+
+Update frontend configuration:
+
+#+BEGIN_SRC html
+<!-- templates/base.html -->
+<script>
+    window.webSocketConfig = {
+        host: '{{ request.get_host }}',
+        protocol: '{% if request.is_secure %}wss{% else %}ws{% endif %}',
+        path: '/custom/path/'  // Custom path
+    };
+</script>
+<script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+#+END_SRC
+
+*** Custom Host and Protocol
+
+For development or special deployments:
+
+#+BEGIN_SRC html
+<script>
+    window.webSocketConfig = {
+        host: 'api.example.com',  // Different host
+        protocol: 'wss'            // Force secure WebSocket
+    };
+</script>
+#+END_SRC
+
+*** Reconnection Configuration
+
+Modify reconnection behavior by editing ~frontend/webSocketsCli.js~ before building:
+
+#+BEGIN_SRC javascript
+// frontend/webSocketsCli.js
+
+// Default values:
+const RECONNECT_INTERVAL = 3000;        // Initial delay: 3 seconds
+const MAX_RECONNECT_ATTEMPTS = 5;       // Maximum attempts: 5
+const RECONNECT_BACKOFF_MULTIPLIER = 1.5;  // Exponential multiplier
+
+// Custom values (example):
+const RECONNECT_INTERVAL = 5000;        // Initial delay: 5 seconds
+const MAX_RECONNECT_ATTEMPTS = 10;      // Maximum attempts: 10
+const RECONNECT_BACKOFF_MULTIPLIER = 2.0;  // Double delay each time
+#+END_SRC
+
+Then rebuild the JavaScript:
+
+#+BEGIN_SRC sh
+cd frontend
+npm run build:min
+#+END_SRC
+
 * Error Handling
 :PROPERTIES:
 :ONE: one-custom-default-doc
@@ -1411,6 +1934,136 @@ def important_operation(consumer, content):
             "html": "<p class='error'>An unexpected error occurred</p>"
         })
 #+END_SRC
+
+** Automatic Error Handling
+
+Django LiveView automatically catches and reports handler exceptions.
+
+*** Built-in Error Handling
+
+When a handler raises an unhandled exception, the framework automatically:
+
+1. Logs the error with ~logging.error()~
+2. Sends an error message to the client
+3. Re-raises the exception for debugging
+
+Example of an error that will be automatically handled:
+
+#+BEGIN_SRC python
+@liveview_handler("risky_operation")
+def risky_operation(consumer, content):
+    # This will raise a ZeroDivisionError
+    result = 10 / 0
+
+    send(consumer, {
+        "target": "#result",
+        "html": f"<p>Result: {result}</p>"
+    })
+#+END_SRC
+
+The client will automatically receive:
+
+#+BEGIN_SRC json
+{
+    "error": "Handler error: division by zero",
+    "function": "risky_operation"
+}
+#+END_SRC
+
+*** Handling Errors on the Client
+
+Detect and display errors sent from the server:
+
+#+BEGIN_SRC html
+<div id="result"></div>
+<div id="error-display" class="error" style="display: none;"></div>
+
+<script>
+    // Listen for error messages
+    window.myWebSocket.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.error) {
+            // Show error to user
+            const errorDiv = document.getElementById('error-display');
+            errorDiv.textContent = `Error: ${data.error}`;
+            errorDiv.style.display = 'block';
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    });
+</script>
+#+END_SRC
+
+*** Custom Error Responses
+
+For better control, handle errors explicitly within your handler:
+
+#+BEGIN_SRC python
+@liveview_handler("safe_operation")
+def safe_operation(consumer, content):
+    try:
+        result = perform_calculation()
+
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p class='success'>Result: {result}</p>"
+        })
+
+    except ValueError as e:
+        # Handle expected errors gracefully
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p class='error'>Invalid input: {e}</p>"
+        })
+
+    except Exception as e:
+        # Log and show generic error
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Unexpected error: {e}", exc_info=True)
+
+        send(consumer, {
+            "target": "#result",
+            "html": "<p class='error'>An unexpected error occurred</p>"
+        })
+        # Don't re-raise - this prevents automatic error handling
+#+END_SRC
+
+*** Configuring Error Logging
+
+Configure logging for LiveView errors in ~settings.py~:
+
+#+BEGIN_SRC python
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/liveview_errors.log',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
+    },
+    'loggers': {
+        'liveview': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+#+END_SRC
+
+Now all handler errors are logged to a file and emailed to admins.
 
 * Testing
 :PROPERTIES:
@@ -2284,6 +2937,87 @@ from liveview import liveview_registry
 handlers = liveview_registry.list_functions()
 print(handlers)  # ['say_hello', 'load_articles', ...]
 #+END_SRC
+
+**** ~get_handler(function_name)~
+
+Get a specific handler by name.
+
+**Parameters:**
+- ~function_name~ (str): Name of the handler to retrieve
+
+**Returns:** Callable or None
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+handler = liveview_registry.get_handler("say_hello")
+
+if handler:
+    print(f"Handler found: {handler.__name__}")
+else:
+    print("Handler not found")
+#+END_SRC
+
+**** ~get_all_handlers()~
+
+Get a dictionary of all registered handlers with their functions.
+
+**Returns:** Dict[str, Callable]
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+all_handlers = liveview_registry.get_all_handlers()
+
+for name, func in all_handlers.items():
+    print(f"Handler: {name}, Function: {func.__name__}")
+#+END_SRC
+
+**** ~unregister(function_name)~
+
+Remove a handler from the registry.
+
+**Parameters:**
+- ~function_name~ (str): Name of the handler to remove
+
+**Returns:** Callable or None (the removed handler, or None if not found)
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+# Unregister a handler
+liveview_registry.unregister("old_handler")
+
+# Verify it's gone
+if liveview_registry.get_handler("old_handler") is None:
+    print("Handler successfully unregistered")
+#+END_SRC
+
+**** ~clear()~
+
+Remove all registered handlers.
+
+**Returns:** None
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+# Remove all handlers
+liveview_registry.clear()
+
+# Verify
+print(liveview_registry.list_functions())  # []
+#+END_SRC
+
+⚠️ *Warning:* This clears ALL handlers. Only use in testing or when reinitializing the application.
 
 ** Routing
 
