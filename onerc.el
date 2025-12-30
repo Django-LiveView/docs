@@ -113,7 +113,8 @@
 		 (:li (:i (@ :aria-label "chat") "🐘") " Follow me: " (:a.link (@ :href "https://activity.andros.dev/@andros" :target "_blank") "ActivityPub/Fediverse "))
 		 (:li (:span (@ :aria-hidden "true") "💰 ") " Support the project: " (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") "Liberapay")))
 		(:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
-		(:p "🐍 " ,(format-time-string "%Y")))))))))
+		(:p "🐍 " ,(format-time-string "%Y")))))
+	      (:script (@ :type "text/javascript") "(function() {var headingMap = {'Basic': 'basic', 'Intermediate': 'intermediate', 'Advanced': 'advanced', 'UI Features': 'ui-features', 'System Features': 'system-features', 'Data Handling': 'data-handling'}; document.querySelectorAll('h3').forEach(function(h3) {var text = h3.textContent.trim(); if (headingMap[text]) {h3.id = headingMap[text];}});})();")))))
 
 (defun one-custom-default-page (page-tree pages _global)
   "Default render function by home page."
@@ -181,7 +182,14 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/install/") "Install"))
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/handlers/") "Handlers"))
+		      (:a.nav-docs__link (@ :href "/docs/handlers/") "Handlers")
+		      (:ul.nav-docs__sublist
+		       (:li.nav-docs__subitem
+			(:a.nav-docs__sublink (@ :href "/docs/handlers/#basic") "Basic"))
+		       (:li.nav-docs__subitem
+			(:a.nav-docs__sublink (@ :href "/docs/handlers/#intermediate") "Intermediate"))
+		       (:li.nav-docs__subitem
+			(:a.nav-docs__sublink (@ :href "/docs/handlers/#advanced") "Advanced"))))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/frontend/") "Frontend Integration"))
 		     (:li.nav-docs__item
@@ -189,7 +197,14 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/broadcasting/") "Broadcasting"))
 		     (:li.nav-docs__item
-		      (:a.nav-docs__link (@ :href "/docs/advanced/") "Advanced Features"))
+		      (:a.nav-docs__link (@ :href "/docs/advanced/") "Advanced Features")
+		      (:ul.nav-docs__sublist
+		       (:li.nav-docs__subitem
+			(:a.nav-docs__sublink (@ :href "/docs/advanced/#ui-features") "UI Features"))
+		       (:li.nav-docs__subitem
+			(:a.nav-docs__sublink (@ :href "/docs/advanced/#system-features") "System Features"))
+		       (:li.nav-docs__subitem
+			(:a.nav-docs__sublink (@ :href "/docs/advanced/#data-handling") "Data Handling"))))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/error-handling/") "Error Handling"))
 		     (:li.nav-docs__item
