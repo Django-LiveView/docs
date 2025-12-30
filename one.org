@@ -1820,7 +1820,6 @@ def create_post_with_tags(consumer, content):
 Handle long-running operations with timeouts:
 
 #+BEGIN_SRC python
-import asyncio
 from threading import Thread
 
 @liveview_handler("process_large_file")
@@ -3044,10 +3043,10 @@ application = URLRouter(
 
 **** ~data-controller="page"~
 
-Required on ~<html>~ or ~<body>~ to activate Stimulus controller.
+Required on ~<body>~ element to activate Stimulus controller.
 
 #+BEGIN_SRC html
-<html data-controller="page">
+<body data-controller="page">
 #+END_SRC
 
 **** ~data-room="room-id"~
