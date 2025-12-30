@@ -338,6 +338,30 @@ a:hover,
     list-style-position: inside;
 }
 
+.nav-docs__sublist {
+    list-style: "· ";
+    list-style-position: inside;
+    padding-left: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.nav-docs__subitem {
+    margin: 0.25rem 0;
+}
+
+.nav-docs__sublink {
+    color: var(--color-gray);
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.nav-docs__sublink:hover {
+    opacity: 1;
+    color: var(--color-brown);
+}
+
 /* Home */
 
 .nav-home__list {

@@ -282,6 +282,8 @@ We strongly recommend that you follow the [[#/quick-start/][Quick start]] to see
 
 Handlers are Python functions that respond to WebSocket messages from the client. They contain your business logic and can render HTML, update the database, broadcast to multiple users, and more.
 
+*** Basic
+
 ** Your First Handler
 
 Let's start with the simplest possible handler. This handler will be called when a button is clicked and will update a section of the page.
@@ -425,6 +427,8 @@ def example(consumer, content):
     # }
     pass
 #+END_SRC
+
+*** Intermediate
 
 ** Auto-discovery
 
@@ -576,6 +580,8 @@ HTML code:
     </button>
 </div>
 #+END_SRC
+
+*** Advanced
 
 ** Updating the URL Without Page Reload
 
@@ -930,6 +936,8 @@ def send_notification(consumer, content):
 :NAVIGATOR-ACTIVE: docs
 :END:
 
+*** UI Features
+
 ** Intersection Observer (Infinite Scroll)
 
 Trigger functions when elements enter or exit the viewport:
@@ -1051,6 +1059,8 @@ def search_articles(consumer, content):
 
 Without debounce, typing "python" would send 6 requests (one per letter). With ~data-liveview-debounce="500"~, it sends only 1 request after the user stops typing for 500ms.
 
+*** System Features
+
 ** Middleware System
 
 Add middleware to run before handlers for authentication, logging, or rate limiting:
@@ -1085,6 +1095,8 @@ def logging_middleware(consumer, content, function_name):
 liveview_registry.add_middleware(auth_middleware)
 liveview_registry.add_middleware(logging_middleware)
 #+END_SRC
+
+*** Data Handling
 
 ** Script Execution
 
