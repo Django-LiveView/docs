@@ -1059,6 +1059,82 @@ def search_articles(consumer, content):
 
 Without debounce, typing "python" would send 6 requests (one per letter). With ~data-liveview-debounce="500"~, it sends only 1 request after the user stops typing for 500ms.
 
+** Keyboard Events
+
+Handle keyboard shortcuts and key combinations declaratively with JSON mapping:
+
+#+BEGIN_SRC html
+<div
+    data-controller="page"
+    data-liveview-keyboard-map='{
+        "w":"move_up",
+        "a":"move_left",
+        "s":"move_down",
+        "d":"move_right",
+        "space":"shoot",
+        "esc":"pause_game",
+        "ctrl+s":"save_game"
+    }'
+    tabindex="0">
+    <!-- Your content -->
+</div>
+#+END_SRC
+
+**Attributes:**
+- ~data-liveview-keyboard-map='{...}'~: JSON object mapping keys to handler functions
+
+**Supported keys:**
+- **Letters and numbers**: ~a-z~, ~0-9~
+- **Special keys**: ~esc~, ~enter~, ~space~, ~tab~, ~up~, ~down~, ~left~, ~right~, ~home~, ~end~, ~page_up~, ~page_down~
+- **Modifiers**: ~ctrl~, ~alt~, ~meta~ (Command/Windows), ~shift~
+- **Combinations**: ~ctrl+s~, ~alt+f~, ~meta+k~, ~ctrl+shift+p~
+
+**Example: Game controls**
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+
+@liveview_handler("move_up")
+def move_up(consumer, content):
+    send(consumer, {
+        "target": "#game-status",
+        "html": "<p>Moving UP ⬆️</p>"
+    })
+
+@liveview_handler("save_game")
+def save_game(consumer, content):
+    # Save game state
+    send(consumer, {
+        "target": "#game-status",
+        "html": "<p>Game saved! 💾</p>"
+    })
+#+END_SRC
+
+**Scoped keyboard shortcuts:**
+
+You can scope keyboard events to specific elements. Put the attribute on ~<body>~ for global shortcuts, or on specific elements for scoped shortcuts:
+
+#+BEGIN_SRC html
+<!-- Global shortcuts -->
+<body data-controller="page"
+      data-liveview-keyboard-map='{"ctrl+s":"global_save"}'>
+
+    <!-- Modal with its own shortcuts -->
+    <div id="modal"
+         data-liveview-keyboard-map='{"esc":"close_modal","enter":"submit"}'
+         tabindex="-1">
+        <h2>Modal Dialog</h2>
+        <p>Press ESC to close or ENTER to submit</p>
+    </div>
+</body>
+#+END_SRC
+
+**Important notes:**
+- The element must be focusable. If not, ~tabindex="-1"~ is added automatically
+- When a mapped key is pressed, ~preventDefault()~ is called automatically
+- The keyboard map must be valid JSON (use single quotes for the attribute, double quotes inside JSON)
+- Works with dynamically added elements
+
 *** System Features
 
 ** Middleware System
@@ -3152,6 +3228,25 @@ Trigger intersection before entering viewport.
     data-liveview-intersect-appear="load_more"
     data-liveview-intersect-threshold="200">
 #+END_SRC
+
+**** ~data-liveview-keyboard-map='{...}'~
+
+Map keyboard shortcuts to handlers using JSON.
+
+#+BEGIN_SRC html
+<div
+    data-liveview-keyboard-map='{
+        "w":"move_up",
+        "ctrl+s":"save_game"
+    }'
+    tabindex="0">
+#+END_SRC
+
+**Supported keys:**
+- Letters and numbers: ~a-z~, ~0-9~
+- Special keys: ~esc~, ~enter~, ~space~, ~tab~, ~up~, ~down~, ~left~, ~right~, ~home~, ~end~, ~page_up~, ~page_down~
+- Modifiers: ~ctrl~, ~alt~, ~meta~, ~shift~
+- Combinations: ~ctrl+s~, ~alt+f~, ~meta+k~
 
 ** Consumer Scope
 
