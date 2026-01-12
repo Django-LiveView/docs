@@ -171,15 +171,23 @@ Are you ready to create your first real-time SPA? Let's go to the [[#/quick-star
 
 - Python 3.10+
 - Django 4.2+
-- Redis (for Channels layer)
 - Channels 4.0+
+- Redis (optional, recommended for production)
 
 ** Installation
 
-Install Django LiveView with pip:
+Install Django LiveView with required dependencies:
+
+*** For testing (without Redis)
 
 #+BEGIN_SRC sh
-pip install django-liveview
+pip install django-liveview channels daphne
+#+END_SRC
+
+*** For production (with Redis)
+
+#+BEGIN_SRC sh
+pip install django-liveview channels channels-redis daphne redis
 #+END_SRC
 
 ** Configure Django
@@ -197,8 +205,25 @@ INSTALLED_APPS = [
 
 # ASGI configuration
 ASGI_APPLICATION = "your_project.asgi.application"
+#+END_SRC
 
-# Configure Channels with Redis
+*** Channel Layer Configuration
+
+*Without Redis (testing only)*
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+#+END_SRC
+
+*With Redis (recommended)*
+
+#+BEGIN_SRC python
+# settings.py
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -3400,11 +3425,38 @@ This project is maintained by [[https://andros.dev][Andros Fenollosa]] in his fr
 
 Welcome to the quick start. Here you will learn how to create your first real-time SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
 
+This guide provides two paths: a quick one without Redis for immediate testing, and a production-ready path with Redis.
+
+** Step 0: Prerequisites
+
+Before starting, ensure you have:
+- Python 3.10 or higher
+- Django 4.2 or higher
+- A Django project created (if not: ~django-admin startproject myproject~)
+- A Django app created (if not: ~python manage.py startapp app~)
+
 ** Step 1: Installation
 
+*** Option A: Quick start (without Redis)
+
+For testing purposes only. Not suitable for production.
+
 #+BEGIN_SRC sh
-pip install django-liveview
+pip install django-liveview channels daphne
 #+END_SRC
+
+*** Option B: Production ready (with Redis)
+
+Recommended for development and production environments.
+
+#+BEGIN_SRC sh
+pip install django-liveview channels channels-redis daphne redis
+#+END_SRC
+
+You'll also need Redis running:
+- **Linux/Mac**: ~redis-server~
+- **Docker**: ~docker run -d -p 6379:6379 redis:alpine~
+- **Windows**: Use Docker or WSL
 
 ** Step 2: Configure Django
 
@@ -3416,13 +3468,35 @@ INSTALLED_APPS = [
     "daphne",  # Must be first for ASGI support
     "channels",
     "liveview",
-    # ... your other apps
+    "app",  # Your app
+    # ... other Django apps
 ]
 
 # ASGI configuration
-ASGI_APPLICATION = "your_project.asgi.application"
+ASGI_APPLICATION = "myproject.asgi.application"
+#+END_SRC
 
-# Configure Channels with Redis
+*** Channel Layer Configuration
+
+Choose one option:
+
+*Option A: Without Redis (testing only)*
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+#+END_SRC
+
+**Limitations**: Only works with ~runserver~, not cross-process, not production-ready.
+
+*Option B: With Redis (recommended)*
+
+#+BEGIN_SRC python
+# settings.py
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -3435,10 +3509,10 @@ CHANNEL_LAYERS = {
 
 ** Step 3: Setup ASGI routing
 
-Create or update ~asgi.py~:
+Create or update ~myproject/asgi.py~:
 
 #+BEGIN_SRC python
-# asgi.py
+# myproject/asgi.py
 import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
@@ -3446,7 +3520,7 @@ from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from liveview.routing import get_liveview_urlpatterns
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "your_project.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproject.settings")
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
@@ -3462,8 +3536,10 @@ application = ProtocolTypeRouter({
 
 ** Step 4: Add JavaScript to your base template
 
+Create ~app/templates/base.html~:
+
 #+BEGIN_SRC html
-<!-- templates/base.html -->
+<!-- app/templates/base.html -->
 {% load static %}
 {% load liveview %}
 <!DOCTYPE html>
@@ -3485,7 +3561,16 @@ application = ProtocolTypeRouter({
 - ~data-room="{% liveview_room_uuid %}"~ on ~<html>~: unique room ID for each page load
 - ~data-controller="page"~ on ~<body>~: activates the Stimulus controller
 
+**Note**: Templates are placed in ~app/templates/~ to follow Django's app-based template discovery with ~APP_DIRS = True~.
+
 ** Step 5: Create your first LiveView handler
+
+Create the directory structure:
+
+#+BEGIN_SRC sh
+mkdir -p app/liveview_components
+touch app/liveview_components/__init__.py
+#+END_SRC
 
 Create ~app/liveview_components/hello.py~:
 
@@ -3509,16 +3594,53 @@ def say_hello(consumer, content):
     })
 #+END_SRC
 
-Create the template ~templates/hello_message.html~:
+Create the template ~app/templates/hello_message.html~:
 
 #+BEGIN_SRC html
 <h1>{{ message }}</h1>
 #+END_SRC
 
-** Step 6: Use it in your page
+** Step 6: Create the page view and URLs
+
+Create ~app/views.py~:
+
+#+BEGIN_SRC python
+# app/views.py
+from django.shortcuts import render
+
+def home(request):
+    return render(request, 'hello_page.html')
+#+END_SRC
+
+Create ~app/urls.py~:
+
+#+BEGIN_SRC python
+# app/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+]
+#+END_SRC
+
+Update ~myproject/urls.py~:
+
+#+BEGIN_SRC python
+# myproject/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('app.urls')),
+]
+#+END_SRC
+
+Create the page template ~app/templates/hello_page.html~:
 
 #+BEGIN_SRC html
-<!-- templates/hello_page.html -->
+<!-- app/templates/hello_page.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -3537,14 +3659,22 @@ Create the template ~templates/hello_message.html~:
 {% endblock %}
 #+END_SRC
 
-** Step 7: Run your project
+** Step 7: Run migrations and start server
 
 #+BEGIN_SRC sh
+# Run migrations
+python manage.py migrate
+
+# Collect static files (for liveview.min.js)
+python manage.py collectstatic --noinput
+
 # Run Django with Daphne (ASGI server)
 python manage.py runserver
 #+END_SRC
 
-That's it! Click the button and see real-time updates. 🎉
+**If you chose Redis**: Make sure Redis is running before starting the server.
+
+Visit http://127.0.0.1:8000/ and click the button. You should see real-time updates without page reload! 🎉
 
 Congratulations! You have created your first real-time SPA using Django LiveView.
 
