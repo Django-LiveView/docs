@@ -341,7 +341,7 @@ def greet_user(consumer, content):
 HTML code:
 
 #+BEGIN_SRC html
-<div>
+<form>
     <div id="greeting"></div>
     <input type="text" name="name" placeholder="Enter your name">
     <button
@@ -349,10 +349,44 @@ HTML code:
         data-action="click->page#run">
         Greet Me
     </button>
-</div>
+</form>
 #+END_SRC
 
 The ~content["form"]~ dictionary contains all input values with their ~name~ attribute as the key.
+
+**How form data extraction works:**
+
+Django LiveView automatically extracts form data using three fallback strategies:
+
+1. **From a ~<form>~ element**: If the clicked element is a form, all inputs within it are extracted
+2. **From a parent ~<form>~**: If the clicked element is inside a form (like a button), all inputs from that parent form are extracted using ~closest("form")~
+3. **From an individual input**: If the element itself is an input (and there's no parent form), only that input's value is sent
+
+This means you can structure your HTML in several ways:
+
+#+BEGIN_SRC html
+<!-- Option 1: Button inside form (recommended) -->
+<form>
+    <input type="text" name="name">
+    <button data-liveview-function="greet_user" data-action="click->page#run">
+        Submit
+    </button>
+</form>
+
+<!-- Option 2: Input with direct action (single value only) -->
+<input
+    type="text"
+    name="search"
+    data-liveview-function="search"
+    data-action="input->page#run">
+
+<!-- Option 3: Form submit -->
+<form data-liveview-function="save_profile" data-action="submit->page#run">
+    <input type="text" name="username">
+    <input type="email" name="email">
+    <button type="submit">Save</button>
+</form>
+#+END_SRC
 
 ** Using Templates for Complex HTML
 
