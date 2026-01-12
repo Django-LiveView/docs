@@ -3522,7 +3522,7 @@ Create the template ~templates/hello_message.html~:
 {% extends "base.html" %}
 
 {% block content %}
-<div>
+<form>
     <input type="text" name="name" placeholder="Enter your name">
     <button
         data-liveview-function="say_hello"
@@ -3533,7 +3533,7 @@ Create the template ~templates/hello_message.html~:
     <div id="greeting">
         <h1>Hello, World!</h1>
     </div>
-</div>
+</form>
 {% endblock %}
 #+END_SRC
 
