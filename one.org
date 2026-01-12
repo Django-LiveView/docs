@@ -3678,11 +3678,24 @@ Visit http://127.0.0.1:8000/ and click the button. You should see real-time upda
 
 Congratulations! You have created your first real-time SPA using Django LiveView.
 
-** Live Demo
+** Complete Example Code
 
-Want to see Django LiveView in action? Check out our [[https://django-liveview-demo.andros.dev/][live demo]] showcasing a real-time alert system with WebSocket communication, form validation, and broadcast notifications.
+You can find the complete working code from this tutorial at [[https://github.com/Django-LiveView/quick-start][GitHub]]. Clone it and run with Docker:
 
-The source code is available at [[https://github.com/Django-LiveView/demo-alarms][GitHub]].
+#+BEGIN_SRC sh
+git clone git@github.com:Django-LiveView/quick-start.git
+cd quick-start
+docker compose up
+#+END_SRC
+
+Then visit http://localhost:8000/
+
+** Live Demos
+
+Want to see Django LiveView in action? Check out these demos:
+
+- **[[https://django-liveview-demo.andros.dev/][Alert System]]**: Real-time alert system with WebSocket communication, form validation, and broadcast notifications ([[https://github.com/Django-LiveView/demo-alarms][source code]])
+- **[[https://github.com/Django-LiveView/demo-snake][Snake Game]]**: The classic game of Snake built entirely with Django LiveView, showcasing real-time keyboard events and dynamic updates
 
 * Source code
 :PROPERTIES:
