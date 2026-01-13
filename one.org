@@ -7,8 +7,6 @@
 :NAVIGATOR-ACTIVE: home
 :END:
 
-** Build real-time SPAs with Python, not JavaScript
-
 Django LiveView is a framework for creating real-time, interactive web applications entirely in Python, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
 
 Build rich, dynamic user experiences with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features without the complexity of a separate frontend framework.
@@ -83,6 +81,7 @@ That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend fr
 - ⚡ **Everything is asynchronous by default**: Built on Django Channels
 - 📚 **Zero learning curve**: If you know Python and Django, you're ready
 - 🔄 **Real-time by design**: All interactions happen over WebSockets
+- 💾 **Stateful connections**: Maintain server-side state throughout the WebSocket session
 - 🔋 **Batteries included**: JavaScript assets bundled, automatic reconnection with exponential backoff
 - 💡 **Type hints** and modern Python (3.10+)
 - 📡 **Broadcast support** for multi-user real-time updates
