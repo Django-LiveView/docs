@@ -826,6 +826,353 @@ Available Stimulus actions:
 - ~data-action="blur->page#run"~: Execute when element loses focus
 - ~data-action="page#stop"~: Stop event propagation
 
+
+** Custom JavaScript Events
+
+Dispatch custom JavaScript events from Django handlers that can be listened to with standard ~addEventListener~.
+
+Django LiveView doesn't have built-in support for custom JavaScript events, but you can easily extend it using the exposed ~window.myWebSocket~ global. This allows you to dispatch custom DOM events from your Django handlers that can be captured with standard JavaScript event listeners.
+
+*** Use Cases
+
+Custom events are perfect for:
+
+- *Collaborative features*: Broadcast drawing actions, cursor positions, or real-time collaborative editing
+- *Notifications*: Display toast messages or system notifications
+- *Analytics*: Track user interactions and send them to analytics services
+- *Third-party integrations*: Trigger actions in other JavaScript libraries (charts, maps, etc.)
+- *Game development*: Broadcast game state changes to multiple clients
+- *Custom UI behavior*: Trigger animations, sound effects, or visual feedback
+
+*** Implementation
+
+**** Step 1: Create the Extension Script
+
+Create a JavaScript file to intercept WebSocket messages and dispatch custom events:
+
+#+BEGIN_SRC javascript
+// static/js/liveview-events-extension.js
+
+/**
+ * Django LiveView Custom Events Extension
+ * Adds support for custom JavaScript events dispatched from Django handlers
+ */
+class LiveViewEventsExtension {
+	constructor() {
+		this.setupEventInterceptor();
+	}
+
+	setupEventInterceptor() {
+		// Wait for WebSocket to be ready
+		const checkWebSocket = setInterval(() => {
+			if (window.myWebSocket && window.myWebSocket.readyState === WebSocket.OPEN) {
+				clearInterval(checkWebSocket);
+				this.interceptMessages();
+				console.log('✅ LiveView custom events extension initialized');
+			}
+		}, 100);
+
+		// Timeout after 10 seconds
+		setTimeout(() => {
+			clearInterval(checkWebSocket);
+			if (!window.myWebSocket || window.myWebSocket.readyState !== WebSocket.OPEN) {
+				console.error('❌ Failed to initialize custom events extension');
+			}
+		}, 10000);
+	}
+
+	interceptMessages() {
+		// Add our own message listener
+		window.myWebSocket.addEventListener('message', (event) => {
+			try {
+				const data = JSON.parse(event.data);
+
+				// If the message has a custom event, dispatch it
+				if (data.event) {
+					this.dispatchCustomEvent(data.event, data.eventData || {});
+				}
+			} catch (error) {
+				console.error('Error processing custom event:', error);
+			}
+		});
+	}
+
+	dispatchCustomEvent(eventName, eventData) {
+		const customEvent = new CustomEvent(eventName, {
+			detail: eventData,
+			bubbles: true,
+			cancelable: true
+		});
+
+		console.debug(`📡 Custom event: ${eventName}`, eventData);
+		document.dispatchEvent(customEvent);
+	}
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', () => new LiveViewEventsExtension());
+} else {
+	new LiveViewEventsExtension();
+}
+#+END_SRC
+
+**** Step 2: Load the Extension
+
+Add the script to your base template *after* loading Django LiveView:
+
+#+BEGIN_SRC html
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-room="your_room_id">
+<head>
+	<meta charset="UTF-8">
+	<title>My App</title>
+</head>
+<body data-controller="page">
+	{% block content %}{% endblock %}
+
+	<!-- Load Django LiveView first -->
+	<script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+
+	<!-- Load custom events extension after -->
+	<script src="{% static 'js/liveview-events-extension.js' %}" defer></script>
+</body>
+</html>
+#+END_SRC
+
+**** Step 3: Dispatch Events from Django
+
+Use the ~send()~ function with ~event~ and ~eventData~ keys:
+
+#+BEGIN_SRC python
+# your_app/liveview_components/notifications.py
+from liveview import liveview_handler, send
+from time import time
+
+@liveview_handler("send_notification")
+def send_notification(consumer, content):
+    """Broadcast a notification to all connected clients"""
+    message = content.get("data", {}).get("message", "")
+
+    # Send custom event
+    send(consumer, {
+        "event": "notification:show",
+        "eventData": {
+            "message": message,
+            "type": "info",
+            "timestamp": time()
+        }
+    }, broadcast=True)
+#+END_SRC
+
+**** Step 4: Listen to Events in JavaScript
+
+Use standard ~addEventListener~ to handle custom events:
+
+#+BEGIN_SRC javascript
+// static/js/app.js
+
+// Listen for notification events
+document.addEventListener('notification:show', (event) => {
+	const { message, type, timestamp } = event.detail;
+
+	// Display notification
+	showToast(message, type);
+	console.log('Notification received:', message);
+});
+
+// Listen for custom game events
+document.addEventListener('game:player-moved', (event) => {
+	const { playerId, x, y } = event.detail;
+	updatePlayerPosition(playerId, x, y);
+});
+
+// Listen for collaborative canvas events
+document.addEventListener('canvas:draw', (event) => {
+	const { x, y, color, userId } = event.detail;
+	drawOnCanvas(x, y, color, userId);
+});
+#+END_SRC
+
+*** Message Structure
+
+When sending custom events from Django:
+
+#+BEGIN_SRC python
+send(consumer, {
+    "event": "namespace:action",  # Event name (use namespaces)
+    "eventData": {                # Any serializable data
+        "key1": "value1",
+        "key2": 123,
+        "key3": True
+    }
+}, broadcast=True)  # Optional: broadcast to all clients
+#+END_SRC
+
+The extension will automatically:
+1. Parse the WebSocket message
+2. Check if it contains an ~event~ key
+3. Create a ~CustomEvent~ with the event name and data
+4. Dispatch it on the ~document~ object
+
+*** Event Naming Conventions
+
+Use namespaced event names to avoid conflicts:
+
+#+BEGIN_SRC javascript
+// Good ✅
+"notification:show"
+"canvas:draw"
+"chat:message"
+"game:player-joined"
+"analytics:track"
+
+// Bad ❌
+"show"          // Too generic
+"message"       // Could conflict
+"update"        // Unclear
+#+END_SRC
+
+*** Complete Example: Real-time Notifications
+
+**** Django Handler
+
+#+BEGIN_SRC python
+# notifications/liveview_components/handlers.py
+from liveview import liveview_handler, send
+from time import time
+
+@liveview_handler("broadcast_notification")
+def broadcast_notification(consumer, content):
+    """Send a notification to all users"""
+    message = content.get("form", {}).get("message", "")
+    notification_type = content.get("form", {}).get("type", "info")
+
+    if message:
+        # Dispatch custom event to all clients
+        send(consumer, {
+            "event": "notification:show",
+            "eventData": {
+                "message": message,
+                "type": notification_type,
+                "timestamp": time(),
+                "from_user": content.get("data", {}).get("username", "Anonymous")
+            }
+        }, broadcast=True)
+#+END_SRC
+
+**** HTML Template
+
+#+BEGIN_SRC html
+<!-- templates/notifications.html -->
+<div class="notification-sender">
+	<form data-liveview-function="broadcast_notification"
+	      data-action="submit->page#run">
+		<input type="text" name="message" placeholder="Notification message">
+		<select name="type">
+			<option value="info">Info</option>
+			<option value="success">Success</option>
+			<option value="warning">Warning</option>
+			<option value="error">Error</option>
+		</select>
+		<button type="submit">Send to All Users</button>
+	</form>
+</div>
+
+<div id="notifications-container"></div>
+#+END_SRC
+
+**** JavaScript Event Listener
+
+#+BEGIN_SRC javascript
+// static/js/notifications.js
+
+// Listen for notification events
+document.addEventListener('notification:show', (event) => {
+	const { message, type, timestamp, from_user } = event.detail;
+
+	// Create notification element
+	const notification = document.createElement('div');
+	notification.className = `notification notification-${type}`;
+	notification.innerHTML = `
+		<div class="notification-header">
+			<strong>${from_user}</strong>
+			<span>${new Date(timestamp * 1000).toLocaleTimeString()}</span>
+		</div>
+		<div class="notification-message">${message}</div>
+	`;
+
+	// Add to container
+	const container = document.getElementById('notifications-container');
+	container.appendChild(notification);
+
+	// Auto-remove after 5 seconds
+	setTimeout(() => notification.remove(), 5000);
+});
+#+END_SRC
+
+*** Combining with DOM Updates
+
+You can send both custom events and DOM updates in the same handler:
+
+#+BEGIN_SRC python
+@liveview_handler("create_alert")
+def create_alert(consumer, content):
+    """Create alert and notify all users"""
+    alert = Alert.objects.create(type="WARNING", message="New alert!")
+
+    # Update the DOM
+    send(consumer, {
+        "target": "#alerts-list",
+        "html": render_to_string("alerts/list.html", {
+            "alerts": Alert.objects.all()
+        })
+    }, broadcast=True)
+
+    # Also dispatch custom event
+    send(consumer, {
+        "event": "alert:created",
+        "eventData": {
+            "id": alert.id,
+            "type": alert.type,
+            "message": alert.message
+        }
+    }, broadcast=True)
+#+END_SRC
+
+*** Advantages
+
+- *Non-invasive*: Doesn't modify Django LiveView core
+- *Standard API*: Uses native ~addEventListener~ and ~CustomEvent~
+- *Backward compatible*: Works alongside existing LiveView features
+- *No recompilation*: Just add a JavaScript file
+- *Easy to maintain*: Survives Django LiveView updates
+- *Flexible*: Can be removed if not needed
+
+*** Troubleshooting
+
+**** Events not being dispatched
+
+1. Check browser console for errors
+2. Verify WebSocket is connected: ~window.myWebSocket.readyState === 1~
+3. Ensure extension script loads after ~liveview.min.js~
+4. Confirm both scripts have the ~defer~ attribute
+
+**** Events dispatched but not received
+
+1. Add event listener before the event is dispatched
+2. Check event name matches exactly (case-sensitive)
+3. Use ~document.addEventListener~, not element-specific listeners
+4. Verify event data structure in console
+
+**** Extension not initializing
+
+1. Check if WebSocket connection is established
+2. Look for initialization message in console
+3. Verify no JavaScript errors are blocking execution
+4. Try increasing the timeout if connection is slow
 * Forms
 :PROPERTIES:
 :ONE: one-custom-default-doc
