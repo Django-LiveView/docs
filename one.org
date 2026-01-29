@@ -985,46 +985,7 @@ document.addEventListener('canvas:draw', (event) => {
 });
 #+END_SRC
 
-*** Message Structure
-
-When sending custom events from Django:
-
-#+BEGIN_SRC python
-send(consumer, {
-    "event": "namespace:action",  # Event name (use namespaces)
-    "eventData": {                # Any serializable data
-        "key1": "value1",
-        "key2": 123,
-        "key3": True
-    }
-}, broadcast=True)  # Optional: broadcast to all clients
-#+END_SRC
-
-The extension will automatically:
-1. Parse the WebSocket message
-2. Check if it contains an ~event~ key
-3. Create a ~CustomEvent~ with the event name and data
-4. Dispatch it on the ~document~ object
-
-*** Event Naming Conventions
-
-Use namespaced event names to avoid conflicts:
-
-#+BEGIN_SRC javascript
-// Good ✅
-"notification:show"
-"canvas:draw"
-"chat:message"
-"game:player-joined"
-"analytics:track"
-
-// Bad ❌
-"show"          // Too generic
-"message"       // Could conflict
-"update"        // Unclear
-#+END_SRC
-
-*** Complete Example: Real-time Notifications
+*** Complete Example: Real-time Notifications with Custom Events
 
 **** Django Handler
 
