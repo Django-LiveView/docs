@@ -833,17 +833,6 @@ Dispatch custom JavaScript events from Django handlers that can be listened to w
 
 Django LiveView doesn't have built-in support for custom JavaScript events, but you can easily extend it using the exposed ~window.myWebSocket~ global. This allows you to dispatch custom DOM events from your Django handlers that can be captured with standard JavaScript event listeners.
 
-*** Use Cases
-
-Custom events are perfect for:
-
-- *Collaborative features*: Broadcast drawing actions, cursor positions, or real-time collaborative editing
-- *Notifications*: Display toast messages or system notifications
-- *Analytics*: Track user interactions and send them to analytics services
-- *Third-party integrations*: Trigger actions in other JavaScript libraries (charts, maps, etc.)
-- *Game development*: Broadcast game state changes to multiple clients
-- *Custom UI behavior*: Trigger animations, sound effects, or visual feedback
-
 *** Implementation
 
 **** Step 1: Create the Extension Script
@@ -1142,37 +1131,6 @@ def create_alert(consumer, content):
     }, broadcast=True)
 #+END_SRC
 
-*** Advantages
-
-- *Non-invasive*: Doesn't modify Django LiveView core
-- *Standard API*: Uses native ~addEventListener~ and ~CustomEvent~
-- *Backward compatible*: Works alongside existing LiveView features
-- *No recompilation*: Just add a JavaScript file
-- *Easy to maintain*: Survives Django LiveView updates
-- *Flexible*: Can be removed if not needed
-
-*** Troubleshooting
-
-**** Events not being dispatched
-
-1. Check browser console for errors
-2. Verify WebSocket is connected: ~window.myWebSocket.readyState === 1~
-3. Ensure extension script loads after ~liveview.min.js~
-4. Confirm both scripts have the ~defer~ attribute
-
-**** Events dispatched but not received
-
-1. Add event listener before the event is dispatched
-2. Check event name matches exactly (case-sensitive)
-3. Use ~document.addEventListener~, not element-specific listeners
-4. Verify event data structure in console
-
-**** Extension not initializing
-
-1. Check if WebSocket connection is established
-2. Look for initialization message in console
-3. Verify no JavaScript errors are blocking execution
-4. Try increasing the timeout if connection is slow
 * Forms
 :PROPERTIES:
 :ONE: one-custom-default-doc
