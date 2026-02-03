@@ -6,9 +6,9 @@ services:
     restart: "no"
     volumes:
       - .:/usr/src/app/
-      
+
   nginx:
-    restart: "always"
+    restart: "no"
     image: nginx:alpine
     ports:
       - 9100:80
