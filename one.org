@@ -118,7 +118,7 @@ The key difference is the connection model:
 
 **Django LiveView** uses a persistent WebSocket connection that stays open between the client and server. This allows bidirectional, real-time communication with minimal latency. Think of it like a phone call: once connected, both sides can talk instantly.
 
-**HTMX** sends a new HTTP request for each user interaction and updates only part of the page. It's like sending text messages: you send a message, wait for a response, then repeat.
+**HTMX** sends a new HTTP request for each user interaction and updates only part of the page. It's like sending text messages: you send a message, wait for a response, then repeat. If you're migrating from HTMX, check out [[https://en.andros.dev/blog/94d14a9e/from-htmx-to-django-liveview/][this migration guide]].
 
 **Traditional SSR** reloads the entire page with each interaction through a POST request followed by a redirect. It's like hanging up and calling back every time you want to say something.
 
