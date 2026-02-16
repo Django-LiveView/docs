@@ -195,6 +195,8 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/forms/") "Forms"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/state-management/") "State Management"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/broadcasting/") "Broadcasting"))
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/advanced/") "Advanced Features")
