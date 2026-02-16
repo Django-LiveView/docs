@@ -1080,6 +1080,298 @@ def validate_field(consumer, content):
 <span id="error-email"></span>
 #+END_SRC
 
+* State Management
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/state-management/
+:TITLE: State Management
+:DESCRIPTION: Managing user state across WebSocket connections and page reloads.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Django LiveView maintains stateful WebSocket connections, but what happens when users navigate away or reload the page? This guide shows how to persist user state using Django sessions.
+
+** Simple State: Counter
+
+Let's start with a simple example: a counter that increments each time you click a button and persists across page reloads.
+
+Python handler:
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("increment_counter")
+def increment_counter(consumer, content):
+	session = consumer.scope.get("session")
+
+	# Get current count or start at 0
+	count = session.get("counter", 0)
+
+	# Increment
+	count += 1
+
+	# Save to session
+	session["counter"] = count
+	session.modified = True
+
+	# Send updated counter
+	send(consumer, {
+		"target": "#counter-display",
+		"html": render_to_string("counter_display.html", {
+			"count": count
+		})
+	})
+#+END_SRC
+
+Initial view with pre-populated counter:
+
+#+BEGIN_SRC python
+# views.py
+from django.shortcuts import render
+
+def counter_view(request):
+	# Restore counter from session on page load
+	count = request.session.get("counter", 0)
+
+	return render(request, "counter.html", {
+		"count": count
+	})
+#+END_SRC
+
+HTML template:
+
+#+BEGIN_SRC html
+<!-- counter.html -->
+<div>
+	<div id="counter-display">
+		{% include "counter_display.html" %}
+	</div>
+
+	<button
+		data-liveview-function="increment_counter"
+		data-action="click->page#run">
+		Increment
+	</button>
+</div>
+
+<!-- counter_display.html -->
+<p>Counter: <strong>{{ count }}</strong></p>
+#+END_SRC
+
+The counter persists across page reloads because:
+
+1. [@1] On page load, Django renders the template with ~count~ from ~request.session~
+2. [@2] Each button click increments the counter and saves to ~session["counter"]~
+3. [@3] When users reload the page, step 1 repeats with the saved value
+
+** Form Draft Persistence
+
+For complex forms, you can save partial progress and restore it later. This is useful for long forms that users might abandon and return to.
+
+Python handlers:
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+from datetime import datetime
+
+@liveview_handler("autosave_form")
+def autosave_form(consumer, content):
+	"""Auto-saves form state to session"""
+	session = consumer.scope.get("session")
+	form_id = content.get("form_id")
+	form_data = content.get("form")
+
+	# Store multiple form drafts
+	if "form_drafts" not in session:
+		session["form_drafts"] = {}
+
+	session["form_drafts"][form_id] = {
+		"data": form_data,
+		"timestamp": datetime.now().isoformat()
+	}
+	session.modified = True
+
+	send(consumer, {
+		"target": "#autosave-status",
+		"html": '<small class="text-success">✓ Draft saved</small>'
+	})
+
+@liveview_handler("restore_form_draft")
+def restore_form_draft(consumer, content):
+	"""Restores a saved draft"""
+	session = consumer.scope.get("session")
+	form_id = content.get("form_id")
+
+	drafts = session.get("form_drafts", {})
+	draft = drafts.get(form_id)
+
+	if draft:
+		send(consumer, {
+			"action": "restore_form",
+			"form_id": form_id,
+			"form_data": draft["data"],
+			"saved_at": draft["timestamp"]
+		})
+	else:
+		send(consumer, {
+			"action": "no_draft_found",
+			"form_id": form_id
+		})
+
+@liveview_handler("clear_form_draft")
+def clear_form_draft(consumer, content):
+	"""Clears draft after successful submission"""
+	session = consumer.scope.get("session")
+	form_id = content.get("form_id")
+
+	if "form_drafts" in session and form_id in session["form_drafts"]:
+		del session["form_drafts"][form_id]
+		session.modified = True
+#+END_SRC
+
+View with draft restoration:
+
+#+BEGIN_SRC python
+# views.py
+from django.shortcuts import render
+from .forms import ContactForm
+
+def contact_view(request):
+	form_id = "contact_form"
+
+	# Check for saved draft
+	draft = request.session.get("form_drafts", {}).get(form_id)
+
+	if draft:
+		# Pre-populate form with draft data
+		form = ContactForm(initial=draft["data"])
+		has_draft = True
+	else:
+		form = ContactForm()
+		has_draft = False
+
+	return render(request, "contact.html", {
+		"form": form,
+		"has_draft": has_draft,
+		"form_id": form_id
+	})
+#+END_SRC
+
+HTML template with auto-save:
+
+#+BEGIN_SRC html
+<div id="contact-container">
+	{% if has_draft %}
+	<div class="alert alert-info">
+		You have a saved draft
+	</div>
+	{% endif %}
+
+	<form id="{{ form_id }}">
+		<input
+			type="text"
+			name="name"
+			placeholder="Name"
+			value="{{ form.name.value|default:'' }}"
+			data-liveview-function="autosave_form"
+			data-liveview-form-id="{{ form_id }}"
+			data-liveview-debounce="2000"
+			data-action="input->page#run">
+
+		<input
+			type="email"
+			name="email"
+			placeholder="Email"
+			value="{{ form.email.value|default:'' }}"
+			data-liveview-function="autosave_form"
+			data-liveview-form-id="{{ form_id }}"
+			data-liveview-debounce="2000"
+			data-action="input->page#run">
+
+		<textarea
+			name="message"
+			placeholder="Message"
+			data-liveview-function="autosave_form"
+			data-liveview-form-id="{{ form_id }}"
+			data-liveview-debounce="2000"
+			data-action="input->page#run">{{ form.message.value|default:'' }}</textarea>
+
+		<div id="autosave-status"></div>
+
+		<button
+			type="button"
+			data-liveview-function="submit_contact"
+			data-liveview-form-id="{{ form_id }}"
+			data-action="click->page#run">
+			Submit
+		</button>
+	</form>
+</div>
+#+END_SRC
+
+Each field uses ~data-liveview-debounce="2000"~ to wait 2 seconds after the user stops typing before auto-saving. This prevents excessive WebSocket messages while still providing a responsive auto-save experience.
+
+Handler for form submission with draft cleanup:
+
+#+BEGIN_SRC python
+@liveview_handler("submit_contact")
+def submit_contact(consumer, content):
+	from .forms import ContactForm
+
+	session = consumer.scope.get("session")
+	form_id = content.get("form_id")
+	form_data = content.get("form")
+
+	form = ContactForm(form_data)
+
+	if form.is_valid():
+		# Process form
+		contact = form.save()
+
+		# Clear the draft
+		if "form_drafts" in session and form_id in session["form_drafts"]:
+			del session["form_drafts"][form_id]
+			session.modified = True
+
+		send(consumer, {
+			"target": "#contact-container",
+			"html": '<div class="alert alert-success">Message sent!</div>'
+		})
+	else:
+		# Re-render with errors (keeping draft)
+		html = render_to_string("contact_form.html", {
+			"form": form,
+			"form_id": form_id
+		})
+
+		send(consumer, {
+			"target": "#contact-container",
+			"html": html
+		})
+#+END_SRC
+
+*** Session Configuration
+
+Control how long drafts persist by configuring Django sessions:
+
+#+BEGIN_SRC python
+# settings.py
+
+# Session cookie age (7 days)
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
+
+# Don't extend session on every request (saves resources)
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Use database sessions for persistence
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Or use cache for faster access
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+#+END_SRC
+
 * Broadcasting
 :PROPERTIES:
 :ONE: one-custom-default-doc
