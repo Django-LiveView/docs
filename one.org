@@ -1685,35 +1685,67 @@ liveview_registry.add_middleware(logging_middleware)
 
 ** Script Execution
 
-Execute JavaScript code directly from your Python handlers.
+Django LiveView automatically extracts and executes ~<script>~ tags embedded in HTML responses. Scripts are executed after the HTML is rendered in the target element.
 
-⚠️ *Security Warning:* Only execute scripts from trusted sources. Never pass user input directly to the ~script~ parameter without sanitization, as this can lead to XSS (Cross-Site Scripting) vulnerabilities.
+⚠️ *Security Warning:* Only execute scripts from trusted sources. Never pass user input directly to scripts without sanitization, as this can lead to XSS (Cross-Site Scripting) vulnerabilities.
 
-*** Basic Script Execution
+*** Script Context: ~el~ and ~this~
+
+Inside every inline script, two references point to the target element where the HTML was rendered:
+
+- ~el~: the target element (explicit parameter)
+- ~this~: also the target element
+
+This lets scripts work on their own fragment without needing global selectors:
+
+#+BEGIN_SRC html
+<!-- components/counter.html -->
+<div>
+    <button class="increment-btn">Count: <span>0</span></button>
+</div>
+<script>
+    let count = 0;
+    el.querySelector('.increment-btn').addEventListener('click', () => {
+        count++;
+        el.querySelector('span').textContent = count;
+    });
+</script>
+#+END_SRC
 
 #+BEGIN_SRC python
-from liveview import liveview_handler, send
-
-@liveview_handler("show_notification")
-def show_notification(consumer, content):
-    message = content["form"]["message"]
-
-    # Execute JavaScript to show a browser notification
+@liveview_handler("load_counter")
+def load_counter(consumer, content):
     send(consumer, {
-        "script": f"""
-            if (Notification.permission === 'granted') {{
-                new Notification('New Message', {{
-                    body: '{message}',
-                    icon: '/static/icon.png'
-                }});
-            }}
-        """
+        "target": "#component-container",
+        "html": render_to_string("components/counter.html"),
     })
 #+END_SRC
 
-*** Combining HTML and Script
+Using ~el~ instead of ~document.getElementById~ or ~document.querySelector~ means the script is scoped to its fragment: the same template can be rendered in multiple targets simultaneously without conflicts.
 
-You can combine HTML updates with script execution:
+*** Script Cleanup
+
+When Django LiveView replaces or removes an element, it calls ~el.__cleanup()~ before modifying the DOM, if the function is defined. Use this to release resources created by the script: event listeners on external elements, timers, observers, third-party library instances.
+
+#+BEGIN_SRC html
+<!-- components/live_clock.html -->
+<div class="clock"><span class="time"></span></div>
+<script>
+    const tick = () => {
+        el.querySelector('.time').textContent = new Date().toLocaleTimeString();
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+
+    el.__cleanup = () => clearInterval(timer);
+</script>
+#+END_SRC
+
+Without ~__cleanup~, the interval would keep running even after the element is replaced, causing stale updates and memory leaks.
+
+*** Third-Party Libraries
+
+The ~el~ context and ~__cleanup~ pattern work naturally with libraries that manage their own lifecycle, such as Chart.js:
 
 #+BEGIN_SRC python
 @liveview_handler("load_chart")
@@ -1721,71 +1753,68 @@ def load_chart(consumer, content):
     import json
     chart_data = json.dumps(get_chart_data())
 
-    # Update HTML
-    html = render_to_string("chart_container.html", {
-        "chart_id": "sales-chart"
-    })
-
     send(consumer, {
         "target": "#chart-container",
-        "html": html
-    })
-
-    # Initialize chart with JavaScript
-    send(consumer, {
-        "script": f"""
-            const ctx = document.getElementById('sales-chart');
-            new Chart(ctx, {{
-                type: 'bar',
-                data: {chart_data}
-            }});
-        """
+        "html": render_to_string("components/chart.html", {"chart_data": chart_data}),
     })
 #+END_SRC
 
-*** Inline Scripts in HTML
+#+BEGIN_SRC html
+<!-- components/chart.html -->
+<canvas class="sales-chart"></canvas>
+<script>
+    const chart = new Chart(el.querySelector('canvas'), {
+        type: 'bar',
+        data: JSON.parse('{{ chart_data|escapejs }}'),
+    });
 
-Django LiveView automatically extracts and executes ~<script>~ tags from HTML responses:
-
-#+BEGIN_SRC python
-@liveview_handler("load_interactive_component")
-def load_interactive_component(consumer, content):
-    html = '''
-        <div id="counter">
-            <button id="increment">Count: <span>0</span></button>
-        </div>
-        <script>
-            let count = 0;
-            document.getElementById('increment').addEventListener('click', () => {
-                count++;
-                document.querySelector('#increment span').textContent = count;
-            });
-        </script>
-    '''
-
-    send(consumer, {
-        "target": "#component-container",
-        "html": html
-    })
+    el.__cleanup = () => chart.destroy();
+</script>
 #+END_SRC
 
-The script will be automatically extracted and executed after the HTML is rendered.
+Navigating away from this page and back again will correctly destroy the previous chart instance before creating a new one.
+
+*** Scripts in Full-Page Templates
+
+In some Django projects, scripts live inside a ~{% block scripts %}~ that is rendered outside the LiveView target element (e.g. at the bottom of ~base.html~). In that case the same script runs in two different contexts:
+
+- *Direct page load*: executed as a normal ~<script>~ tag — ~el~ is not defined.
+- *LiveView navigation*: executed via ~new Function('el', ...)~ — ~el~ is the target element.
+
+Use a fallback to handle both cases:
+
+#+BEGIN_SRC html
+<canvas id="my-chart"></canvas>
+<script>
+    const _el = typeof el !== 'undefined' ? el : document.querySelector('#main-content');
+    const chart = new Chart(_el.querySelector('#my-chart'), {
+        type: 'bar',
+        data: JSON.parse('{{ chart_data|escapejs }}'),
+    });
+
+    _el.__cleanup = () => chart.destroy();
+</script>
+#+END_SRC
+
+~typeof el !== 'undefined'~ is always safe — ~typeof~ never throws a ~ReferenceError~ even for undeclared variables.
+
+If the script is rendered *inside* the target element (the recommended approach), ~el~ is always defined and no fallback is needed.
 
 *** Use Cases
 
-- Integrating third-party JavaScript libraries (charts, maps, etc.)
-- Triggering browser APIs (notifications, geolocation, etc.)
+- Integrating third-party JavaScript libraries (charts, maps, editors, etc.)
+- Triggering browser APIs (notifications, geolocation, clipboard, etc.)
 - Initializing complex UI components
 - Playing sounds or animations
-- Focusing specific elements with custom logic
+- Managing timers or intervals tied to a component
 
 *** Best Practices
 
-1. ✓ Sanitize any user input before including in scripts
-2. ✓ Use JSON serialization for data: ~import json; json.dumps(data)~
-3. ✓ Prefer ~<script>~ tags in templates over the ~script~ parameter
+1. ✓ Use ~el~ to scope queries to the fragment, not ~document.querySelector~
+2. ✓ Define ~el.__cleanup~ whenever the script sets up timers, observers, or external listeners
+3. ✓ Use JSON serialization for data: ~import json; json.dumps(data)~
 4. ✓ Keep scripts focused and minimal
-5. ✗ Don't use ~eval()~ or similar dangerous functions
+5. ✗ Don't use ~eval()~
 6. ✗ Don't pass unsanitized user input to scripts
 
 ** File Upload Handling
