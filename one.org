@@ -3851,6 +3851,136 @@ The language is automatically detected from the ~<html>~ tag:
 <html lang="{{ CURRENT_LANGUAGE }}">
 #+END_SRC
 
+* Loading Indicator
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/loading-indicator/
+:TITLE: Loading Indicator
+:DESCRIPTION: Add a visual loading indicator for SPA navigation in Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Django LiveView doesn't expose explicit navigation lifecycle hooks, but you can detect navigation events reliably using two browser APIs: a ~click~ event listener and a ~MutationObserver~. This lets you display a loading bar during SPA page transitions.
+
+** How It Works
+
+Navigation in Django LiveView is triggered by elements with the ~data-liveview-function~ attribute. Handlers prefixed with ~navigate_~ replace the main content area (~#main-content~), while other handlers (modals, sidebars, etc.) update different parts of the DOM. This distinction is the key to reliable detection:
+
+1. Listen for ~click~ events on ~[data-liveview-function]~ elements
+2. Filter to only ~navigate_*~ functions (page navigations, not modals)
+3. Show the loading indicator when a navigation click is detected
+4. Watch ~#main-content~ with a ~MutationObserver~ for DOM changes
+5. Hide the loading indicator once the content has been replaced
+
+** HTML
+
+Add a loading bar element to your base template, outside ~#main-content~:
+
+#+BEGIN_SRC html
+<div id="loading-bar" class="loading-bar" aria-hidden="true"></div>
+#+END_SRC
+
+Place it just before the ~</body>~ tag or outside any content containers.
+
+** CSS
+
+The loading bar uses three states managed via BEM modifier classes:
+
+#+BEGIN_SRC css
+.loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    z-index: 9998;
+    background-color: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
+}
+
+.loading-bar--loading {
+    opacity: 1;
+    width: 75%;
+    transition: width 8s cubic-bezier(0.1, 0.5, 0.5, 1), opacity 0.1s ease-out;
+}
+
+.loading-bar--complete {
+    opacity: 1;
+    width: 100%;
+    transition: width 0.2s ease-out;
+}
+
+.loading-bar--done {
+    opacity: 0;
+    width: 100%;
+    transition: width 0.2s ease-out, opacity 0.3s ease-out 0.1s;
+}
+#+END_SRC
+
+- ~--loading~: Animates to 75% over 8 seconds with a slow cubic-bezier curve, giving the impression of progress without knowing when the response will arrive
+- ~--complete~: Jumps to 100% instantly once the content is loaded
+- ~--done~: Fades out, then a timer resets the element to its initial state
+
+** JavaScript
+
+#+BEGIN_SRC javascript
+(function() {
+    const bar = document.getElementById('loading-bar');
+    if (!bar) return;
+
+    let completeTimer = null;
+    let doneTimer = null;
+
+    function startLoading() {
+        clearTimeout(completeTimer);
+        clearTimeout(doneTimer);
+        bar.className = 'loading-bar';
+        // Force reflow so the transition fires from width: 0
+        void bar.offsetWidth;
+        bar.className = 'loading-bar loading-bar--loading';
+    }
+
+    function completeLoading() {
+        bar.className = 'loading-bar loading-bar--complete';
+        completeTimer = setTimeout(function() {
+            bar.className = 'loading-bar loading-bar--done';
+            doneTimer = setTimeout(function() {
+                bar.className = 'loading-bar';
+            }, 400);
+        }, 200);
+    }
+
+    // Trigger only for navigate_* handlers, not modals or other actions
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('[data-liveview-function]');
+        if (target && target.dataset.liveviewFunction.startsWith('navigate_')) {
+            startLoading();
+        }
+    }, true);
+
+    // Complete when liveview replaces the main content
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+        const observer = new MutationObserver(function() {
+            completeLoading();
+        });
+        observer.observe(mainContent, { childList: true });
+    }
+}());
+#+END_SRC
+
+** Why the ~navigate_*~ prefix matters
+
+Django LiveView handlers are categorized by their name prefix. A typical SPA uses:
+- ~navigate_home~, ~navigate_blog~, ~navigate_article~: replace ~#main-content~
+- ~open_modal~, ~open_cv~, ~show_details~: update a different element (modal, sidebar, etc.)
+
+By filtering on ~startsWith('navigate_')~, the loading bar only activates for full page transitions. Without this filter, clicking a modal button would start the bar but ~#main-content~ would never update, leaving the bar stuck at 75%.
+
+Name your handlers consistently and this pattern works without any extra configuration.
+
 * FAQ
 :PROPERTIES:
 :ONE: one-custom-default-doc
