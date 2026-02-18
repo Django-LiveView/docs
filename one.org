@@ -1113,7 +1113,7 @@ def increment_counter(consumer, content):
 
 	# Save to session
 	session["counter"] = count
-	session.modified = True
+	session.save()
 
 	# Send updated counter
 	send(consumer, {
@@ -1123,6 +1123,8 @@ def increment_counter(consumer, content):
 		})
 	})
 #+END_SRC
+
+⚠️ *Important:* Always call ~session.save()~ explicitly in liveview handlers. Unlike regular HTTP views, WebSocket handlers run outside the request/response cycle, so Django's session middleware never gets the chance to save the session automatically. Using ~session.modified = True~ alone is not enough.
 
 Initial view with pre-populated counter:
 
@@ -1191,7 +1193,7 @@ def autosave_form(consumer, content):
 		"data": form_data,
 		"timestamp": datetime.now().isoformat()
 	}
-	session.modified = True
+	session.save()
 
 	send(consumer, {
 		"target": "#autosave-status",
@@ -1228,7 +1230,7 @@ def clear_form_draft(consumer, content):
 
 	if "form_drafts" in session and form_id in session["form_drafts"]:
 		del session["form_drafts"][form_id]
-		session.modified = True
+		session.save()
 #+END_SRC
 
 View with draft restoration:
@@ -1333,7 +1335,7 @@ def submit_contact(consumer, content):
 		# Clear the draft
 		if "form_drafts" in session and form_id in session["form_drafts"]:
 			del session["form_drafts"][form_id]
-			session.modified = True
+			session.save()
 
 		send(consumer, {
 			"target": "#contact-container",
@@ -1371,6 +1373,49 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Or use cache for faster access
 # SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 #+END_SRC
+
+** SPA Navigation and Session State
+
+If you implement SPA-style navigation using a custom ~navigate~ handler (see [[/docs/navigation/][Navigation]]), be aware that the handler typically creates an internal HTTP client to render the destination view. This client starts with a fresh session that does not include any data saved by your liveview handlers.
+
+The solution is to copy the WebSocket session data into the internal client's session after authenticating, so the rendered view receives the correct state.
+
+Python handler:
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.test import Client
+import re
+
+@liveview_handler("navigate")
+def navigate(consumer, content):
+	url = content.get("data", {}).get("data_url", "/")
+
+	client = Client()
+
+	if hasattr(consumer, "scope") and "user" in consumer.scope:
+		user = consumer.scope["user"]
+		if user and user.is_authenticated:
+			client.force_login(user)
+
+			# Copy session data from the WebSocket connection to the
+			# internal client so that views can read state set by
+			# liveview handlers (e.g. counters, form drafts).
+			ws_session = consumer.scope.get("session")
+			if ws_session:
+				session = client.session
+				for key, value in ws_session.items():
+					if not key.startswith("_auth_user"):
+						session[key] = value
+				session.save()
+
+	response = client.get(url, follow=True)
+	# ... extract and send HTML content
+#+END_SRC
+
+Without this step, any value saved with ~session.save()~ in a liveview handler will not be visible to the view rendered during SPA navigation, even though it is correctly persisted in the database.
+
+⚠️ *Note:* The ~_auth_user~ keys are skipped when copying to avoid overwriting the authentication data set by ~force_login()~.
 
 * Broadcasting
 :PROPERTIES:
