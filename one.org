@@ -1376,7 +1376,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 ** SPA Navigation and Session State
 
-If you implement SPA-style navigation using a custom ~navigate~ handler (see [[/docs/navigation/][Navigation]]), be aware that the handler typically creates an internal HTTP client to render the destination view. This client starts with a fresh session that does not include any data saved by your liveview handlers.
+If you implement SPA-style navigation using a custom ~navigate~ handler, be aware that the handler typically creates an internal HTTP client to render the destination view. This client starts with a fresh session that does not include any data saved by your liveview handlers.
 
 The solution is to copy the WebSocket session data into the internal client's session after authenticating, so the rendered view receives the correct state.
 
