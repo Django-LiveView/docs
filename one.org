@@ -180,13 +180,13 @@ Install Django LiveView with required dependencies:
 *** For testing (without Redis)
 
 #+BEGIN_SRC sh
-pip install django-liveview channels daphne
+pip install django-liveview channels "uvicorn[standard]"
 #+END_SRC
 
 *** For production (with Redis)
 
 #+BEGIN_SRC sh
-pip install django-liveview channels channels-redis daphne redis
+pip install django-liveview channels channels-redis "uvicorn[standard]" redis
 #+END_SRC
 
 ** Configure Django
@@ -196,7 +196,6 @@ Add to your ~settings.py~:
 #+BEGIN_SRC python
 # settings.py
 INSTALLED_APPS = [
-    "daphne",  # Must be first for ASGI support
     "channels",
     "liveview",
     # ... your other apps
@@ -3081,17 +3080,37 @@ class E2ETest(StaticLiveServerTestCase):
 :NAVIGATOR-ACTIVE: docs
 :END:
 
-Deploying Django LiveView requires an ASGI server (like Daphne or Uvicorn), Redis for the channel layer, and proper WebSocket support.
+Deploying Django LiveView requires an ASGI server (like Uvicorn or Daphne), Redis for the channel layer, and proper WebSocket support.
 
 ** Production Requirements
 
-- **ASGI Server**: Daphne, Uvicorn, or Hypercorn
+- **ASGI Server**: Uvicorn, Daphne, or Hypercorn
 - **Redis**: For channel layer (shared state between workers)
 - **WebSocket Support**: Reverse proxy must support WebSockets (Nginx, Caddy, Traefik)
 - **Process Manager**: Supervisor, systemd, or Docker
 - **SSL/TLS**: Required for ~wss://~ connections in production
 
-** Using Daphne (Recommended)
+** Using Uvicorn (Recommended)
+
+Install Uvicorn:
+
+#+BEGIN_SRC sh
+pip install "uvicorn[standard]"
+#+END_SRC
+
+Run Uvicorn in production:
+
+#+BEGIN_SRC sh
+uvicorn myproject.asgi:application --host 0.0.0.0 --port 8000
+#+END_SRC
+
+With multiple workers for better performance:
+
+#+BEGIN_SRC sh
+uvicorn myproject.asgi:application --host 0.0.0.0 --port 8000 --workers 4
+#+END_SRC
+
+** Using Daphne
 
 Install Daphne:
 
@@ -3099,30 +3118,10 @@ Install Daphne:
 pip install daphne
 #+END_SRC
 
-Run Daphne in production:
+Run Daphne:
 
 #+BEGIN_SRC sh
 daphne -b 0.0.0.0 -p 8000 myproject.asgi:application
-#+END_SRC
-
-With multiple workers for better performance:
-
-#+BEGIN_SRC sh
-daphne -b 0.0.0.0 -p 8000 --workers 4 myproject.asgi:application
-#+END_SRC
-
-** Using Uvicorn
-
-Install Uvicorn:
-
-#+BEGIN_SRC sh
-pip install uvicorn[standard]
-#+END_SRC
-
-Run Uvicorn:
-
-#+BEGIN_SRC sh
-uvicorn myproject.asgi:application --host 0.0.0.0 --port 8000 --workers 4
 #+END_SRC
 
 ** Redis Configuration for Production
@@ -3257,8 +3256,8 @@ RUN python manage.py collectstatic --noinput
 # Expose port
 EXPOSE 8000
 
-# Run Daphne
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]
+# Run Uvicorn
+CMD ["uvicorn", "myproject.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
 #+END_SRC
 
 ~docker-compose.yml~:
@@ -3324,7 +3323,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/path/to/project
 Environment="PATH=/path/to/venv/bin"
-ExecStart=/path/to/venv/bin/daphne -b 0.0.0.0 -p 8000 myproject.asgi:application
+ExecStart=/path/to/venv/bin/uvicorn myproject.asgi:application --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
 
@@ -4096,7 +4095,7 @@ Before starting, ensure you have:
 For testing purposes only. Not suitable for production.
 
 #+BEGIN_SRC sh
-pip install django-liveview channels daphne
+pip install django-liveview channels "uvicorn[standard]"
 #+END_SRC
 
 *** Option B: Production ready (with Redis)
@@ -4104,7 +4103,7 @@ pip install django-liveview channels daphne
 Recommended for development and production environments.
 
 #+BEGIN_SRC sh
-pip install django-liveview channels channels-redis daphne redis
+pip install django-liveview channels channels-redis "uvicorn[standard]" redis
 #+END_SRC
 
 You'll also need Redis running:
@@ -4119,7 +4118,6 @@ Add to your ~settings.py~:
 #+BEGIN_SRC python
 # settings.py
 INSTALLED_APPS = [
-    "daphne",  # Must be first for ASGI support
     "channels",
     "liveview",
     "app",  # Your app
@@ -4322,8 +4320,8 @@ python manage.py migrate
 # Collect static files (for liveview.min.js)
 python manage.py collectstatic --noinput
 
-# Run Django with Daphne (ASGI server)
-python manage.py runserver
+# Run Django with Uvicorn (ASGI server)
+uvicorn myproject.asgi:application --reload
 #+END_SRC
 
 **If you chose Redis**: Make sure Redis is running before starting the server.
