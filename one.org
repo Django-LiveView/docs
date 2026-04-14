@@ -94,14 +94,16 @@ That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend fr
 #+ATTR_HTML: :class center-block image image--benchmark
 [[#/img/benchmark-response-time.webp][Response Time Comparison]]
 
-| Framework    | Technology      | Response Time | Data Transfer | Use Case                             |
-|--------------+-----------------+---------------+---------------+--------------------------------------|
-| **LiveView** | WebSockets      | **9.35ms**    | 450 bytes     | Real-time dashboards, collaborative apps |
-| HTMX         | AJAX            | 16.48ms       | ~37 KB        | Modern UX with minimal JavaScript    |
-| Unicorn      | AJAX            | 26.76ms       | ~71 KB        | Complex forms with reactive state    |
-| SSR          | POST + redirect | 47.25ms       | ~8.5 KB       | SEO-critical pages, traditional CRUD |
+| Framework    | Avg Response | Data Transfer | HTTP Requests |
+|--------------+--------------+---------------+---------------|
+| **LiveView** | **30.66 ms** | 5.80 KB       | 0             |
+| djust        | 34.57 ms     | 8.79 KB       | 0             |
+| HTMX         | 35.24 ms     | 4.39 KB       | 1             |
+| Reactor      | 47.93 ms     | 1.64 KB       | 0             |
+| Unicorn      | 47.93 ms     | 6.33 KB       | 1             |
+| SSR          | 55.57 ms     | 8.24 KB       | 2             |
 
-Django LiveView is approximately **43% faster than HTMX** and **80% faster than traditional SSR** through persistent WebSocket connectivity.
+Django LiveView is approximately **13% faster than HTMX** and **45% faster than traditional SSR** through persistent WebSocket connectivity.
 
 *** Technology Comparison
 
