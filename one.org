@@ -96,7 +96,7 @@ That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend fr
 
 | Framework    | Avg Response | Data Transfer | HTTP Requests |
 |--------------+--------------+---------------+---------------|
-| **LiveView** | **30.66 ms** | 5.80 KB       | 0             |
+| **Django LiveView** | **30.66 ms** | 5.80 KB       | 0             |
 | djust        | 34.57 ms     | 8.79 KB       | 0             |
 | HTMX         | 35.24 ms     | 4.39 KB       | 1             |
 | Reactor      | 47.93 ms     | 1.64 KB       | 0             |
