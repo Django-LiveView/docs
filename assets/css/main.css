@@ -52,12 +52,15 @@
     outline-offset: 2px;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Open Sans', sans-serif;
     background-color: var(--color-black);
-    color: var(--color-white);
+    color: var(--color-gray);
     line-height: 1.7;
-    scroll-behavior: smooth;
     margin-top: 6rem;
 }
 
@@ -139,7 +142,11 @@ table th,
 table td {
     padding: var(--gap-s) var(--gap-m);
     text-align: left;
-    border: 1px solid var(--color-gold-faint);
+    border-bottom: 1px solid var(--color-gold-subtle);
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 table tbody tr {
@@ -433,17 +440,17 @@ a:focus-visible,
 .hero__title {
     grid-area: title;
     align-self: end;
-    background: url(/img/title-background.avif) repeat-x;
+    background: linear-gradient(90deg, #FFD36B, #FFF3D0, #FFD36B);
     font-size: var(--font-size-5xl);
     background-clip: text;
-    background-size: cover;
+    background-size: 200% 100%;
     font-weight: bold;
     -webkit-text-fill-color: transparent;
     text-fill-color: transparent;
     -webkit-text-stroke: 1px;
     text-stroke: 1px;
     will-change: background-position;
-    animation: aniTitle 10s linear infinite;
+    animation: aniTitle 10s linear infinite alternate;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     z-index: -1;
@@ -451,6 +458,7 @@ a:focus-visible,
 
 .hero__subtitle {
     grid-area: subtitle;
+    font-weight: 400;
 }
 
 .nav-docs {
@@ -463,6 +471,14 @@ a:focus-visible,
     .nav-docs {
 	position: initial;
     }
+}
+
+.nav-docs a {
+    text-decoration: none;
+}
+
+.nav-docs a:hover {
+    text-decoration: underline;
 }
 
 .nav-docs__list {
@@ -594,7 +610,8 @@ a:focus-visible,
 }
 
 .one-hl-inline {
-    background: #31424a;
+    background: var(--color-gold-subtle);
+    color: var(--color-gold-light);
     padding: 0.2em 0.4em;
     margin: 0;
     white-space: break-spaces;
@@ -614,8 +631,8 @@ a:focus-visible,
 }
 
 .one-blockquote {
-    background: #202d31;
-    border-left: 0.3em solid #31424a;
+    background: var(--color-gray-faint);
+    border-left: 0.3em solid var(--color-gold);
     margin: 0px auto 16px;
     padding: 1em 1em;
     width: 90%;

@@ -98,13 +98,13 @@
 		  (:li.nav-main__item
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "📚 Docs"))
+		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "Docs"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/quick-start/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "🎓 Quick start"))
+		   (:a.button.nav-main__link (@ :href "/quick-start/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "Quick start"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "📖 Books"))
+		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "Books"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "https://github.com/Django-LiveView/liveview" :target "_blank") "💻 Source code"))))))
+		   (:a.button.nav-main__link (@ :href "https://github.com/Django-LiveView/liveview" :target "_blank") "Source code"))))))
 	      ,tree-content
 	      (:footer.footer
 	       (:div.container
@@ -155,7 +155,7 @@
 		   (:div.container
 		    (:hgroup.hero__hgroup
 		     (:h1.hero__title "Django LiveView")
-		     (:h2.hero__subtitle "Build real-time, reactive interfaces with Django using WebSockets: write Python, not JavaScript")
+		     (:h2.hero__subtitle "Build real-time, reactive interfaces with Django using WebSockets: " (:strong "write Python, not JavaScript"))
 		     (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
 		  (:section.home
 		   (:div.container ,content)))))))
