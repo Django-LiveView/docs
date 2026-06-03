@@ -220,6 +220,8 @@
 		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/loading-indicator/") "Loading Indicator"))
 		     (:li.nav-docs__item
+		      (:a.nav-docs__link (@ :href "/docs/browser-history/") "Browser History"))
+		     (:li.nav-docs__item
 		      (:a.nav-docs__link (@ :href "/docs/faq/") "FAQ"))
 		     )))
 		  (:main.main.main--docs

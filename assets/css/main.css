@@ -455,6 +455,8 @@ a:focus-visible,
 
 .nav-docs {
     position: fixed;
+    overflow-y: auto;
+    max-height: calc(100vh - 7rem);
 }
 
 @media (width < 600px) {
