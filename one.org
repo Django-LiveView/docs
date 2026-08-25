@@ -125,11 +125,18 @@ The key difference is the connection model:
 
 **Traditional SSR** reloads the entire page with each interaction through a POST request followed by a redirect. It's like hanging up and calling back every time you want to say something.
 
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-1.avif][Architecture send]]
-
-#+ATTR_HTML: :class center-block image image--home
-[[#/img/step-2.avif][Architecture receive]]
+#+begin_export html
+<pre class="mermaid">
+sequenceDiagram
+    accTitle: Initial page load over WebSocket
+    accDescr: The browser sends the string "Open the Home Page" to the Django server, which replies with the full page HTML.
+    autonumber
+    participant B as 🌐 Browser
+    participant S as 🖥️ Server · Django
+    B->>S: String: "Open the Home Page"
+    S-->>B: HTML: "&lt;html&gt;&lt;body&gt;&lt;h1&gt;…"
+</pre>
+#+end_export
 
 ** How does it work?
 
@@ -139,20 +146,44 @@ Let's illustrate with an example: displaying article number 2.
 
 2. [@2] JavaScript sends a message via WebSocket to the server (Django).
 
-   #+ATTR_HTML: :class center-block image image--home
-   [[#/img/step-3.avif][Send string]]
+   #+begin_export html
+   <pre class="mermaid">
+   sequenceDiagram
+       accTitle: User action sent to the server
+       accDescr: When the user clicks, JavaScript sends the action string "click-&gt;article#open:2" to the Django server over the WebSocket.
+       participant B as 🌐 Browser
+       participant S as 🖥️ Server · Django
+       B->>S: String: "click-&gt;article#35;open:2"
+   </pre>
+   #+end_export
 
 3. [@3] Django interprets the message and renders the HTML of the article through the template system and the database.
 
 4. [@4] Django sends the HTML to JavaScript via the channel and specifies which selector to embed it in.
 
-   #+ATTR_HTML: :class center-block image image--home
-   [[#/img/step-4.avif][Send JSON]]
+   #+begin_export html
+   <pre class="mermaid">
+   sequenceDiagram
+       accTitle: Server response with the rendered HTML
+       accDescr: The Django server replies with a JSON message containing the target selector "#main" and the rendered article HTML.
+       participant B as 🌐 Browser
+       participant S as 🖥️ Server · Django
+       S-->>B: JSON: { selector: "#35;main", html: "&lt;article&gt;…" }
+   </pre>
+   #+end_export
 
 5. [@5] JavaScript renders the received HTML in the indicated selector.
 
-   #+ATTR_HTML: :class center-block image image--home
-   [[#/img/step-5.avif][Place HTML]]
+   #+begin_export html
+   <pre class="mermaid">
+   flowchart TD
+       accTitle: HTML placed into the target element
+       accDescr: JavaScript inserts the received markup into the #main element, which now contains an article with a heading and a paragraph.
+       M["div#main"] --> A["article"]
+       A --> H["h1: Lorem ipsum…"]
+       A --> P["p: …"]
+   </pre>
+   #+end_export
 
 The same process is repeated for each action: clicking a button, submitting a form, navigating, etc.
 

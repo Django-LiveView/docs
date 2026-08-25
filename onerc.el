@@ -1,6 +1,23 @@
 ;; Variables
 (defvar domain "django-liveview.andros.dev")
 
+;; Raw HTML export blocks
+;; The `one-ox' backend ships without an `export-block' transcoder, so
+;; `#+begin_export html ... #+end_export' is dropped by default. Register one so
+;; raw HTML (used to embed Mermaid diagrams) is emitted verbatim.
+(defun one-ox-export-block (export-block _contents _info)
+  "Transcode an EXPORT-BLOCK from Org to HTML.
+Emit the block verbatim when its type is HTML, ignore it otherwise."
+  (when (string= (org-element-property :type export-block) "HTML")
+    (org-remove-indentation
+     (org-element-property :value export-block))))
+
+(let ((backend (org-export-get-backend 'one-ox)))
+  (when backend
+    (setf (org-export-backend-transcoders backend)
+          (cons '(export-block . one-ox-export-block)
+                (org-export-backend-transcoders backend)))))
+
 ;; Utils
 (defun make-title (title)
   "If title is empty, return the website name. Otherwise, return the title with the website name."
@@ -58,21 +75,6 @@
      "<!DOCTYPE html>"
      `(:html (@ :lang "en")
 	     (:head
-	      ;; Yandex.Metrika counter
-	      (:script (@ :type "text/javascript") "(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-   m[i].l=1*new Date();
-   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-   (window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
-
-   ym(95556716, 'init', {
-        clickmap:true,
-        trackLinks:true,
-        accurateTrackBounce:true,
-        webvisor:true
-   });")
-	      (:noscript
-	       (:div (:img (@ :src "https://mc.yandex.ru/watch/95556716" :style "position:absolute; left:-9999px;" :alt ""))))
 	      ;; Generals
 	      (:meta (@ :charset "utf-8"))
 	      (:link (@ :rel "icon" :type "image/png" :href "/img/favicon.png"))
@@ -86,11 +88,12 @@
 	      ;; Fonts
 	      (:link (@ :rel "preconnect" :href "https://fonts.googleapis.com"))
 	      (:link (@ :rel "preconnect" :href "https://fonts.gstatic.com" :crossorigin t))
-	      (:link (@ :rel "stylesheet" :href "https://fonts.googleapis.com/css2?family=Fira+Code&family=Open+Sans:wght@400;700&display=swap"))
+	      (:link (@ :rel "stylesheet" :href "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"))
 	      ;; CSS
 	      (:link (@ :rel "stylesheet" :type "text/css" :href "https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"))
 	      (:link (@ :rel "stylesheet" :type "text/css" :href ,(concat "/css/main.css?cache=" (format-time-string "%s")))))
 	     (:body
+	      (:a.skip-link (@ :href "#main-content") "Skip to content")
 	      (:header.header
 	       (:div.container
 		(:nav.nav-main
@@ -98,23 +101,54 @@
 		  (:li.nav-main__item
 		   (:a.nav-main__link.nav-main__link--logo (@ :href "/") (:img.nav-main__logo (@ :alt "Django LiveView" :src "/img/logo.webp"))))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "Docs"))
+		   (:a.nav-main__link (@ :href "/docs/install/" :class ,(when (string= "docs" navigator-active) class-name-navigator-active)) "Docs"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/quick-start/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "Quick start"))
+		   (:a.nav-main__link (@ :href "/quick-start/" :class ,(when (string= "tutorial" navigator-active) class-name-navigator-active)) "Quick start"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "Books"))
+		   (:a.nav-main__link (@ :href "/books/" :class ,(when (string= "books" navigator-active) class-name-navigator-active)) "Books"))
 		  (:li.nav-main__item
-		   (:a.button.nav-main__link (@ :href "https://github.com/Django-LiveView/liveview" :target "_blank") "Source code"))))))
-	      ,tree-content
+		   (:a.nav-main__link.nav-main__link--source (@ :href "https://github.com/Django-LiveView/liveview" :target "_blank") "Source code"))))))
+	      (:div (@ :id "main-content" :tabindex "-1")
+		    ,tree-content)
 	      (:footer.footer
 	       (:div.container
 		(:ul.footer_nav
 		 (:li (:i (@ :aria-label "bug") "🪲") " Bugs: " (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "Documentation"))
 		 (:li (:i (@ :aria-label "chat") "🐘") " Follow me: " (:a.link (@ :href "https://activity.andros.dev/@andros" :target "_blank") "ActivityPub/Fediverse "))
 		 (:li (:span (@ :aria-hidden "true") "💰 ") " Support the project: " (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") "Liberapay")))
-		(:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " with " (:a.link (@ :href "https://one.tonyaldon.com/" :target "_blank") "one.el"))
+		(:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa"))
 		(:p "🐍 " ,(format-time-string "%Y")))))
-	      (:script (@ :type "text/javascript") "(function() {var headingMap = {'Basic': 'basic', 'Intermediate': 'intermediate', 'Advanced': 'advanced', 'UI Features': 'ui-features', 'System Features': 'system-features', 'Data Handling': 'data-handling'}; document.querySelectorAll('h3').forEach(function(h3) {var text = h3.textContent.trim(); if (headingMap[text]) {h3.id = headingMap[text];}});})();")))))
+	      (:script (@ :type "text/javascript") "(function() {var headingMap = {'Basic': 'basic', 'Intermediate': 'intermediate', 'Advanced': 'advanced', 'UI Features': 'ui-features', 'System Features': 'system-features', 'Data Handling': 'data-handling'}; document.querySelectorAll('h3').forEach(function(h3) {var text = h3.textContent.trim(); if (headingMap[text]) {h3.id = headingMap[text];}});})();")
+	      ;; Mermaid diagrams, themed to match the site palette
+	      (:script (@ :type "module") "import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  fontFamily: '\"IBM Plex Sans\", sans-serif',
+  sequence: { useMaxWidth: false },
+  flowchart: { useMaxWidth: false },
+  themeVariables: {
+    background: '#eef1ec',
+    primaryColor: '#ffffff',
+    primaryBorderColor: '#17211c',
+    primaryTextColor: '#17211c',
+    lineColor: '#17211c',
+    secondaryColor: '#b7edd0',
+    tertiaryColor: '#ffe4d0',
+    actorBkg: '#b7edd0',
+    actorBorder: '#17211c',
+    actorTextColor: '#17211c',
+    actorLineColor: '#17211c',
+    signalColor: '#17211c',
+    signalTextColor: '#17211c',
+    labelBoxBkgColor: '#eef1ec',
+    labelBoxBorderColor: '#17211c',
+    labelTextColor: '#17211c',
+    noteBkgColor: '#ffe4d0',
+    noteBorderColor: '#17211c',
+    noteTextColor: '#17211c'
+  }
+});")))))
 
 (defun one-custom-default-page (page-tree pages _global)
   "Default render function by home page."
