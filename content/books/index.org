@@ -1,0 +1,23 @@
+* Books
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /books/
+:TITLE:
+:DESCRIPTION: Books about Django LiveView.
+:NAVIGATOR-ACTIVE: books
+:END:
+
+There are no books specifically about Django LiveView yet, but you can find books about Django working with HTML over the Wire technology.
+
+** Building SPAs with Django and HTML Over the Wire
+
+#+ATTR_HTML: :class center-block image image--cover-book
+[[#/img/books/building-spas.avif][Building SPAs with Django and HTML Over the Wire]]
+
+Learn to build real-time single page applications with Python.
+
+Buy:
+
+- [[https://www.packtpub.com/product/building-spas-with-django-and-html-over-the-wire/9781803240190][Packt]]
+- [[https://www.amazon.com/Real-time-Django-over-Wire-Channels-ebook/dp/B0B3DV54ZT/][Amazon.com]]
+- [[https://www.amazon.es/Real-time-Django-over-Wire-Channels-ebook/dp/B0B3DV54ZT/][Amazon.es]]

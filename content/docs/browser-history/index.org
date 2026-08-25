@@ -1,0 +1,81 @@
+* Browser History
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/browser-history/
+:TITLE: Browser History
+:DESCRIPTION: Automatic back and forward navigation in Django LiveView SPAs.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+When a handler sends a ~url~ key, Django LiveView automatically records the current page state before applying the update. Pressing the browser back or forward button replays the inverse (or direct) process, restoring the DOM exactly as it was left.
+
+No configuration is required. The history module activates as soon as the first navigation happens.
+
+** How It Works
+
+Every time ~send()~ includes a ~url~ key:
+
+1. The current state of every DOM region that has ever been touched is saved (snapshot).
+2. A new history entry is pushed with an internal index so ~popstate~ can identify it.
+3. The new HTML is applied to the target element.
+
+When the user presses Back or Forward:
+
+1. The framework reads the snapshot for the target entry from ~sessionStorage~.
+2. All touched regions are restored to their recorded state.
+3. The page title, ~<html lang>~ attribute, and scroll position are also restored.
+4. The ~liveview:history-restored~ event is dispatched on ~document~.
+
+** Storage
+
+Snapshots are stored in ~sessionStorage~ (per browser tab):
+
+- ✓ Snapshots survive a page reload
+- ✓ Each tab has its own independent history
+- ✓ Snapshots are cleared automatically when the tab closes
+
+A maximum of 50 entries are kept. When the limit is exceeded, the oldest snapshots are pruned. If the storage quota is exceeded, the module falls back to memory-only: snapshots are lost on reload, but back/forward still work within the same tab session.
+
+** The ~liveview:history-restored~ Event
+
+After every restore, the framework dispatches a custom event on ~document~:
+
+#+BEGIN_SRC javascript
+document.addEventListener('liveview:history-restored', (event) => {
+    const { url, index } = event.detail;
+    console.log('Restored to', url, 'at index', index);
+
+    // Re-initialize any component that needs it after restore
+    initMyComponent();
+});
+#+END_SRC
+
+Use this to re-initialize third-party libraries or components that are not automatically handled by the restore.
+
+** Edge Cases
+
+- **Multi-step jumps**: pressing Back three times or calling ~history.go(-3)~ is handled correctly.
+- **Zigzag navigation**: Back, then Forward, then Back again restores each entry as it was left.
+- **History branching**: navigating after going back discards the forward entries, exactly like native browser history.
+- **Unknown entries**: if a snapshot is missing (pruned or first visit), the framework falls back to a full page reload so the server renders the correct URL.
+- **Removed elements**: when ~remove: True~ is sent, the parent container is snapshotted instead, so the element reappears when going back.
+
+** Example
+
+#+BEGIN_SRC python
+@liveview_handler("navigate_to_profile")
+def navigate_to_profile(consumer, content):
+    user_id = content["data"]["user_id"]
+    user = User.objects.get(id=user_id)
+
+    html = render_to_string("profile_page.html", {"user": user})
+
+    send(consumer, {
+        "target": "#main-content",
+        "html": html,
+        "url": f"/profile/{user.username}/",
+        "title": f"{user.name} - Profile"
+    })
+#+END_SRC
+
+After navigating to the profile, the user can press Back to return to the previous page. The previous state of ~#main-content~ is restored without a server round-trip.

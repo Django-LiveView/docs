@@ -1,0 +1,44 @@
+* Internationalization
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/internationalization/
+:TITLE: Internationalization
+:DESCRIPTION: Multi-language support in Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Django LiveView automatically passes the current language to handlers:
+
+#+BEGIN_SRC python
+from django.utils import translation
+
+@liveview_handler("show_content")
+def show_content(consumer, content):
+    # Get language from WebSocket message
+    lang = content.get("lang", "en")
+
+    # Activate language for this context
+    translation.activate(lang)
+
+    try:
+        html = render_to_string("content.html", {
+            "title": _("Welcome"),
+            "message": _("This content is in your language")
+        })
+
+        send(consumer, {
+            "target": "#content",
+            "html": html
+        })
+    finally:
+        # Always deactivate to avoid side effects
+        translation.deactivate()
+#+END_SRC
+
+The language is automatically detected from the ~<html>~ tag:
+
+#+BEGIN_SRC html
+{% load static i18n %}
+<!doctype html>{% get_current_language as CURRENT_LANGUAGE %}
+<html lang="{{ CURRENT_LANGUAGE }}">
+#+END_SRC

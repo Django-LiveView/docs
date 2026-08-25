@@ -1,0 +1,136 @@
+* Install
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/install/
+:TITLE: Install
+:DESCRIPTION: Install Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+** Requirements
+
+- Python 3.10+
+- Django 4.2+
+- Channels 4.0+
+- Redis (optional, recommended for production)
+
+** Installation
+
+Install Django LiveView with required dependencies:
+
+*** For testing (without Redis)
+
+#+BEGIN_SRC sh
+pip install django-liveview channels "uvicorn[standard]"
+#+END_SRC
+
+*** For production (with Redis)
+
+#+BEGIN_SRC sh
+pip install django-liveview channels channels-redis "uvicorn[standard]" redis
+#+END_SRC
+
+** Configure Django
+
+Add to your ~settings.py~:
+
+#+BEGIN_SRC python
+# settings.py
+INSTALLED_APPS = [
+    "channels",
+    "liveview",
+    # ... your other apps
+]
+
+# ASGI configuration
+ASGI_APPLICATION = "your_project.asgi.application"
+#+END_SRC
+
+*** Channel Layer Configuration
+
+*Without Redis (testing only)*
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+#+END_SRC
+
+*With Redis (recommended)*
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+#+END_SRC
+
+** Setup ASGI routing
+
+Create or update ~asgi.py~:
+
+#+BEGIN_SRC python
+# asgi.py
+import os
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from liveview.routing import get_liveview_urlpatterns
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "your_project.settings")
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(
+                get_liveview_urlpatterns()
+            )
+        )
+    ),
+})
+#+END_SRC
+
+** Add JavaScript to your base template
+
+#+BEGIN_SRC html
+<!-- templates/base.html -->
+{% load static %}
+{% load liveview %}
+<!DOCTYPE html>
+<html lang="en" data-room="{% liveview_room_uuid %}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+</head>
+<body data-controller="page">
+    {% block content %}{% endblock %}
+
+    <!-- Django LiveView JavaScript -->
+    <script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+</body>
+</html>
+#+END_SRC
+
+**Important attributes:**
+- ~data-room="{% liveview_room_uuid %}"~ on ~<html>~: unique room ID for each page load
+- ~data-controller="page"~ on ~<body>~: activates the Stimulus controller
+
+The ~{% liveview_room_uuid %}~ template tag generates a random UUID for each request, ensuring isolated sessions and preventing room ID enumeration attacks.
+
+**Alternative: User-specific Room ID** (use with caution)
+#+BEGIN_SRC html
+<html lang="en" data-room="{% if request.user.is_authenticated %}user-{{ request.user.id }}{% else %}{% liveview_room_uuid %}{% endif %}">
+#+END_SRC
+⚠️ *Warning:* Using predictable IDs like user IDs can be a security risk. An attacker could subscribe to another user's room by guessing their ID. Only use this if you implement proper authorization checks in your handlers.
+
+We strongly recommend that you follow the [[#/quick-start/][Quick start]] to see the installation in action.

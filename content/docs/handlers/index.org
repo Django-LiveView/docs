@@ -1,0 +1,452 @@
+* Handlers
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/handlers/
+:TITLE: Handlers
+:DESCRIPTION: LiveView handlers of Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Handlers are Python functions that respond to WebSocket messages from the client. They contain your business logic and can render HTML, update the database, broadcast to multiple users, and more.
+
+*** Basic
+
+** Your First Handler
+
+Let's start with the simplest possible handler. This handler will be called when a button is clicked and will update a section of the page.
+
+Python code:
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+
+@liveview_handler("say_hello")
+def say_hello(consumer, content):
+    send(consumer, {
+        "target": "#greeting",
+        "html": "<p>Hello, World!</p>"
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div>
+    <div id="greeting"></div>
+    <button
+        data-liveview-function="say_hello"
+        data-action="click->page#run">
+        Say Hello
+    </button>
+</div>
+#+END_SRC
+
+When you click the button:
+1. The frontend sends a WebSocket message with ~function: "say_hello"~
+2. Django LiveView calls the ~say_hello~ handler
+3. The handler sends back HTML to replace the content of ~#greeting~
+4. The page updates instantly without a full reload
+
+** Working with Form Data
+
+Most handlers need to receive data from the user. All form inputs within the same container are automatically sent to your handler.
+
+Python code:
+
+#+BEGIN_SRC python
+@liveview_handler("greet_user")
+def greet_user(consumer, content):
+    # Get the name from form data
+    name = content["form"].get("name", "Anonymous")
+
+    send(consumer, {
+        "target": "#greeting",
+        "html": f"<p>Hello, {name}! Welcome to Django LiveView.</p>"
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<form>
+    <div id="greeting"></div>
+    <input type="text" name="name" placeholder="Enter your name">
+    <button
+        data-liveview-function="greet_user"
+        data-action="click->page#run">
+        Greet Me
+    </button>
+</form>
+#+END_SRC
+
+The ~content["form"]~ dictionary contains all input values with their ~name~ attribute as the key.
+
+**How form data extraction works:**
+
+Django LiveView automatically extracts form data using three fallback strategies:
+
+1. **From a ~<form>~ element**: If the clicked element is a form, all inputs within it are extracted
+2. **From a parent ~<form>~**: If the clicked element is inside a form (like a button), all inputs from that parent form are extracted using ~closest("form")~
+3. **From an individual input**: If the element itself is an input (and there's no parent form), only that input's value is sent
+
+This means you can structure your HTML in several ways:
+
+#+BEGIN_SRC html
+<!-- Option 1: Button inside form (recommended) -->
+<form>
+    <input type="text" name="name">
+    <button data-liveview-function="greet_user" data-action="click->page#run">
+        Submit
+    </button>
+</form>
+
+<!-- Option 2: Input with direct action (single value only) -->
+<input
+    type="text"
+    name="search"
+    data-liveview-function="search"
+    data-action="input->page#run">
+
+<!-- Option 3: Form submit -->
+<form data-liveview-function="save_profile" data-action="submit->page#run">
+    <input type="text" name="username">
+    <input type="email" name="email">
+    <button type="submit">Save</button>
+</form>
+#+END_SRC
+
+** Using Templates for Complex HTML
+
+For anything beyond simple strings, use Django templates to render your HTML.
+
+Python code:
+
+#+BEGIN_SRC python
+from django.template.loader import render_to_string
+
+@liveview_handler("show_profile")
+def show_profile(consumer, content):
+    user_id = content["form"].get("user_id")
+
+    # Get user from database
+    from .models import User
+    user = User.objects.get(id=user_id)
+
+    # Render template with context
+    html = render_to_string("profile_card.html", {
+        "user": user,
+        "is_online": True
+    })
+
+    send(consumer, {
+        "target": "#profile-container",
+        "html": html
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div>
+    <div id="profile-container"></div>
+    <input type="hidden" name="user_id" value="123">
+    <button
+        data-liveview-function="show_profile"
+        data-action="click->page#run">
+        Load Profile
+    </button>
+</div>
+#+END_SRC
+
+Template (~profile_card.html~):
+
+#+BEGIN_SRC html
+<div class="profile-card">
+    <img src="{{ user.avatar }}" alt="{{ user.name }}">
+    <h3>{{ user.name }}</h3>
+    <p>{{ user.bio }}</p>
+    {% if is_online %}
+        <span class="badge">Online</span>
+    {% endif %}
+</div>
+#+END_SRC
+
+** Understanding the Content Parameter
+
+Every handler receives two parameters: ~consumer~ and ~content~. The ~content~ dictionary contains all the information from the client.
+
+#+BEGIN_SRC python
+@liveview_handler("example")
+def example(consumer, content):
+    # content structure:
+    # {
+    #     "function": "example",           # Handler name
+    #     "form": {...},                   # All form inputs
+    #     "data": {...},                   # Custom data-data-* attributes
+    #     "lang": "en",                    # Current language
+    #     "room": "user_123"              # WebSocket room identifier
+    # }
+    pass
+#+END_SRC
+
+*** Intermediate
+
+** Auto-discovery
+
+Django LiveView automatically discovers handlers in ~liveview_components/~ directories within your installed apps:
+
+#+BEGIN_SRC
+my_app/
+├── liveview_components/
+│   ├── __init__.py
+│   ├── users.py
+│   ├── posts.py
+│   └── comments.py
+#+END_SRC
+
+Handlers are loaded on startup with this output:
+#+BEGIN_SRC
+✓ Imported: my_app.liveview_components.users
+✓ Imported: my_app.liveview_components.posts
+✓ Imported: my_app.liveview_components.comments
+#+END_SRC
+
+** Using Custom Data Attributes
+
+Sometimes you need to send additional data that isn't part of a form. Use ~data-data-*~ attributes for this.
+
+Python code:
+
+#+BEGIN_SRC python
+@liveview_handler("delete_comment")
+def delete_comment(consumer, content):
+    # Access custom data from data-data-* attributes
+    comment_id = content["data"]["comment_id"]
+    post_id = content["data"]["post_id"]
+
+    # Delete from database
+    from .models import Comment
+    Comment.objects.filter(id=comment_id).delete()
+
+    send(consumer, {
+        "target": f"#comment-{comment_id}",
+        "remove": True  # Remove the element from DOM
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div id="comment-123" class="comment">
+    <p>This is a comment</p>
+    <button
+        data-liveview-function="delete_comment"
+        data-data-comment-id="123"
+        data-data-post-id="456"
+        data-action="click->page#run">
+        Delete
+    </button>
+</div>
+#+END_SRC
+
+The attribute ~data-data-comment-id~ becomes ~comment_id~ (with underscores, not camelCase) within ~content["data"]~.
+
+**Important**: Django LiveView automatically converts all attribute names from camelCase to snake_case. HTML attributes with hyphens (~data-data-comment-id~) are first converted by the browser to camelCase (~dataCommentId~), which Django LiveView then converts to snake_case (~comment_id~) in your handlers.
+
+** Appending Content to Lists
+
+When building dynamic lists (like infinite scroll or chat messages), you want to add items without replacing the entire list.
+
+Python code:
+
+#+BEGIN_SRC python
+@liveview_handler("load_more_posts")
+def load_more_posts(consumer, content):
+    page = int(content["form"].get("page", 1))
+
+    # Get next page of posts
+    from .models import Post
+    posts = Post.objects.all()[(page-1)*10:page*10]
+
+    # Render new posts
+    html = render_to_string("posts_list.html", {
+        "posts": posts
+    })
+
+    send(consumer, {
+        "target": "#posts-container",
+        "html": html,
+        "append": True  # Add to the end instead of replacing
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div id="posts-container">
+    <!-- Existing posts here -->
+</div>
+
+<input type="hidden" name="page" value="2">
+<button
+    data-liveview-function="load_more_posts"
+    data-action="click->page#run">
+    Load More
+</button>
+#+END_SRC
+
+Template (~posts_list.html~):
+
+#+BEGIN_SRC html
+{% for post in posts %}
+<article class="post">
+    <h3>{{ post.title }}</h3>
+    <p>{{ post.content }}</p>
+</article>
+{% endfor %}
+#+END_SRC
+
+** Removing Elements from the DOM
+
+Instead of hiding elements with CSS, you can completely remove them from the page.
+
+Python code:
+
+#+BEGIN_SRC python
+@liveview_handler("archive_notification")
+def archive_notification(consumer, content):
+    notification_id = content["data"]["notification_id"]
+
+    # Archive in database
+    from .models import Notification
+    Notification.objects.filter(id=notification_id).update(archived=True)
+
+    # Remove from page
+    send(consumer, {
+        "target": f"#notification-{notification_id}",
+        "remove": True
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div id="notification-42" class="notification">
+    <p>You have a new message</p>
+    <button
+        data-liveview-function="archive_notification"
+        data-data-notification-id="42"
+        data-action="click->page#run">
+        Dismiss
+    </button>
+</div>
+#+END_SRC
+
+*** Advanced
+
+** Updating the URL Without Page Reload
+
+Create SPA-like navigation by updating both content and the browser URL.
+
+Python code:
+
+#+BEGIN_SRC python
+@liveview_handler("navigate_to_profile")
+def navigate_to_profile(consumer, content):
+    user_id = content["data"]["user_id"]
+
+    # Get user data
+    from .models import User
+    user = User.objects.get(id=user_id)
+
+    # Render profile page
+    html = render_to_string("profile_page.html", {
+        "user": user
+    })
+
+    send(consumer, {
+        "target": "#main-content",
+        "html": html,
+        "url": f"/profile/{user.username}/",  # Update browser URL
+        "title": f"{user.name} - Profile"     # Update page title
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div id="main-content">
+    <h1>Home Page</h1>
+    <button
+        data-liveview-function="navigate_to_profile"
+        data-data-user-id="123"
+        data-action="click->page#run">
+        View Profile
+    </button>
+</div>
+#+END_SRC
+
+The browser's back and forward buttons work automatically. Before applying the new HTML, the framework snapshots the current state of all touched DOM regions. Pressing Back restores those regions exactly as they were. See [[#/docs/browser-history/][Browser History]] for full details.
+
+** Scrolling to Elements
+
+After updating content, you often want to scroll to a specific element or to the top of the page.
+
+Python code:
+
+#+BEGIN_SRC python
+@liveview_handler("show_product_details")
+def show_product_details(consumer, content):
+    product_id = content["data"]["product_id"]
+
+    from .models import Product
+    product = Product.objects.get(id=product_id)
+
+    html = render_to_string("product_details.html", {
+        "product": product
+    })
+
+    send(consumer, {
+        "target": "#product-details",
+        "html": html,
+        "scroll": "#product-details"  # Smooth scroll to this element
+    })
+
+@liveview_handler("search_products")
+def search_products(consumer, content):
+    query = content["form"].get("q")
+
+    from .models import Product
+    products = Product.objects.filter(name__icontains=query)
+
+    html = render_to_string("products_list.html", {
+        "products": products
+    })
+
+    send(consumer, {
+        "target": "#products-list",
+        "html": html,
+        "scrollTop": True  # Scroll to top of page
+    })
+#+END_SRC
+
+HTML code:
+
+#+BEGIN_SRC html
+<div id="product-details"></div>
+
+<button
+    data-liveview-function="show_product_details"
+    data-data-product-id="789"
+    data-action="click->page#run">
+    Show Details
+</button>
+
+<input type="text" name="q" placeholder="Search products">
+<button
+    data-liveview-function="search_products"
+    data-action="click->page#run">
+    Search
+</button>
+<div id="products-list"></div>
+#+END_SRC

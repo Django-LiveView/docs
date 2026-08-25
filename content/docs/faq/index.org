@@ -1,0 +1,41 @@
+* FAQ
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/faq/
+:TITLE: FAQ
+:DESCRIPTION: Frequently asked questions about Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+** Do I need to know JavaScript to use Django LiveView?
+
+No, you don't need to. You can create SPAs without using APIs, without JavaScript, and without learning anything new. If you know Python, you know how to use Django LiveView.
+
+** Can I use JavaScript?
+
+Yes, you can. You can use JavaScript to enhance your application, but it's not required for basic functionality.
+
+** Can I use Django's native tools?
+
+Of course. You can still use all of Django's native tools, such as its ORM, forms, authentication, admin, etc.
+
+** Do I need to use React, Vue, Angular or any other frontend framework?
+
+No. All logic, rendering and state is in the backend.
+
+** Can I use Django REST Framework or GraphQL?
+
+Yes, you can use both alongside Django LiveView.
+
+** What's the difference between v0.1.0 and v2.0.0?
+
+v2.0.0 is a complete rewrite with a much simpler API:
+- Module name changed from ~django_liveview~ to ~liveview~ for cleaner imports
+- Simpler decorator-based API with ~@liveview_handler~
+- Built-in auto-discovery of handlers
+- JavaScript assets bundled within the package
+- More comprehensive documentation
+
+** Who finances the project?
+
+This project is maintained by [[https://andros.dev][Andros Fenollosa]] in his free time. If you want to support the project visit [[https://liberapay.com/androsfenollosa/][Liberapay]].

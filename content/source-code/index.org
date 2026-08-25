@@ -1,0 +1,19 @@
+* Source code
+:PROPERTIES:
+:ONE: one-custom-default-page
+:CUSTOM_ID: /source-code/
+:TITLE: Source code
+:DESCRIPTION: List of all related source code.
+:NAVIGATOR-ACTIVE: source code
+:END:
+
+You can find all the source code in the following repositories:
+
+- [[https://github.com/Django-LiveView/liveview][LiveView]]: Source code of the Django framework published on PyPI as django-liveview
+- [[https://github.com/Django-LiveView/docs][Website and Docs]]: All documentation, including this page
+- Templates
+    - [[https://github.com/Django-LiveView/starter-template][Starter]]: Check all the features of Django LiveView
+    - [[https://github.com/Django-LiveView/minimal-template][Minimal]]: The minimal template to get started
+- Demos
+    - [[https://github.com/Django-LiveView/demo-alarms][Alert System]]: Real-time alert system with WebSocket communication ([[https://django-liveview-demo.andros.dev/][live demo]])
+    - [[https://github.com/Django-LiveView/demo-snake][Snake]]: The classic game of Snake

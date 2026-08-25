@@ -1,0 +1,336 @@
+* Testing
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/testing/
+:TITLE: Testing
+:DESCRIPTION: Testing Django LiveView handlers and applications.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Testing LiveView handlers ensures your real-time features work correctly. Django LiveView handlers are regular Python functions, so you can test them like any other Django code.
+
+** Unit Testing Handlers
+
+Test handlers directly by calling them with mock data:
+
+#+BEGIN_SRC python
+from django.test import TestCase
+from unittest.mock import Mock, patch
+from myapp.liveview_components.articles import load_article
+
+class ArticleHandlerTest(TestCase):
+    def setUp(self):
+        from myapp.models import Article
+        self.article = Article.objects.create(
+            title="Test Article",
+            content="Test content"
+        )
+
+    def test_load_article_success(self):
+        # Create mock consumer
+        consumer = Mock()
+
+        # Create content dict
+        content = {
+            "data": {"article_id": str(self.article.id)},
+            "form": {},
+            "function": "load_article"
+        }
+
+        # Patch the send function to capture calls
+        with patch("myapp.liveview_components.articles.send") as mock_send:
+            # Call handler
+            load_article(consumer, content)
+
+            # Verify send was called
+            mock_send.assert_called_once()
+
+            # Verify the call arguments
+            call_args = mock_send.call_args[0]
+            self.assertEqual(call_args[0], consumer)
+
+            # Verify HTML contains article title
+            html = call_args[1]["html"]
+            self.assertIn("Test Article", html)
+            self.assertIn("Test content", html)
+
+    def test_load_article_not_found(self):
+        consumer = Mock()
+        content = {
+            "data": {"article_id": "99999"},
+            "form": {}
+        }
+
+        with patch("myapp.liveview_components.articles.send") as mock_send:
+            load_article(consumer, content)
+
+            # Verify error message is sent
+            html = mock_send.call_args[0][1]["html"]
+            self.assertIn("not found", html.lower())
+#+END_SRC
+
+** Integration Testing with WebSocket Client
+
+Test the full WebSocket flow using Django Channels testing utilities:
+
+#+BEGIN_SRC python
+from channels.testing import WebsocketCommunicator
+from django.test import TransactionTestCase
+from myproject.asgi import application
+import json
+
+class LiveViewIntegrationTest(TransactionTestCase):
+    async def test_websocket_connection(self):
+        # Create WebSocket communicator
+        communicator = WebsocketCommunicator(
+            application,
+            "/ws/liveview/test-room/"
+        )
+
+        # Connect
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        # Send message to handler
+        await communicator.send_json_to({
+            "function": "say_hello",
+            "form": {"name": "Django"},
+            "data": {},
+            "lang": "en",
+            "room": "test-room"
+        })
+
+        # Receive response
+        response = await communicator.receive_json_from()
+
+        # Verify response
+        self.assertEqual(response["target"], "#greeting")
+        self.assertIn("Hello, Django", response["html"])
+
+        # Disconnect
+        await communicator.disconnect()
+
+    async def test_form_validation(self):
+        from myapp.models import Article
+
+        communicator = WebsocketCommunicator(
+            application,
+            "/ws/liveview/test-room/"
+        )
+
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        # Send invalid form data
+        await communicator.send_json_to({
+            "function": "submit_article",
+            "form": {"title": ""},  # Empty title should fail
+            "data": {},
+            "lang": "en",
+            "room": "test-room"
+        })
+
+        response = await communicator.receive_json_from()
+
+        # Verify error is shown
+        self.assertIn("error", response["html"].lower())
+
+        # Verify article was not created
+        self.assertEqual(Article.objects.count(), 0)
+
+        await communicator.disconnect()
+#+END_SRC
+
+** Testing Broadcasting
+
+Test that handlers broadcast to all connected users:
+
+#+BEGIN_SRC python
+from channels.testing import WebsocketCommunicator
+from django.test import TransactionTestCase
+from myproject.asgi import application
+
+class BroadcastTest(TransactionTestCase):
+    async def test_broadcast_to_all_users(self):
+        # Connect multiple users
+        user1 = WebsocketCommunicator(
+            application,
+            "/ws/liveview/room-1/"
+        )
+        user2 = WebsocketCommunicator(
+            application,
+            "/ws/liveview/room-1/"
+        )
+
+        await user1.connect()
+        await user2.connect()
+
+        # User 1 sends a broadcast message
+        await user1.send_json_to({
+            "function": "notify_all",
+            "form": {"message": "Hello everyone!"},
+            "data": {},
+            "lang": "en",
+            "room": "room-1"
+        })
+
+        # Both users should receive the message
+        response1 = await user1.receive_json_from()
+        response2 = await user2.receive_json_from()
+
+        self.assertIn("Hello everyone!", response1["html"])
+        self.assertIn("Hello everyone!", response2["html"])
+
+        await user1.disconnect()
+        await user2.disconnect()
+#+END_SRC
+
+** Testing with Authenticated Users
+
+Test handlers that require authentication:
+
+#+BEGIN_SRC python
+from channels.testing import WebsocketCommunicator
+from django.contrib.auth import get_user_model
+from django.test import TransactionTestCase
+from channels.db import database_sync_to_async
+
+User = get_user_model()
+
+class AuthenticatedHandlerTest(TransactionTestCase):
+    async def test_authenticated_handler(self):
+        # Create user
+        user = await database_sync_to_async(User.objects.create_user)(
+            username="testuser",
+            password="testpass123"
+        )
+
+        # Create authenticated communicator
+        communicator = WebsocketCommunicator(
+            application,
+            "/ws/liveview/user-room/",
+        )
+        communicator.scope["user"] = user
+
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        # Send request that requires authentication
+        await communicator.send_json_to({
+            "function": "delete_article",
+            "data": {"article_id": "123"},
+            "form": {},
+            "lang": "en",
+            "room": "user-room"
+        })
+
+        response = await communicator.receive_json_from()
+
+        # Should succeed (not show "must be logged in" error)
+        self.assertNotIn("must be logged in", response["html"].lower())
+
+        await communicator.disconnect()
+#+END_SRC
+
+** Testing Middleware
+
+Test that middleware correctly filters requests:
+
+#+BEGIN_SRC python
+from django.test import TestCase
+from unittest.mock import Mock, patch
+from myapp.middleware import auth_middleware
+
+class MiddlewareTest(TestCase):
+    def test_auth_middleware_blocks_anonymous(self):
+        # Create mock consumer with anonymous user
+        consumer = Mock()
+        consumer.scope = {"user": None}
+
+        content = {"function": "protected_handler"}
+
+        with patch("myapp.middleware.send") as mock_send:
+            # Call middleware
+            result = auth_middleware(consumer, content, "protected_handler")
+
+            # Should block the request
+            self.assertFalse(result)
+
+            # Should send error message
+            mock_send.assert_called_once()
+            self.assertIn("logged in", mock_send.call_args[0][1]["html"])
+
+    def test_auth_middleware_allows_authenticated(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        # Create mock consumer with authenticated user
+        user = User(username="testuser", is_authenticated=True)
+        consumer = Mock()
+        consumer.scope = {"user": user}
+
+        content = {"function": "protected_handler"}
+
+        # Call middleware
+        result = auth_middleware(consumer, content, "protected_handler")
+
+        # Should allow the request
+        self.assertTrue(result)
+#+END_SRC
+
+** End-to-End Testing with Selenium
+
+Test the full user experience including JavaScript:
+
+#+BEGIN_SRC python
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+class E2ETest(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.driver = webdriver.Chrome()
+        cls.driver.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
+
+    def test_real_time_update(self):
+        # Open the page
+        self.driver.get(f"{self.live_server_url}/")
+
+        # Type in input field
+        input_field = self.driver.find_element(By.NAME, "name")
+        input_field.send_keys("Django")
+
+        # Click button
+        button = self.driver.find_element(
+            By.CSS_SELECTOR,
+            "[data-liveview-function='say_hello']"
+        )
+        button.click()
+
+        # Wait for update
+        greeting = WebDriverWait(self.driver, 5).until(
+            EC.presence_of_element_located((By.ID, "greeting"))
+        )
+
+        # Verify content updated
+        self.assertIn("Hello, Django", greeting.text)
+#+END_SRC
+
+** Testing Best Practices
+
+1. **Test handler logic separately** from WebSocket connection
+2. **Mock the ~send~ function** to verify what gets sent to clients
+3. **Test error cases** to ensure proper error handling
+4. **Test permissions** to prevent unauthorized access
+5. **Use ~TransactionTestCase~** for WebSocket tests (not ~TestCase~)
+6. **Test broadcasts** to ensure multi-user features work correctly
+7. **Write E2E tests** for critical user flows

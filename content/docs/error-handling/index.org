@@ -1,0 +1,454 @@
+* Error Handling
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/error-handling/
+:TITLE: Error Handling
+:DESCRIPTION: Handle errors and exceptions in Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Proper error handling is essential for production applications. Django LiveView provides several patterns for handling errors gracefully.
+
+** Basic Error Handling
+
+Wrap your handler logic in try-except blocks to catch and handle errors:
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("load_article")
+def load_article(consumer, content):
+    article_id = content.get("data", {}).get("article_id")
+
+    try:
+        from .models import Article
+        article = Article.objects.get(id=article_id)
+
+        html = render_to_string("article_detail.html", {
+            "article": article
+        })
+
+        send(consumer, {
+            "target": "#article-container",
+            "html": html
+        })
+    except Article.DoesNotExist:
+        # Show error message to user
+        send(consumer, {
+            "target": "#article-container",
+            "html": "<p class='error'>Article not found</p>"
+        })
+    except Exception as e:
+        # Log unexpected errors
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error loading article {article_id}: {e}")
+
+        # Show generic error to user
+        send(consumer, {
+            "target": "#article-container",
+            "html": "<p class='error'>An error occurred. Please try again.</p>"
+        })
+#+END_SRC
+
+** Validation Errors
+
+Handle validation errors from Django forms:
+
+#+BEGIN_SRC python
+@liveview_handler("submit_form")
+def submit_form(consumer, content):
+    from .forms import ArticleForm
+
+    form = ArticleForm(content.get("form", {}))
+
+    if form.is_valid():
+        article = form.save()
+
+        # Show success message
+        html = render_to_string("article_success.html", {
+            "article": article
+        })
+
+        send(consumer, {
+            "target": "#form-container",
+            "html": html
+        })
+    else:
+        # Show form with errors
+        html = render_to_string("article_form.html", {
+            "form": form,
+            "errors": form.errors
+        })
+
+        send(consumer, {
+            "target": "#form-container",
+            "html": html
+        })
+#+END_SRC
+
+Template (~article_form.html~):
+
+#+BEGIN_SRC html
+{% if errors %}
+<div class="errors">
+    {% for field, error_list in errors.items %}
+        <p class="error">{{ field }}: {{ error_list.0 }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form>
+    {{ form.as_p }}
+    <button
+        data-liveview-function="submit_form"
+        data-action="click->page#run">
+        Submit
+    </button>
+</form>
+#+END_SRC
+
+** Permission and Authentication Errors
+
+Check permissions before executing operations:
+
+#+BEGIN_SRC python
+@liveview_handler("delete_article")
+def delete_article(consumer, content):
+    user = consumer.scope.get("user")
+    article_id = content.get("data", {}).get("article_id")
+
+    # Check authentication
+    if not user or not user.is_authenticated:
+        send(consumer, {
+            "target": "#error-message",
+            "html": "<p class='error'>You must be logged in to delete articles</p>"
+        })
+        return
+
+    try:
+        from .models import Article
+        article = Article.objects.get(id=article_id)
+
+        # Check permissions
+        if article.author != user and not user.is_staff:
+            send(consumer, {
+                "target": "#error-message",
+                "html": "<p class='error'>You don't have permission to delete this article</p>"
+            })
+            return
+
+        article.delete()
+
+        # Show success and remove from DOM
+        send(consumer, {
+            "target": f"#article-{article_id}",
+            "remove": True
+        })
+
+        send(consumer, {
+            "target": "#success-message",
+            "html": "<p class='success'>Article deleted successfully</p>"
+        })
+    except Article.DoesNotExist:
+        send(consumer, {
+            "target": "#error-message",
+            "html": "<p class='error'>Article not found</p>"
+        })
+#+END_SRC
+
+** Database Transaction Errors
+
+Use database transactions to ensure data integrity:
+
+#+BEGIN_SRC python
+from django.db import transaction
+
+@liveview_handler("create_post_with_tags")
+def create_post_with_tags(consumer, content):
+    from .models import Post, Tag
+
+    try:
+        with transaction.atomic():
+            # Create post
+            post = Post.objects.create(
+                title=content["form"]["title"],
+                content=content["form"]["content"]
+            )
+
+            # Add tags
+            tag_names = content["form"]["tags"].split(",")
+            for tag_name in tag_names:
+                tag, _ = Tag.objects.get_or_create(name=tag_name.strip())
+                post.tags.add(tag)
+
+            # Success
+            html = render_to_string("post_created.html", {
+                "post": post
+            })
+
+            send(consumer, {
+                "target": "#post-container",
+                "html": html
+            })
+    except Exception as e:
+        # Transaction is automatically rolled back
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating post: {e}")
+
+        send(consumer, {
+            "target": "#error-message",
+            "html": "<p class='error'>Failed to create post. Please try again.</p>"
+        })
+#+END_SRC
+
+** Timeout Errors
+
+Handle long-running operations with timeouts:
+
+#+BEGIN_SRC python
+from threading import Thread
+
+@liveview_handler("process_large_file")
+def process_large_file(consumer, content):
+    file_id = content.get("data", {}).get("file_id")
+
+    def process_with_timeout():
+        try:
+            from .models import File
+            file_obj = File.objects.get(id=file_id)
+
+            # Simulate long operation
+            result = file_obj.process()  # This might take a while
+
+            # Send success
+            html = render_to_string("process_success.html", {
+                "result": result
+            })
+
+            send(consumer, {
+                "target": "#result-container",
+                "html": html
+            }, broadcast=True)
+        except Exception as e:
+            send(consumer, {
+                "target": "#result-container",
+                "html": f"<p class='error'>Processing failed: {str(e)}</p>"
+            })
+
+    # Start processing in background
+    Thread(target=process_with_timeout).start()
+
+    # Show immediate feedback
+    send(consumer, {
+        "target": "#result-container",
+        "html": "<p>Processing file... This may take a moment.</p>"
+    })
+#+END_SRC
+
+** Global Error Handler with Middleware
+
+Create a middleware to catch all errors:
+
+#+BEGIN_SRC python
+from liveview import liveview_registry, send
+import logging
+
+logger = logging.getLogger(__name__)
+
+def error_handling_middleware(consumer, content, function_name):
+    """Catch all exceptions and show user-friendly error"""
+    try:
+        # Continue to handler
+        return True
+    except Exception as e:
+        # Log the error
+        logger.error(f"Error in handler '{function_name}': {e}", exc_info=True)
+
+        # Show error to user
+        send(consumer, {
+            "target": "#global-error",
+            "html": "<p class='error'>Something went wrong. Our team has been notified.</p>"
+        })
+
+        # Don't continue to handler
+        return False
+
+# Register middleware
+liveview_registry.add_middleware(error_handling_middleware)
+#+END_SRC
+
+Note: Middleware runs ~before~ the handler. To catch errors ~during~ handler execution, wrap your handler logic in try-except blocks.
+
+** Logging Best Practices
+
+#+BEGIN_SRC python
+import logging
+
+logger = logging.getLogger(__name__)
+
+@liveview_handler("important_operation")
+def important_operation(consumer, content):
+    user = consumer.scope.get("user")
+
+    # Log the operation attempt
+    logger.info(f"User {user.id if user else 'anonymous'} attempting operation")
+
+    try:
+        # Perform operation
+        result = perform_operation()
+
+        # Log success
+        logger.info(f"Operation successful for user {user.id if user else 'anonymous'}")
+
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p>Success: {result}</p>"
+        })
+    except ValueError as e:
+        # Log validation errors as warnings
+        logger.warning(f"Validation error for user {user.id if user else 'anonymous'}: {e}")
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p class='error'>Invalid input: {e}</p>"
+        })
+    except Exception as e:
+        # Log unexpected errors as errors
+        logger.error(f"Unexpected error for user {user.id if user else 'anonymous'}: {e}", exc_info=True)
+        send(consumer, {
+            "target": "#result",
+            "html": "<p class='error'>An unexpected error occurred</p>"
+        })
+#+END_SRC
+
+** Automatic Error Handling
+
+Django LiveView automatically catches and reports handler exceptions.
+
+*** Built-in Error Handling
+
+When a handler raises an unhandled exception, the framework automatically:
+
+1. Logs the error with ~logging.error()~
+2. Sends an error message to the client
+3. Re-raises the exception for debugging
+
+Example of an error that will be automatically handled:
+
+#+BEGIN_SRC python
+@liveview_handler("risky_operation")
+def risky_operation(consumer, content):
+    # This will raise a ZeroDivisionError
+    result = 10 / 0
+
+    send(consumer, {
+        "target": "#result",
+        "html": f"<p>Result: {result}</p>"
+    })
+#+END_SRC
+
+The client will automatically receive:
+
+#+BEGIN_SRC json
+{
+    "error": "Handler error: division by zero",
+    "function": "risky_operation"
+}
+#+END_SRC
+
+*** Handling Errors on the Client
+
+Detect and display errors sent from the server:
+
+#+BEGIN_SRC html
+<div id="result"></div>
+<div id="error-display" class="error" style="display: none;"></div>
+
+<script>
+    // Listen for error messages
+    window.myWebSocket.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.error) {
+            // Show error to user
+            const errorDiv = document.getElementById('error-display');
+            errorDiv.textContent = `Error: ${data.error}`;
+            errorDiv.style.display = 'block';
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    });
+</script>
+#+END_SRC
+
+*** Custom Error Responses
+
+For better control, handle errors explicitly within your handler:
+
+#+BEGIN_SRC python
+@liveview_handler("safe_operation")
+def safe_operation(consumer, content):
+    try:
+        result = perform_calculation()
+
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p class='success'>Result: {result}</p>"
+        })
+
+    except ValueError as e:
+        # Handle expected errors gracefully
+        send(consumer, {
+            "target": "#result",
+            "html": f"<p class='error'>Invalid input: {e}</p>"
+        })
+
+    except Exception as e:
+        # Log and show generic error
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Unexpected error: {e}", exc_info=True)
+
+        send(consumer, {
+            "target": "#result",
+            "html": "<p class='error'>An unexpected error occurred</p>"
+        })
+        # Don't re-raise - this prevents automatic error handling
+#+END_SRC
+
+*** Configuring Error Logging
+
+Configure logging for LiveView errors in ~settings.py~:
+
+#+BEGIN_SRC python
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/liveview_errors.log',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
+    },
+    'loggers': {
+        'liveview': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+#+END_SRC
+
+Now all handler errors are logged to a file and emailed to admins.

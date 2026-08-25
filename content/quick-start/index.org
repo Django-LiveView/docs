@@ -1,0 +1,281 @@
+* Tutorial
+:PROPERTIES:
+:ONE: one-custom-default-tutorials
+:CUSTOM_ID: /quick-start/
+:TITLE: Quick start
+:DESCRIPTION: Get started with Django LiveView the easy way.
+:NAVIGATOR-ACTIVE: tutorial
+:END:
+
+Welcome to the quick start. Here you will learn how to create your first real-time SPA using Django LiveView. I assume you have a basic understanding of Django and Python.
+
+This guide provides two paths: a quick one without Redis for immediate testing, and a production-ready path with Redis.
+
+** Step 0: Prerequisites
+
+Before starting, ensure you have:
+- Python 3.10 or higher
+- Django 4.2 or higher
+- A Django project created (if not: ~django-admin startproject myproject~)
+- A Django app created (if not: ~python manage.py startapp app~)
+
+** Step 1: Installation
+
+*** Option A: Quick start (without Redis)
+
+For testing purposes only. Not suitable for production.
+
+#+BEGIN_SRC sh
+pip install django-liveview channels "uvicorn[standard]"
+#+END_SRC
+
+*** Option B: Production ready (with Redis)
+
+Recommended for development and production environments.
+
+#+BEGIN_SRC sh
+pip install django-liveview channels channels-redis "uvicorn[standard]" redis
+#+END_SRC
+
+You'll also need Redis running:
+- **Linux/Mac**: ~redis-server~
+- **Docker**: ~docker run -d -p 6379:6379 redis:alpine~
+- **Windows**: Use Docker or WSL
+
+** Step 2: Configure Django
+
+Add to your ~settings.py~:
+
+#+BEGIN_SRC python
+# settings.py
+INSTALLED_APPS = [
+    "channels",
+    "liveview",
+    "app",  # Your app
+    # ... other Django apps
+]
+
+# ASGI configuration
+ASGI_APPLICATION = "myproject.asgi.application"
+#+END_SRC
+
+*** Channel Layer Configuration
+
+Choose one option:
+
+*Option A: Without Redis (testing only)*
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+#+END_SRC
+
+**Limitations**: Only works with ~runserver~, not cross-process, not production-ready.
+
+*Option B: With Redis (recommended)*
+
+#+BEGIN_SRC python
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+#+END_SRC
+
+** Step 3: Setup ASGI routing
+
+Create or update ~myproject/asgi.py~:
+
+#+BEGIN_SRC python
+# myproject/asgi.py
+import os
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from liveview.routing import get_liveview_urlpatterns
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproject.settings")
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(
+                get_liveview_urlpatterns()
+            )
+        )
+    ),
+})
+#+END_SRC
+
+** Step 4: Add JavaScript to your base template
+
+Create ~app/templates/base.html~:
+
+#+BEGIN_SRC html
+<!-- app/templates/base.html -->
+{% load static %}
+{% load liveview %}
+<!DOCTYPE html>
+<html lang="en" data-room="{% liveview_room_uuid %}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+</head>
+<body data-controller="page">
+    {% block content %}{% endblock %}
+
+    <!-- Django LiveView JavaScript -->
+    <script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+</body>
+</html>
+#+END_SRC
+
+**Important attributes:**
+- ~data-room="{% liveview_room_uuid %}"~ on ~<html>~: unique room ID for each page load
+- ~data-controller="page"~ on ~<body>~: activates the Stimulus controller
+
+**Note**: Templates are placed in ~app/templates/~ to follow Django's app-based template discovery with ~APP_DIRS = True~.
+
+** Step 5: Create your first LiveView handler
+
+Create the directory structure:
+
+#+BEGIN_SRC sh
+mkdir -p app/liveview_components
+touch app/liveview_components/__init__.py
+#+END_SRC
+
+Create ~app/liveview_components/hello.py~:
+
+#+BEGIN_SRC python
+# app/liveview_components/hello.py
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("say_hello")
+def say_hello(consumer, content):
+    """Handle 'say_hello' function from client"""
+    name = content.get("form", {}).get("name", "World")
+
+    html = render_to_string("hello_message.html", {
+        "message": f"Hello, {name}!"
+    })
+
+    send(consumer, {
+        "target": "#greeting",
+        "html": html
+    })
+#+END_SRC
+
+Create the template ~app/templates/hello_message.html~:
+
+#+BEGIN_SRC html
+<h1>{{ message }}</h1>
+#+END_SRC
+
+** Step 6: Create the page view and URLs
+
+Create ~app/views.py~:
+
+#+BEGIN_SRC python
+# app/views.py
+from django.shortcuts import render
+
+def home(request):
+    return render(request, 'hello_page.html')
+#+END_SRC
+
+Create ~app/urls.py~:
+
+#+BEGIN_SRC python
+# app/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+]
+#+END_SRC
+
+Update ~myproject/urls.py~:
+
+#+BEGIN_SRC python
+# myproject/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('app.urls')),
+]
+#+END_SRC
+
+Create the page template ~app/templates/hello_page.html~:
+
+#+BEGIN_SRC html
+<!-- app/templates/hello_page.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<form>
+    <input type="text" name="name" placeholder="Enter your name">
+    <button
+        data-liveview-function="say_hello"
+        data-action="click->page#run">
+        Say Hello
+    </button>
+
+    <div id="greeting">
+        <h1>Hello, World!</h1>
+    </div>
+</form>
+{% endblock %}
+#+END_SRC
+
+** Step 7: Run migrations and start server
+
+#+BEGIN_SRC sh
+# Run migrations
+python manage.py migrate
+
+# Collect static files (for liveview.min.js)
+python manage.py collectstatic --noinput
+
+# Run Django with Uvicorn (ASGI server)
+uvicorn myproject.asgi:application --reload
+#+END_SRC
+
+**If you chose Redis**: Make sure Redis is running before starting the server.
+
+Visit http://127.0.0.1:8000/ and click the button. You should see real-time updates without page reload! 🎉
+
+Congratulations! You have created your first real-time SPA using Django LiveView.
+
+** Complete Example Code
+
+You can find the complete working code from this tutorial at [[https://github.com/Django-LiveView/quick-start][GitHub]]. Clone it and run with Docker:
+
+#+BEGIN_SRC sh
+git clone git@github.com:Django-LiveView/quick-start.git
+cd quick-start
+docker compose up
+#+END_SRC
+
+Then visit http://localhost:8000/
+
+** Live Demos
+
+Want to see Django LiveView in action? Check out these demos:
+
+- **[[https://django-liveview-demo.andros.dev/][Alert System]]**: Real-time alert system with WebSocket communication, form validation, and broadcast notifications ([[https://github.com/Django-LiveView/demo-alarms][source code]])
+- **[[https://github.com/Django-LiveView/demo-snake][Snake Game]]**: The classic game of Snake built entirely with Django LiveView, showcasing real-time keyboard events and dynamic updates

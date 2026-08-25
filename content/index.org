@@ -1,0 +1,192 @@
+* Home
+:PROPERTIES:
+:ONE: one-custom-default-home
+:CUSTOM_ID: /
+:TITLE:
+:DESCRIPTION: Build real-time, reactive interfaces with Django using WebSockets: write Python, not JavaScript.
+:NAVIGATOR-ACTIVE: home
+:END:
+
+Django LiveView is a framework for creating real-time, interactive web applications entirely in Python, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
+
+Build rich, dynamic user experiences with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features without the complexity of a separate frontend framework.
+
+** See it in action
+
+Here's a complete example: a button that loads the latest blog article with a single click.
+
+*HTML:*
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="load_latest_article"
+    data-action="click->page#run">
+    Load Latest Article
+</button>
+
+<div id="article-container"></div>
+#+END_SRC
+
+*Python:*
+
+#+BEGIN_SRC python
+from liveview import liveview_handler, send
+from django.template.loader import render_to_string
+
+@liveview_handler("load_latest_article")
+def load_latest_article(consumer, content):
+    # Get the latest article from database
+    article = Article.objects.latest('published_at')
+
+    # Render with Django templates
+    html = render_to_string('article.html', {
+        'article': article
+    })
+
+    # Send to frontend
+    send(consumer, {
+        "target": "#article-container",
+        "html": html
+    })
+#+END_SRC
+
+*Result (after clicking the button):*
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="load_latest_article"
+    data-action="click->page#run">
+    Load Latest Article
+</button>
+
+<div id="article-container">
+    <article>
+        <h2>Understanding Django Channels</h2>
+        <p class="meta">Published on Dec 15, 2024 by Jane Doe</p>
+        <p>Django Channels extends Django to handle WebSockets,
+           long-running connections, and background tasks...</p>
+        <a href="/blog/understanding-django-channels/">Read more</a>
+    </article>
+</div>
+#+END_SRC
+
+That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend framework. The article appears instantly via WebSocket. Just Python and Django templates working together in real-time.
+
+** Key features
+
+- 🎯 **Create SPAs without using APIs**: No REST or GraphQL needed
+- 🎨 **Uses Django's template system** to render the frontend (without JavaScript frameworks)
+- 🐍 **Logic stays in Python**: No split between backend and frontend
+- 🛠️ **Use all of Django's tools**: ORM, forms, authentication, admin, etc.
+- ⚡ **Everything is asynchronous by default**: Built on Django Channels
+- 📚 **Zero learning curve**: If you know Python and Django, you're ready
+- 🔄 **Real-time by design**: All interactions happen over WebSockets
+- 💾 **Stateful connections**: Maintain server-side state throughout the WebSocket session
+- 🔋 **Batteries included**: JavaScript assets bundled, automatic reconnection with exponential backoff
+- 🔙 **Browser history**: Back and forward buttons restore the full page state automatically
+- 💡 **Type hints** and modern Python (3.10+)
+- 📡 **Broadcast support** for multi-user real-time updates
+- 🔐 **Middleware system** for authentication and authorization
+
+** Why Django LiveView?
+
+[[https://github.com/tanrax/django-interactive-frameworks-benchmark][Benchmarks]] show Django LiveView delivers the fastest response times among Django interactive frameworks:
+
+#+ATTR_HTML: :class center-block image image--benchmark
+[[#/img/benchmark-response-time.webp][Response Time Comparison]]
+
+| Framework    | Avg Response | Data Transfer | HTTP Requests |
+|--------------+--------------+---------------+---------------|
+| **Django LiveView** | **22.91 ms** | 5.82 KB       | 0             |
+| HTMX         | 25.82 ms     | 4.39 KB       | 1             |
+| djust        | 27.05 ms     | 8.79 KB       | 0             |
+| Reactor      | 40.56 ms     | 1.64 KB       | 0             |
+| Unicorn      | 50.58 ms     | 6.33 KB       | 1             |
+| SSR          | 60.52 ms     | 8.23 KB       | 2             |
+
+Django LiveView is approximately **11% faster than HTMX** and **62% faster than traditional SSR** through persistent WebSocket connectivity.
+
+*** Technology Comparison
+
+| Feature            | LiveView         | SSR         | HTMX        | Unicorn     |
+|--------------------+------------------+-------------+-------------+-------------|
+| **Transport**      | WebSocket        | HTTP        | AJAX        | AJAX        |
+| **Update Type**    | Real-time        | Full reload | Partial     | Reactive    |
+| **Multi-user**     | ✅ Broadcast     | ❌          | ❌          | ❌          |
+| **Infrastructure** | Redis + Channels | Django only | Django only | Django only |
+
+*** What makes it different?
+
+The key difference is the connection model:
+
+**Django LiveView** uses a persistent WebSocket connection that stays open between the client and server. This allows bidirectional, real-time communication with minimal latency. Think of it like a phone call: once connected, both sides can talk instantly.
+
+**HTMX** sends a new HTTP request for each user interaction and updates only part of the page. It's like sending text messages: you send a message, wait for a response, then repeat. If you're migrating from HTMX, check out [[https://en.andros.dev/blog/94d14a9e/from-htmx-to-django-liveview/][this migration guide]].
+
+**Traditional SSR** reloads the entire page with each interaction through a POST request followed by a redirect. It's like hanging up and calling back every time you want to say something.
+
+#+begin_export html
+<pre class="mermaid">
+sequenceDiagram
+    accTitle: Initial page load over WebSocket
+    accDescr: The browser sends the string "Open the Home Page" to the Django server, which replies with the full page HTML.
+    autonumber
+    participant B as 🌐 Browser
+    participant S as 🖥️ Server · Django
+    B->>S: String: "Open the Home Page"
+    S-->>B: HTML: "&lt;html&gt;&lt;body&gt;&lt;h1&gt;…"
+</pre>
+#+end_export
+
+** How does it work?
+
+Let's illustrate with an example: displaying article number 2.
+
+1. [@1] A WebSocket connection (a channel) is established between the client and the server.
+
+2. [@2] JavaScript sends a message via WebSocket to the server (Django).
+
+   #+begin_export html
+   <pre class="mermaid">
+   sequenceDiagram
+       accTitle: User action sent to the server
+       accDescr: When the user clicks, JavaScript sends the action string "click-&gt;article#open:2" to the Django server over the WebSocket.
+       participant B as 🌐 Browser
+       participant S as 🖥️ Server · Django
+       B->>S: String: "click-&gt;article#35;open:2"
+   </pre>
+   #+end_export
+
+3. [@3] Django interprets the message and renders the HTML of the article through the template system and the database.
+
+4. [@4] Django sends the HTML to JavaScript via the channel and specifies which selector to embed it in.
+
+   #+begin_export html
+   <pre class="mermaid">
+   sequenceDiagram
+       accTitle: Server response with the rendered HTML
+       accDescr: The Django server replies with a JSON message containing the target selector "#main" and the rendered article HTML.
+       participant B as 🌐 Browser
+       participant S as 🖥️ Server · Django
+       S-->>B: JSON: { selector: "#35;main", html: "&lt;article&gt;…" }
+   </pre>
+   #+end_export
+
+5. [@5] JavaScript renders the received HTML in the indicated selector.
+
+   #+begin_export html
+   <pre class="mermaid">
+   flowchart TD
+       accTitle: HTML placed into the target element
+       accDescr: JavaScript inserts the received markup into the #main element, which now contains an article with a heading and a paragraph.
+       M["div#main"] --> A["article"]
+       A --> H["h1: Lorem ipsum…"]
+       A --> P["p: …"]
+   </pre>
+   #+end_export
+
+The same process is repeated for each action: clicking a button, submitting a form, navigating, etc.
+
+** Ready to start?
+
+Are you ready to create your first real-time SPA? Let's go to the [[#/quick-start/][Quick start]].

@@ -1,0 +1,63 @@
+* Broadcasting
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/broadcasting/
+:TITLE: Broadcasting
+:DESCRIPTION: Broadcasting updates to multiple users.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Send updates to all connected clients using the ~broadcast~ parameter:
+
+** Simple Broadcast
+
+#+BEGIN_SRC python
+@liveview_handler("notify_all")
+def notify_all(consumer, content):
+    message = content["form"]["message"]
+
+    html = render_to_string("notification.html", {
+        "message": message
+    })
+
+    send(consumer, {
+        "target": "#notifications",
+        "html": html,
+        "append": True
+    }, broadcast=True)  # Sends to ALL connected users
+#+END_SRC
+
+** Background Thread Broadcast with Auto-removal
+
+#+BEGIN_SRC python
+from threading import Thread
+from time import sleep
+from uuid import uuid4
+
+@liveview_handler("send_notification")
+def send_notification(consumer, content):
+    notification_id = str(uuid4().hex)
+    message = "New update available!"
+
+    def broadcast_notification():
+        # Send notification
+        html = render_to_string("notification.html", {
+            "id": notification_id,
+            "message": message
+        })
+
+        send(consumer, {
+            "target": "#notifications",
+            "html": html,
+            "append": True
+        }, broadcast=True)
+
+        # Remove after 5 seconds
+        sleep(5)
+        send(consumer, {
+            "target": f"#notification-{notification_id}",
+            "remove": True
+        }, broadcast=True)
+
+    Thread(target=broadcast_notification).start()
+#+END_SRC

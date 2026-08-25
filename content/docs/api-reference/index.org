@@ -1,0 +1,416 @@
+* API Reference
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/api-reference/
+:TITLE: API Reference
+:DESCRIPTION: Complete API reference for Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Complete reference for all Django LiveView functions, decorators, and classes.
+
+** Decorators
+
+*** ~@liveview_handler(name)~
+
+Register a function as a LiveView handler.
+
+**Parameters:**
+- ~name~ (str): The handler name that will be called from the frontend
+
+**Returns:** Decorated function
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_handler
+
+@liveview_handler("my_handler")
+def my_handler(consumer, content):
+    pass
+#+END_SRC
+
+** Functions
+
+*** ~send(consumer, data, broadcast=False)~
+
+Send data to the client(s).
+
+**Parameters:**
+- ~consumer~ (WebsocketConsumer): The WebSocket consumer instance
+- ~data~ (dict): Dictionary containing the update instructions
+- ~broadcast~ (bool, optional): If True, send to all connected clients. Default: False
+
+**Data dictionary keys:**
+- ~target~ (str, required): CSS selector of element to update
+- ~html~ (str, optional): HTML content to insert
+- ~append~ (bool, optional): If True, append instead of replace. Default: False
+- ~remove~ (bool, optional): If True, remove the target element. Default: False
+- ~url~ (str, optional): Update browser URL and record a history entry (snapshots the current DOM state so back/forward can restore it)
+- ~title~ (str, optional): Update page title
+- ~scroll~ (str, optional): CSS selector to scroll to
+- ~scrollTop~ (bool, optional): If True, scroll to top of page
+- ~script~ (str, optional): JavaScript code to execute
+
+**Returns:** None
+
+**Examples:**
+
+#+BEGIN_SRC python
+from liveview import send
+
+# Replace content
+send(consumer, {
+    "target": "#container",
+    "html": "<p>New content</p>"
+})
+
+# Append content
+send(consumer, {
+    "target": "#list",
+    "html": "<li>New item</li>",
+    "append": True
+})
+
+# Remove element
+send(consumer, {
+    "target": "#notification-123",
+    "remove": True
+})
+
+# Update URL and title
+send(consumer, {
+    "target": "#main",
+    "html": "<h1>New Page</h1>",
+    "url": "/new-page/",
+    "title": "New Page - My Site"
+})
+
+# Execute JavaScript
+send(consumer, {
+    "script": "console.log('Hello from server');"
+})
+
+# Broadcast to all users
+send(consumer, {
+    "target": "#notifications",
+    "html": "<p>New message!</p>",
+    "append": True
+}, broadcast=True)
+#+END_SRC
+
+** Handler Content Parameter
+
+Every handler receives a ~content~ dictionary with the following structure:
+
+#+BEGIN_SRC python
+{
+    "function": str,      # Handler name that was called
+    "form": dict,         # All form inputs {name: value}
+    "data": dict,         # Custom data-data-* attributes
+    "lang": str,          # Current language (from <html lang="">)
+    "room": str           # WebSocket room identifier
+}
+#+END_SRC
+
+**Example access:**
+
+#+BEGIN_SRC python
+@liveview_handler("example")
+def example(consumer, content):
+    function_name = content["function"]           # "example"
+    user_input = content["form"]["name"]          # From <input name="name">
+    custom_id = content["data"]["item_id"]        # From data-data-item-id
+    language = content["lang"]                    # "en", "es", etc.
+    room_id = content["room"]                     # "user_123" or UUID
+#+END_SRC
+
+** Registry
+
+*** ~liveview_registry~
+
+Global registry for handlers and middleware.
+
+**Methods:**
+
+**** ~add_middleware(middleware_func)~
+
+Add a middleware function to run before handlers.
+
+**Parameters:**
+- ~middleware_func~ (callable): Function with signature ~(consumer, content, function_name) -> bool~
+
+**Returns:** None
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+def my_middleware(consumer, content, function_name):
+    # Run before handler
+    print(f"Calling {function_name}")
+
+    # Return True to continue, False to cancel
+    return True
+
+liveview_registry.add_middleware(my_middleware)
+#+END_SRC
+
+**** ~list_functions()~
+
+Get list of all registered handler names.
+
+**Returns:** List[str]
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+handlers = liveview_registry.list_functions()
+print(handlers)  # ['say_hello', 'load_articles', ...]
+#+END_SRC
+
+**** ~get_handler(function_name)~
+
+Get a specific handler by name.
+
+**Parameters:**
+- ~function_name~ (str): Name of the handler to retrieve
+
+**Returns:** Callable or None
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+handler = liveview_registry.get_handler("say_hello")
+
+if handler:
+    print(f"Handler found: {handler.__name__}")
+else:
+    print("Handler not found")
+#+END_SRC
+
+**** ~get_all_handlers()~
+
+Get a dictionary of all registered handlers with their functions.
+
+**Returns:** Dict[str, Callable]
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+all_handlers = liveview_registry.get_all_handlers()
+
+for name, func in all_handlers.items():
+    print(f"Handler: {name}, Function: {func.__name__}")
+#+END_SRC
+
+**** ~unregister(function_name)~
+
+Remove a handler from the registry.
+
+**Parameters:**
+- ~function_name~ (str): Name of the handler to remove
+
+**Returns:** Callable or None (the removed handler, or None if not found)
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+# Unregister a handler
+liveview_registry.unregister("old_handler")
+
+# Verify it's gone
+if liveview_registry.get_handler("old_handler") is None:
+    print("Handler successfully unregistered")
+#+END_SRC
+
+**** ~clear()~
+
+Remove all registered handlers.
+
+**Returns:** None
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview import liveview_registry
+
+# Remove all handlers
+liveview_registry.clear()
+
+# Verify
+print(liveview_registry.list_functions())  # []
+#+END_SRC
+
+⚠️ *Warning:* This clears ALL handlers. Only use in testing or when reinitializing the application.
+
+** Routing
+
+*** ~get_liveview_urlpatterns()~
+
+Get URL patterns for WebSocket routing.
+
+**Returns:** List of URL patterns
+
+**Example:**
+
+#+BEGIN_SRC python
+from liveview.routing import get_liveview_urlpatterns
+from channels.routing import URLRouter
+
+application = URLRouter(
+    get_liveview_urlpatterns()
+)
+#+END_SRC
+
+** Frontend Attributes
+
+*** HTML Attributes
+
+**** ~data-controller="page"~
+
+Required on ~<body>~ element to activate Stimulus controller.
+
+#+BEGIN_SRC html
+<body data-controller="page">
+#+END_SRC
+
+**** ~data-room="room-id"~
+
+WebSocket room identifier. Use ~{% liveview_room_uuid %}~ to generate a random UUID for each request.
+
+#+BEGIN_SRC html
+{% load liveview %}
+<html data-room="{% liveview_room_uuid %}">
+#+END_SRC
+
+**** ~data-liveview-function="handler-name"~
+
+Specifies which handler to call.
+
+#+BEGIN_SRC html
+<button data-liveview-function="say_hello">Click</button>
+#+END_SRC
+
+**** ~data-action="event->controller#action"~
+
+Stimulus action binding.
+
+#+BEGIN_SRC html
+<button data-action="click->page#run">Click</button>
+<input data-action="input->page#run">
+<form data-action="submit->page#run">
+#+END_SRC
+
+**** ~data-data-*~
+
+Custom data attributes sent to handler in ~content["data"]~.
+
+#+BEGIN_SRC html
+<button data-data-user-id="123" data-data-action="delete">
+#+END_SRC
+
+Becomes:
+
+#+BEGIN_SRC python
+content["data"]["user_id"]  # "123"
+content["data"]["action"]   # "delete"
+#+END_SRC
+
+**** ~data-liveview-debounce="milliseconds"~
+
+Delay before sending request.
+
+#+BEGIN_SRC html
+<input data-liveview-debounce="500" data-action="input->page#run">
+#+END_SRC
+
+**** ~data-liveview-focus="true"~
+
+Auto-focus element after rendering.
+
+#+BEGIN_SRC html
+<input data-liveview-focus="true">
+#+END_SRC
+
+**** ~data-liveview-init="handler-name"~
+
+Call handler when element is first rendered.
+
+#+BEGIN_SRC html
+<div data-liveview-init="initialize_chart">
+#+END_SRC
+
+**** ~data-liveview-intersect-appear="handler-name"~
+
+Call handler when element appears in viewport.
+
+#+BEGIN_SRC html
+<div data-liveview-intersect-appear="load_more">
+#+END_SRC
+
+**** ~data-liveview-intersect-disappear="handler-name"~
+
+Call handler when element leaves viewport.
+
+#+BEGIN_SRC html
+<div data-liveview-intersect-disappear="pause_video">
+#+END_SRC
+
+**** ~data-liveview-intersect-threshold="pixels"~
+
+Trigger intersection before entering viewport.
+
+#+BEGIN_SRC html
+<div
+    data-liveview-intersect-appear="load_more"
+    data-liveview-intersect-threshold="200">
+#+END_SRC
+
+**** ~data-liveview-keyboard-map='{...}'~
+
+Map keyboard shortcuts to handlers using JSON.
+
+#+BEGIN_SRC html
+<div
+    data-liveview-keyboard-map='{
+        "w":"move_up",
+        "ctrl+s":"save_game"
+    }'
+    tabindex="0">
+#+END_SRC
+
+**Supported keys:**
+- Letters and numbers: ~a-z~, ~0-9~
+- Special keys: ~esc~, ~enter~, ~space~, ~tab~, ~up~, ~down~, ~left~, ~right~, ~home~, ~end~, ~page_up~, ~page_down~
+- Modifiers: ~ctrl~, ~alt~, ~meta~, ~shift~
+- Combinations: ~ctrl+s~, ~alt+f~, ~meta+k~
+
+** Consumer Scope
+
+The ~consumer~ parameter provides access to connection metadata:
+
+#+BEGIN_SRC python
+@liveview_handler("example")
+def example(consumer, content):
+    # Get authenticated user
+    user = consumer.scope.get("user")
+
+    # Get session data
+    session = consumer.scope.get("session")
+
+    # Get URL route kwargs
+    url_kwargs = consumer.scope.get("url_route", {}).get("kwargs", {})
+
+    # Get headers
+    headers = dict(consumer.scope.get("headers", []))
+#+END_SRC

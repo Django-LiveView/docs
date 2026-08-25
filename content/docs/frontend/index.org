@@ -1,0 +1,236 @@
+* Frontend Integration
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/frontend/
+:TITLE: Frontend Integration
+:DESCRIPTION: How to call handlers from the frontend.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+The frontend is responsible for capturing events and sending messages over WebSocket. No logic, rendering, or state is in the frontend: the backend does all the work.
+
+Django LiveView uses [[https://stimulus.hotwired.dev/][Stimulus]] to manage DOM events and avoid collisions. The JavaScript assets are bundled within the package.
+
+** Calling Handlers
+
+To call a handler from a button click:
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="say_hello"
+    data-action="click->page#run">
+    Say Hello
+</button>
+#+END_SRC
+
+- ~data-liveview-function~: The handler name registered with ~@liveview_handler~
+- ~data-action~: Stimulus action (event->controller#action)
+
+** Sending Form Data
+
+All form fields are automatically extracted and sent in ~content["form"]~:
+
+#+BEGIN_SRC html
+<div>
+    <input type="text" name="name" placeholder="Enter your name">
+    <button
+        data-liveview-function="say_hello"
+        data-action="click->page#run">
+        Submit
+    </button>
+</div>
+#+END_SRC
+
+** Sending Custom Data
+
+Use ~data-data-*~ attributes to send additional data:
+
+#+BEGIN_SRC html
+<button
+    data-liveview-function="open_modal"
+    data-data-modal-id="123"
+    data-data-user-id="456"
+    data-action="click->page#run">
+    Open Modal
+</button>
+#+END_SRC
+
+Access in Python:
+
+#+BEGIN_SRC python
+@liveview_handler("open_modal")
+def open_modal(consumer, content):
+    data = content.get("data", {})
+    modal_id = data.get("modal_id")      # from data-data-modal-id
+    user_id = data.get("user_id")        # from data-data-user-id
+#+END_SRC
+
+** Stimulus Actions Reference
+
+Available Stimulus actions:
+
+- ~data-action="click->page#run"~: Execute LiveView function on click
+- ~data-action="input->page#run"~: Execute on input change (real-time)
+- ~data-action="submit->page#run"~: Execute on form submit
+- ~data-action="change->page#run"~: Execute on change event
+- ~data-action="blur->page#run"~: Execute when element loses focus
+- ~data-action="page#stop"~: Stop event propagation
+
+
+** Custom JavaScript Events
+
+Dispatch custom JavaScript events from Django handlers that can be listened to with standard ~addEventListener~.
+
+Django LiveView doesn't have built-in support for custom JavaScript events, but you can easily extend it using the exposed ~window.myWebSocket~ global. This allows you to dispatch custom DOM events from your Django handlers that can be captured with standard JavaScript event listeners.
+
+*** Implementation
+
+**** Step 1: Create the Extension Script
+
+Create a JavaScript file to intercept WebSocket messages and dispatch custom events:
+
+#+BEGIN_SRC javascript
+// static/js/liveview-events-extension.js
+
+/**
+ * Django LiveView Custom Events Extension
+ * Adds support for custom JavaScript events dispatched from Django handlers
+ */
+class LiveViewEventsExtension {
+	constructor() {
+		this.setupEventInterceptor();
+	}
+
+	setupEventInterceptor() {
+		// Wait for WebSocket to be ready
+		const checkWebSocket = setInterval(() => {
+			if (window.myWebSocket && window.myWebSocket.readyState === WebSocket.OPEN) {
+				clearInterval(checkWebSocket);
+				this.interceptMessages();
+				console.log('✅ LiveView custom events extension initialized');
+			}
+		}, 100);
+
+		// Timeout after 10 seconds
+		setTimeout(() => {
+			clearInterval(checkWebSocket);
+			if (!window.myWebSocket || window.myWebSocket.readyState !== WebSocket.OPEN) {
+				console.error('❌ Failed to initialize custom events extension');
+			}
+		}, 10000);
+	}
+
+	interceptMessages() {
+		// Add our own message listener
+		window.myWebSocket.addEventListener('message', (event) => {
+			try {
+				const data = JSON.parse(event.data);
+
+				// If the message has a custom event, dispatch it
+				if (data.event) {
+					this.dispatchCustomEvent(data.event, data.eventData || {});
+				}
+			} catch (error) {
+				console.error('Error processing custom event:', error);
+			}
+		});
+	}
+
+	dispatchCustomEvent(eventName, eventData) {
+		const customEvent = new CustomEvent(eventName, {
+			detail: eventData,
+			bubbles: true,
+			cancelable: true
+		});
+
+		console.debug(`📡 Custom event: ${eventName}`, eventData);
+		document.dispatchEvent(customEvent);
+	}
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', () => new LiveViewEventsExtension());
+} else {
+	new LiveViewEventsExtension();
+}
+#+END_SRC
+
+**** Step 2: Load the Extension
+
+Add the script to your base template *after* loading Django LiveView:
+
+#+BEGIN_SRC html
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-room="your_room_id">
+<head>
+	<meta charset="UTF-8">
+	<title>My App</title>
+</head>
+<body data-controller="page">
+	{% block content %}{% endblock %}
+
+	<!-- Load Django LiveView first -->
+	<script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+
+	<!-- Load custom events extension after -->
+	<script src="{% static 'js/liveview-events-extension.js' %}" defer></script>
+</body>
+</html>
+#+END_SRC
+
+**** Step 3: Dispatch Events from Django
+
+Use the ~send()~ function with ~event~ and ~eventData~ keys:
+
+#+BEGIN_SRC python
+# your_app/liveview_components/notifications.py
+from liveview import liveview_handler, send
+from time import time
+
+@liveview_handler("send_notification")
+def send_notification(consumer, content):
+    """Broadcast a notification to all connected clients"""
+    message = content.get("data", {}).get("message", "")
+
+    # Send custom event
+    send(consumer, {
+        "event": "notification:show",
+        "eventData": {
+            "message": message,
+            "type": "info",
+            "timestamp": time()
+        }
+    }, broadcast=True)
+#+END_SRC
+
+**** Step 4: Listen to Events in JavaScript
+
+Use standard ~addEventListener~ to handle custom events:
+
+#+BEGIN_SRC javascript
+// static/js/app.js
+
+// Listen for notification events
+document.addEventListener('notification:show', (event) => {
+	const { message, type, timestamp } = event.detail;
+
+	// Display notification
+	showToast(message, type);
+	console.log('Notification received:', message);
+});
+
+// Listen for custom game events
+document.addEventListener('game:player-moved', (event) => {
+	const { playerId, x, y } = event.detail;
+	updatePlayerPosition(playerId, x, y);
+});
+
+// Listen for collaborative canvas events
+document.addEventListener('canvas:draw', (event) => {
+	const { x, y, color, userId } = event.detail;
+	drawOnCanvas(x, y, color, userId);
+});
+#+END_SRC

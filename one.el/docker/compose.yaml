@@ -1,8 +1,0 @@
-
-services:
-
-  one-el:
-    build: .
-    restart: "no"
-    volumes:
-      - .:/usr/src/app/

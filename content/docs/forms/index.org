@@ -1,0 +1,94 @@
+* Forms
+:PROPERTIES:
+:ONE: one-custom-default-doc
+:CUSTOM_ID: /docs/forms/
+:TITLE: Forms
+:DESCRIPTION: Form handling in Django LiveView.
+:NAVIGATOR-ACTIVE: docs
+:END:
+
+Django LiveView works seamlessly with Django forms. Form data is sent via WebSocket instead of HTTP.
+
+** Form Handling Example
+
+Python handler:
+
+#+BEGIN_SRC python
+@liveview_handler("submit_contact")
+def submit_contact(consumer, content):
+    from .forms import ContactForm
+
+    form = ContactForm(content["form"])
+
+    if form.is_valid():
+        # Save to database
+        contact = form.save()
+
+        # Show success message
+        html = render_to_string("contact_success.html", {
+            "message": "Thank you! We'll be in touch."
+        })
+    else:
+        # Show form with errors
+        html = render_to_string("contact_form.html", {
+            "form": form
+        })
+
+    send(consumer, {
+        "target": "#contact-container",
+        "html": html
+    })
+#+END_SRC
+
+HTML template:
+
+#+BEGIN_SRC html
+<div id="contact-container">
+    <form>
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <textarea name="message" placeholder="Message" required></textarea>
+
+        <button
+            data-liveview-function="submit_contact"
+            data-action="click->page#run"
+            type="button">
+            Submit
+        </button>
+    </form>
+</div>
+#+END_SRC
+
+** Real-time Validation
+
+#+BEGIN_SRC python
+@liveview_handler("validate_field")
+def validate_field(consumer, content):
+    field_name = content["data"]["field"]
+    field_value = content["form"].get(field_name, "")
+
+    # Validate
+    error = None
+    if field_name == "email" and "@" not in field_value:
+        error = "Invalid email address"
+    elif field_name == "name" and len(field_value) < 3:
+        error = "Name must be at least 3 characters"
+
+    # Show error or success
+    html = f'<span class="{"error" if error else "success"}">{error or "✓"}</span>'
+
+    send(consumer, {
+        "target": f"#error-{field_name}",
+        "html": html
+    })
+#+END_SRC
+
+#+BEGIN_SRC html
+<input
+    type="text"
+    name="email"
+    data-liveview-function="validate_field"
+    data-data-field="email"
+    data-action="blur->page#run">
+<span id="error-email"></span>
+#+END_SRC
