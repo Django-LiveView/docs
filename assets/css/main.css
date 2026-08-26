@@ -932,6 +932,13 @@ pre {
     .nav-main__link {
         font-size: 0.92rem;
     }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
 /* Very narrow phones: tighten the nav so all items fit without scrolling */
@@ -942,13 +949,6 @@ pre {
 
     .nav-main__link {
         font-size: 0.82rem;
-    }
-
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
     }
 }
 
