@@ -351,11 +351,10 @@ TITLE, DESCRIPTION and NAVIGATOR-ACTIVE come from the page properties."
               (:footer.footer
                (:div.container
                 (:ul.footer_nav
-                 (:li (:i (@ :aria-label "bug") "🪲") " Bugs: " (:a.link (@ :href "https://github.com/Django-LiveView/docs/blob/main/one.org" :target "_blank") "Documentation"))
+                 (:li (:i (@ :aria-label "bug") "🪲") " Bugs: " (:a.link (@ :href "https://github.com/Django-LiveView/docs/tree/main/content/docs" :target "_blank") "Documentation"))
                  (:li (:i (@ :aria-label "chat") "🐘") " Follow me: " (:a.link (@ :href "https://activity.andros.dev/@andros" :target "_blank") "ActivityPub/Fediverse "))
                  (:li (:span (@ :aria-hidden "true") "💰 ") " Support the project: " (:a.link (@ :href "https://liberapay.com/androsfenollosa/" :target "_blank") "Liberapay")))
-                (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa"))
-                (:p "🐍 " ,(format-time-string "%Y"))))
+                (:p "Created with " (:i (@ :aria-label "love") "❤️") " by " (:a.link (@ :href "https://andros.dev/" :target "_blank") "Andros Fenollosa") " · 🐍 " ,(format-time-string "%Y"))))
               (:script (@ :type "text/javascript") "(function() {var headingMap = {'Basic': 'basic', 'Intermediate': 'intermediate', 'Advanced': 'advanced', 'UI Features': 'ui-features', 'System Features': 'system-features', 'Data Handling': 'data-handling'}; document.querySelectorAll('h3').forEach(function(h3) {var text = h3.textContent.trim(); if (headingMap[text]) {h3.id = headingMap[text];}});})();")
               (:script (@ :type "module") "import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 mermaid.initialize({
@@ -412,7 +411,7 @@ mermaid.initialize({
                  (:div.container
                   (:hgroup.hero__hgroup
                    (:h1.hero__title "Django LiveView")
-                   (:h2.hero__subtitle "Build real-time, reactive interfaces with Django using WebSockets: " (:strong "write Python, not JavaScript"))
+                   (:h2.hero__subtitle "Build real-time apps: " (:strong "write Python, not " (:s.hero__strike "JavaScript")))
                    (:img.image.hero__logo (@ :alt "pet" :src "img/pet.webp")))))
                 (:section.home
                  (:div.container ,(lv-export-body page-tree)))))))

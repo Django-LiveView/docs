@@ -384,6 +384,12 @@ a:hover {
     line-height: 1.5;
 }
 
+.hero__strike {
+    color: var(--color-gray);
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--color-black);
+}
+
 .hero__logo {
     grid-area: image;
     justify-self: center;
@@ -393,6 +399,78 @@ a:hover {
 .nav-home__list {
     justify-content: center;
     gap: var(--gap-l);
+}
+
+/* Key features — grid of cards */
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
+}
+
+.feature {
+    margin: 0;
+    padding: 1.3rem;
+    text-align: center;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-black);
+    border-radius: var(--radius-lg);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.feature:hover {
+    transform: translate(4px, -4px);
+    box-shadow: -4px 4px 0 0 var(--color-helper), -4px 4px 0 1px var(--color-black);
+}
+
+.feature__icon {
+    display: block;
+    font-size: 1.9rem;
+    line-height: 1;
+    margin-bottom: 0.7rem;
+}
+
+.feature__title {
+    margin: 0 0 0.35rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.feature__text {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--color-black);
+}
+
+/* Call to action — bordered card with a mint offset shadow and a primary button */
+.cta {
+    margin-block: 3rem;
+    padding: 2.2rem 2rem;
+    text-align: center;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-black);
+    border-radius: var(--radius-lg);
+    box-shadow: -6px 6px 0 0 var(--color-helper), -6px 6px 0 1px var(--color-black);
+}
+
+.cta__title {
+    margin-top: 0;
+    margin-bottom: 0.6rem;
+}
+
+.cta__text {
+    margin: 0 auto 1.4rem;
+    max-width: 34rem;
+    color: var(--color-black);
+}
+
+.cta__button {
+    font-size: 1.05rem;
 }
 
 /* -------------------------------------------------------------------------- */

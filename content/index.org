@@ -7,9 +7,9 @@
 :NAVIGATOR-ACTIVE: home
 :END:
 
-Django LiveView is a framework for creating real-time, interactive web applications entirely in Python, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
+Django LiveView is a framework for creating real-time, interactive web applications *entirely in Python*, inspired by [[https://hexdocs.pm/phoenix_live_view/][Phoenix LiveView]] and [[https://laravel-livewire.com/][Laravel Livewire]]. It is built on top of Django Channels.
 
-Build rich, dynamic user experiences with server-rendered HTML without writing a single line of JavaScript. Perfect for Django developers who want real-time features without the complexity of a separate frontend framework.
+Build rich, dynamic user experiences with server-rendered HTML *without writing a single line of JavaScript*. Perfect for Django developers who want real-time features without the complexity of a separate frontend framework.
 
 ** See it in action
 
@@ -74,19 +74,22 @@ That's it! No page reload, no API endpoints, no REST, no GraphQL, no frontend fr
 
 ** Key features
 
-- 🎯 **Create SPAs without using APIs**: No REST or GraphQL needed
-- 🎨 **Uses Django's template system** to render the frontend (without JavaScript frameworks)
-- 🐍 **Logic stays in Python**: No split between backend and frontend
-- 🛠️ **Use all of Django's tools**: ORM, forms, authentication, admin, etc.
-- ⚡ **Everything is asynchronous by default**: Built on Django Channels
-- 📚 **Zero learning curve**: If you know Python and Django, you're ready
-- 🔄 **Real-time by design**: All interactions happen over WebSockets
-- 💾 **Stateful connections**: Maintain server-side state throughout the WebSocket session
-- 🔋 **Batteries included**: JavaScript assets bundled, automatic reconnection with exponential backoff
-- 🔙 **Browser history**: Back and forward buttons restore the full page state automatically
-- 💡 **Type hints** and modern Python (3.10+)
-- 📡 **Broadcast support** for multi-user real-time updates
-- 🔐 **Middleware system** for authentication and authorization
+#+begin_export html
+<ul class="features">
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🎯</span><h3 class="feature__title">Create SPAs without APIs</h3><p class="feature__text">No REST or GraphQL needed.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🎨</span><h3 class="feature__title">Django templates</h3><p class="feature__text">Render the frontend without JavaScript frameworks.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🐍</span><h3 class="feature__title">Logic stays in Python</h3><p class="feature__text">No split between backend and frontend.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🛠️</span><h3 class="feature__title">All of Django's tools</h3><p class="feature__text">ORM, forms, authentication, admin and more.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">⚡</span><h3 class="feature__title">Async by default</h3><p class="feature__text">Built on Django Channels.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">📚</span><h3 class="feature__title">Zero learning curve</h3><p class="feature__text">If you know Python and Django, you're ready.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🔄</span><h3 class="feature__title">Real-time by design</h3><p class="feature__text">Every interaction happens over WebSockets.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">💾</span><h3 class="feature__title">Stateful connections</h3><p class="feature__text">Server-side state is kept for the whole session.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🔋</span><h3 class="feature__title">Batteries included</h3><p class="feature__text">Bundled JS assets and automatic reconnection with exponential backoff.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🔙</span><h3 class="feature__title">Browser history</h3><p class="feature__text">Back and forward restore the full page state automatically.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">📡</span><h3 class="feature__title">Broadcast support</h3><p class="feature__text">Multi-user real-time updates.</p></li>
+  <li class="feature"><span class="feature__icon" aria-hidden="true">🔐</span><h3 class="feature__title">Middleware system</h3><p class="feature__text">Authentication and authorization.</p></li>
+</ul>
+#+end_export
 
 ** Why Django LiveView?
 
@@ -187,6 +190,10 @@ Let's illustrate with an example: displaying article number 2.
 
 The same process is repeated for each action: clicking a button, submitting a form, navigating, etc.
 
-** Ready to start?
-
-Are you ready to create your first real-time SPA? Let's go to the [[#/quick-start/][Quick start]].
+#+begin_export html
+<aside class="cta">
+  <h2 class="cta__title">Ready to start?</h2>
+  <p class="cta__text">Build your first real-time SPA in Python, no JavaScript required.</p>
+  <a class="button cta__button" href="/quick-start/">Start the Quick start &#8594;</a>
+</aside>
+#+end_export
