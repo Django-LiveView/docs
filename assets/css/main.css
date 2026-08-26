@@ -932,6 +932,17 @@ pre {
     .nav-main__link {
         font-size: 0.92rem;
     }
+}
+
+/* Very narrow phones: tighten the nav so all items fit without scrolling */
+@media (width < 375px) {
+    .nav-main__list {
+        gap: 0.55rem;
+    }
+
+    .nav-main__link {
+        font-size: 0.82rem;
+    }
 
     table {
         display: block;
