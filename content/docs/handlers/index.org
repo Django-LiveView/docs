@@ -182,7 +182,7 @@ def example(consumer, content):
     # {
     #     "function": "example",           # Handler name
     #     "form": {...},                   # All form inputs
-    #     "data": {...},                   # Custom data-data-* attributes
+    #     "data": {...},                   # data-* attributes of the element
     #     "lang": "en",                    # Current language
     #     "room": "user_123"              # WebSocket room identifier
     # }
@@ -213,14 +213,14 @@ Handlers are loaded on startup with this output:
 
 ** Using Custom Data Attributes
 
-Sometimes you need to send additional data that isn't part of a form. Use ~data-data-*~ attributes for this.
+Sometimes you need to send additional data that isn't part of a form. Add ~data-*~ attributes to the element that calls the handler: all of them are sent, except ~data-action~ and the ~data-liveview-*~ ones.
 
 Python code:
 
 #+BEGIN_SRC python
 @liveview_handler("delete_comment")
 def delete_comment(consumer, content):
-    # Access custom data from data-data-* attributes
+    # Access custom data from data-* attributes
     comment_id = content["data"]["comment_id"]
     post_id = content["data"]["post_id"]
 
@@ -241,17 +241,17 @@ HTML code:
     <p>This is a comment</p>
     <button
         data-liveview-function="delete_comment"
-        data-data-comment-id="123"
-        data-data-post-id="456"
+        data-comment-id="123"
+        data-post-id="456"
         data-action="click->page#run">
         Delete
     </button>
 </div>
 #+END_SRC
 
-The attribute ~data-data-comment-id~ becomes ~comment_id~ (with underscores, not camelCase) within ~content["data"]~.
+The attribute ~data-comment-id~ becomes ~comment_id~ (with underscores, not camelCase) within ~content["data"]~.
 
-**Important**: Django LiveView automatically converts all attribute names from camelCase to snake_case. HTML attributes with hyphens (~data-data-comment-id~) are first converted by the browser to camelCase (~dataCommentId~), which Django LiveView then converts to snake_case (~comment_id~) in your handlers.
+**Important**: Django LiveView automatically converts all attribute names from camelCase to snake_case. HTML attributes with hyphens (~data-comment-id~) are first converted by the browser to camelCase (~commentId~), which Django LiveView then converts to snake_case (~comment_id~) in your handlers. Do not add an extra ~data-~ prefix: ~data-data-comment-id~ would arrive as ~data_comment_id~.
 
 ** Appending Content to Lists
 
@@ -335,7 +335,7 @@ HTML code:
     <p>You have a new message</p>
     <button
         data-liveview-function="archive_notification"
-        data-data-notification-id="42"
+        data-notification-id="42"
         data-action="click->page#run">
         Dismiss
     </button>
@@ -379,7 +379,7 @@ HTML code:
     <h1>Home Page</h1>
     <button
         data-liveview-function="navigate_to_profile"
-        data-data-user-id="123"
+        data-user-id="123"
         data-action="click->page#run">
         View Profile
     </button>
@@ -437,7 +437,7 @@ HTML code:
 
 <button
     data-liveview-function="show_product_details"
-    data-data-product-id="789"
+    data-product-id="789"
     data-action="click->page#run">
     Show Details
 </button>

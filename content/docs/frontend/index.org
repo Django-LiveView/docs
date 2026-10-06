@@ -43,13 +43,13 @@ All form fields are automatically extracted and sent in ~content["form"]~:
 
 ** Sending Custom Data
 
-Use ~data-data-*~ attributes to send additional data:
+Every ~data-*~ attribute of the element (except ~data-action~ and the ~data-liveview-*~ ones) is sent to the handler in ~content["data"]~:
 
 #+BEGIN_SRC html
 <button
     data-liveview-function="open_modal"
-    data-data-modal-id="123"
-    data-data-user-id="456"
+    data-modal-id="123"
+    data-user-id="456"
     data-action="click->page#run">
     Open Modal
 </button>
@@ -61,8 +61,8 @@ Access in Python:
 @liveview_handler("open_modal")
 def open_modal(consumer, content):
     data = content.get("data", {})
-    modal_id = data.get("modal_id")      # from data-data-modal-id
-    user_id = data.get("user_id")        # from data-data-user-id
+    modal_id = data.get("modal_id")      # from data-modal-id
+    user_id = data.get("user_id")        # from data-user-id
 #+END_SRC
 
 ** Stimulus Actions Reference

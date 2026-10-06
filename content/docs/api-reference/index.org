@@ -50,7 +50,8 @@ Send data to the client(s).
 - ~title~ (str, optional): Update page title
 - ~scroll~ (str, optional): CSS selector to scroll to
 - ~scrollTop~ (bool, optional): If True, scroll to top of page
-- ~script~ (str, optional): JavaScript code to execute
+
+To run JavaScript, include a ~<script>~ tag in ~html~: it is executed after the HTML is inserted, with ~el~ bound to the target (see [[#/docs/advanced/][Script Execution]]).
 
 **Returns:** None
 
@@ -107,7 +108,7 @@ Every handler receives a ~content~ dictionary with the following structure:
 {
     "function": str,      # Handler name that was called
     "form": dict,         # All form inputs {name: value}
-    "data": dict,         # Custom data-data-* attributes
+    "data": dict,         # data-* attributes of the element
     "lang": str,          # Current language (from <html lang="">)
     "room": str           # WebSocket room identifier
 }
@@ -120,7 +121,7 @@ Every handler receives a ~content~ dictionary with the following structure:
 def example(consumer, content):
     function_name = content["function"]           # "example"
     user_input = content["form"]["name"]          # From <input name="name">
-    custom_id = content["data"]["item_id"]        # From data-data-item-id
+    custom_id = content["data"]["item_id"]        # From data-item-id
     language = content["lang"]                    # "en", "es", etc.
     room_id = content["room"]                     # "user_123" or UUID
 #+END_SRC
@@ -311,19 +312,19 @@ Stimulus action binding.
 <form data-action="submit->page#run">
 #+END_SRC
 
-**** ~data-data-*~
+**** ~data-*~
 
-Custom data attributes sent to handler in ~content["data"]~.
+Every other ~data-*~ attribute of the element is sent to the handler in ~content["data"]~, except ~data-action~ and the ~data-liveview-*~ ones. Names are converted to snake_case.
 
 #+BEGIN_SRC html
-<button data-data-user-id="123" data-data-action="delete">
+<button data-user-id="123" data-mode="delete">
 #+END_SRC
 
 Becomes:
 
 #+BEGIN_SRC python
 content["data"]["user_id"]  # "123"
-content["data"]["action"]   # "delete"
+content["data"]["mode"]     # "delete"
 #+END_SRC
 
 **** ~data-liveview-debounce="milliseconds"~
@@ -394,6 +395,24 @@ Map keyboard shortcuts to handlers using JSON.
 - Special keys: ~esc~, ~enter~, ~space~, ~tab~, ~up~, ~down~, ~left~, ~right~, ~home~, ~end~, ~page_up~, ~page_down~
 - Modifiers: ~ctrl~, ~alt~, ~meta~, ~shift~
 - Combinations: ~ctrl+s~, ~alt+f~, ~meta+k~
+
+**** ~data-liveview-permanent~
+
+The browser history never snapshots nor restores the element (or anything inside it), so back/forward does not roll back live widgets: visitor counters, chats, notification areas. See [[#/docs/browser-history/][Browser History]].
+
+#+BEGIN_SRC html
+<section id="notifications" data-liveview-permanent></section>
+#+END_SRC
+
+**** ~data-liveview-replay="false"~
+
+On a ~<script>~ tag: run it when the HTML arrives, but not again when the browser history restores its region.
+
+#+BEGIN_SRC html
+<script data-liveview-replay="false">
+    showConfetti();
+</script>
+#+END_SRC
 
 ** Consumer Scope
 

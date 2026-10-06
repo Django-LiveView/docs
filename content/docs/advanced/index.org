@@ -55,7 +55,7 @@ HTML template:
 <!-- load_trigger.html -->
 <div
     data-liveview-intersect-appear="load_more"
-    data-data-page="{{ next_page }}"
+    data-page="{{ next_page }}"
     data-liveview-intersect-threshold="200">
     <p>Loading more...</p>
 </div>
@@ -85,8 +85,8 @@ Execute functions when elements are first rendered:
 #+BEGIN_SRC html
 <div
     data-liveview-init="init_counter"
-    data-data-counter-id="1"
-    data-data-initial-value="0">
+    data-counter-id="1"
+    data-initial-value="0">
     <span id="counter-1-value"></span>
 </div>
 #+END_SRC
@@ -247,7 +247,7 @@ liveview_registry.add_middleware(logging_middleware)
 
 ** Script Execution
 
-Django LiveView automatically extracts and executes ~<script>~ tags embedded in HTML responses. Scripts are executed after the HTML is rendered in the target element.
+Django LiveView executes the ~<script>~ tags embedded in HTML responses, after the HTML is rendered in the target element. The scripts stay in the page, as they would on a full page load. Only classic scripts are executed (no ~type~, or ~type="text/javascript"~); ~src~ scripts are not loaded.
 
 ⚠️ *Security Warning:* Only execute scripts from trusted sources. Never pass user input directly to scripts without sanitization, as this can lead to XSS (Cross-Site Scripting) vulnerabilities.
 
@@ -360,7 +360,21 @@ Use a fallback to handle both cases:
 
 ~typeof el !== 'undefined'~ is always safe — ~typeof~ never throws a ~ReferenceError~ even for undeclared variables.
 
-If the script is rendered *inside* the target element (the recommended approach), ~el~ is always defined and no fallback is needed.
+When the script is rendered *inside* the target element (the recommended approach), ~el~ is defined whenever Django LiveView runs it: after a render and after a back/forward restore. On a direct page load the browser runs it natively and ~el~ does not exist, so keep the ~typeof el~ check if the same template is also rendered by a Django view.
+
+*** Back and Forward
+
+When the browser history restores a region, its scripts run again, with ~el~ bound to the region and after calling its ~el.__cleanup()~. The restored HTML is the HTML as it was left, so a script must be safe to run again on its own output: bind listeners to the elements of the region, avoid adding elements twice, and remove listeners on ~document~ or ~window~ in ~el.__cleanup~.
+
+To run a script only when the HTML arrives, never on back/forward, mark it:
+
+#+BEGIN_SRC html
+<script data-liveview-replay="false">
+    playSound();
+</script>
+#+END_SRC
+
+See [[#/docs/browser-history/][Browser History]].
 
 *** Use Cases
 
@@ -374,10 +388,11 @@ If the script is rendered *inside* the target element (the recommended approach)
 
 1. ✓ Use ~el~ to scope queries to the fragment, not ~document.querySelector~
 2. ✓ Define ~el.__cleanup~ whenever the script sets up timers, observers, or external listeners
-3. ✓ Use JSON serialization for data: ~import json; json.dumps(data)~
-4. ✓ Keep scripts focused and minimal
-5. ✗ Don't use ~eval()~
-6. ✗ Don't pass unsanitized user input to scripts
+3. ✓ Make scripts safe to run again on their own HTML (back/forward replays them), or use ~data-liveview-replay="false"~
+4. ✓ Use JSON serialization for data: ~import json; json.dumps(data)~
+5. ✓ Keep scripts focused and minimal
+6. ✗ Don't use ~eval()~
+7. ✗ Don't pass unsanitized user input to scripts
 
 ** File Upload Handling
 
@@ -732,31 +747,15 @@ decorated_func = liveview_registry.register(handler_name)(dynamic_handler)
 
 Customize WebSocket connection settings.
 
-*** Custom WebSocket Path
+*** WebSocket Path
 
-Change the default WebSocket URL path:
+The browser always connects to ~/ws/liveview/<room>/~, so the server must expose that path (the default of ~get_liveview_urlpatterns()~). ~get_liveview_path()~ accepts another route, but the client does not read it: changing the path on the server alone breaks the connection.
 
 #+BEGIN_SRC python
-# routing.py
-from liveview.routing import get_liveview_path
+# asgi.py
+from liveview.routing import get_liveview_urlpatterns
 
-websocket_urlpatterns = [
-    get_liveview_path("custom/path/<str:room_name>/"),
-]
-#+END_SRC
-
-Update frontend configuration:
-
-#+BEGIN_SRC html
-<!-- templates/base.html -->
-<script>
-    window.webSocketConfig = {
-        host: '{{ request.get_host }}',
-        protocol: '{% if request.is_secure %}wss{% else %}ws{% endif %}',
-        path: '/custom/path/'  // Custom path
-    };
-</script>
-<script src="{% static 'liveview/liveview.min.js' %}" defer></script>
+URLRouter(get_liveview_urlpatterns())  # ws/liveview/<str:room_name>/
 #+END_SRC
 
 *** Custom Host and Protocol
